@@ -1,0 +1,22 @@
+﻿{
+  "profiles": {
+    "PORTIFOLIO.API (RELEASE)": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": ""
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "https://localhost:7125;http://localhost:5125"
+    },
+    "PORTIFOLIO.API (DEBUG)": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Debug"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "https://localhost:7125;http://localhost:5125"
+    }
+  }
+}

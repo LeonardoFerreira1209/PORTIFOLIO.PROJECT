@@ -1,0 +1,45 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33502.453
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{6F9E25B1-BE57-4AF2-A7EF-DC71C05030CC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{5D656F9B-AAE8-4AFF-A5B4-82F8012FF14C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1 - API", "1 - API", "{E261E5A2-0542-444E-8131-1BCA7D4CE116}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PORTIFOLIO.API", "PORTIFOLIO.API\PORTIFOLIO.API.csproj", "{C53D194C-6C8A-4791-91E8-9B648B96BC03}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2  - APPLICATION", "2  - APPLICATION", "{4CBA7817-C2F2-4DDA-9E63-072111E46BC9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "APPLICATION", "APPLICATION\APPLICATION.csproj", "{76789B98-459B-425D-9608-625895718100}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C53D194C-6C8A-4791-91E8-9B648B96BC03}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C53D194C-6C8A-4791-91E8-9B648B96BC03}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C53D194C-6C8A-4791-91E8-9B648B96BC03}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C53D194C-6C8A-4791-91E8-9B648B96BC03}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76789B98-459B-425D-9608-625895718100}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76789B98-459B-425D-9608-625895718100}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76789B98-459B-425D-9608-625895718100}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76789B98-459B-425D-9608-625895718100}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E261E5A2-0542-444E-8131-1BCA7D4CE116} = {6F9E25B1-BE57-4AF2-A7EF-DC71C05030CC}
+		{C53D194C-6C8A-4791-91E8-9B648B96BC03} = {E261E5A2-0542-444E-8131-1BCA7D4CE116}
+		{4CBA7817-C2F2-4DDA-9E63-072111E46BC9} = {6F9E25B1-BE57-4AF2-A7EF-DC71C05030CC}
+		{76789B98-459B-425D-9608-625895718100} = {4CBA7817-C2F2-4DDA-9E63-072111E46BC9}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FBD6F104-10FA-4982-B816-739916157807}
+	EndGlobalSection
+EndGlobal
