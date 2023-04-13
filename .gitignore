@@ -1,0 +1,8 @@
+﻿################################################################################
+# Este arquivo .gitignore foi criado automaticamente pelo Microsoft(R) Visual Studio.
+################################################################################
+
+/PORTIFOLIO/.vs
+/PORTIFOLIO/APPLICATION/obj
+/PORTIFOLIO/PORTIFOLIO.API/bin/Debug/net7.0
+/PORTIFOLIO/PORTIFOLIO.API/obj
