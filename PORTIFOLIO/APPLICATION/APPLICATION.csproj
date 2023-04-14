@@ -55,6 +55,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="INFRAESTRUTURE\CONTEXTO\CONFIGUREDATATYPES\" />
     <Folder Include="MIGRATIONS\" />
   </ItemGroup>
 

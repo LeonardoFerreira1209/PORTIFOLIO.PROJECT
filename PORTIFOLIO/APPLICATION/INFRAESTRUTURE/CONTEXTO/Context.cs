@@ -1,7 +1,5 @@
-﻿using APPLICATION.DOMAIN.ENTITY.PLAN;
-using APPLICATION.DOMAIN.ENTITY.ROLE;
+﻿using APPLICATION.DOMAIN.ENTITY.ROLE;
 using APPLICATION.DOMAIN.ENTITY.USER;
-using APPLICATION.INFRAESTRUTURE.CONTEXTO.CONFIGUREDATATYPES.PLAN;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,16 +21,6 @@ public class Context : IdentityDbContext<UserEntity, RoleEntity, Guid>
     /// <param name="builder"></param>
     protected override void OnModelCreating(ModelBuilder builder)
     {
-        // Configutrations
-        builder
-            // Plan
-            .ApplyConfiguration(new PlanTypesConfiguration());
-
         base.OnModelCreating(builder);
     }
-
-    /// <summary>
-    /// Sets de tabelas no banco.
-    /// </summary>
-    public DbSet<PlanEntity> Plans { get; set; }
 }

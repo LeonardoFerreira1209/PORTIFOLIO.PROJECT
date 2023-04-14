@@ -1,14 +1,12 @@
 ﻿using APPLICATION.APPLICATION.CONFIGURATIONS;
 using APPLICATION.DOMAIN.CONTRACTS.FACADE;
 using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.USER;
-using APPLICATION.DOMAIN.CONTRACTS.SERVICES.PLAN;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.TOKEN;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.USER;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION.SERVICEBUS.MESSAGE;
 using APPLICATION.DOMAIN.DTOS.REQUEST.USER;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.FILE;
-using APPLICATION.DOMAIN.DTOS.RESPONSE.PLAN;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.USER.ROLE;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
 using APPLICATION.DOMAIN.ENTITY.USER;
@@ -38,7 +36,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         private readonly IOptions<AppSettings> _appsettings;
         private readonly ITokenService _tokenService;
         private readonly IUtilFacade _utilFacade;
-        private readonly IPlanService _planService;
 
         /// <summary>
         /// Construtor.
@@ -47,14 +44,12 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         /// <param name="appsettings"></param>
         /// <param name="tokenService"></param>
         /// <param name="utilFacade"></param>
-        /// <param name="planService"></param>
-        public UserService(IUserRepository userRepository, IOptions<AppSettings> appsettings, ITokenService tokenService, IUtilFacade utilFacade, IPlanService planService)
+        public UserService(IUserRepository userRepository, IOptions<AppSettings> appsettings, ITokenService tokenService, IUtilFacade utilFacade)
         {
             _userRepository = userRepository;
             _appsettings = appsettings;
             _tokenService = tokenService;
             _utilFacade = utilFacade;
-            _planService = planService;
         }
 
         /// <summary>
@@ -772,15 +767,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
 
             // Responsible user is not null use he, is null use user created Id.
             user.CreatedUserId = responsibleUser is not null ? responsibleUser.Value : user.Id;
-
-            // Get plan by Id
-            var apiResponse = await _planService.GetAsync(user.PlanId.Value);
-
-            // Convert object to PlanResponse class
-            var planResponse = (PlanResponse)apiResponse.Dados;
-
-            // Add role plan in user.
-            await _userRepository.AddToUserRoleAsync(user, planResponse.Role.Name);
 
             // Update user with created Id seted.
             await _userRepository.UpdateUserAsync(user);

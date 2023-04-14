@@ -1,20 +1,16 @@
 ﻿using APPLICATION.APPLICATION.CONFIGURATIONS.APPLICATIONINSIGHTS;
 using APPLICATION.APPLICATION.CONFIGURATIONS.SWAGGER;
 using APPLICATION.APPLICATION.SERVICES.FILE;
-using APPLICATION.APPLICATION.SERVICES.PLAN;
 using APPLICATION.APPLICATION.SERVICES.TOKEN;
 using APPLICATION.APPLICATION.SERVICES.USER;
 using APPLICATION.DOMAIN.CONTRACTS.API;
 using APPLICATION.DOMAIN.CONTRACTS.CONFIGURATIONS;
 using APPLICATION.DOMAIN.CONTRACTS.CONFIGURATIONS.APPLICATIONINSIGHTS;
 using APPLICATION.DOMAIN.CONTRACTS.FACADE;
-using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.PLAN;
 using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.USER;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.FILE;
-using APPLICATION.DOMAIN.CONTRACTS.SERVICES.PLAN;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.TOKEN;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.USER;
-using APPLICATION.DOMAIN.ENTITY.PLAN;
 using APPLICATION.DOMAIN.ENTITY.ROLE;
 using APPLICATION.DOMAIN.ENTITY.USER;
 using APPLICATION.DOMAIN.UTILS.GLOBAL;
@@ -26,7 +22,6 @@ using APPLICATION.INFRAESTRUTURE.JOBS.FACTORY.HANGFIRE;
 using APPLICATION.INFRAESTRUTURE.JOBS.INTERFACES.BASE;
 using APPLICATION.INFRAESTRUTURE.JOBS.INTERFACES.RECURRENT;
 using APPLICATION.INFRAESTRUTURE.JOBS.RECURRENT;
-using APPLICATION.INFRAESTRUTURE.REPOSITORY.PLAN;
 using APPLICATION.INFRAESTRUTURE.REPOSITORY.USER;
 using APPLICATION.INFRAESTRUTURE.SERVICEBUS.PROVIDER.USER;
 using APPLICATION.INFRAESTRUTURE.SERVICEBUS.SUBSCRIBER.USER;
@@ -410,12 +405,10 @@ public static class ExtensionsConfigurations
             .AddTransient<IRoleService, RoleService>()
             .AddTransient<ITokenService, TokenService>()
             .AddTransient<IFileService, FileService>()
-            .AddTransient<IPlanService, PlanService>()
             // Facades
             .AddSingleton<IUtilFacade, UtilFacade>()
             // Repository
             .AddScoped<IUserRepository, UserRepository>()
-            .AddScoped<IPlanRepository, PlanRepository>()
             // Infra
             .AddSingleton<IUserEmailServiceBusSenderProvider, UserEmailServiceBusSenderProvider>()
             .AddSingleton<IUserEmailServiceBusReceiverProvider, UserEmailServiceBusReceiverProvider>();
@@ -681,25 +674,6 @@ public static class ExtensionsConfigurations
 
                 // Add role to user.
                 await userManager.AddToRoleAsync(user, role.Name);
-
-                // Set plan.
-                var plan = new PlanEntity
-                {
-                    PlanName = "Básico",
-                    PlanCost = 10.00,
-                    PlanDescription = "Plano padrão para uso pessoal.",
-                    RoleId = role.Id,
-                    Status = Status.Active,
-                    Created = DateTime.Now,
-                    CreatedUserId = user.Id,
-                    TotalMonthsPlan = 12
-                };
-
-                // Add plan.
-                await context.Plans.AddAsync(plan);
-
-                // Set plan in user.
-                user.PlanId = plan.Id;
 
                 // Update user.
                 await userManager.UpdateAsync(user);

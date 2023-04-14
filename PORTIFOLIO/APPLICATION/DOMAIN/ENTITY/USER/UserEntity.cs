@@ -1,5 +1,4 @@
-﻿using APPLICATION.DOMAIN.ENTITY.PLAN;
-using APPLICATION.ENUMS;
+﻿using APPLICATION.ENUMS;
 using Microsoft.AspNetCore.Identity;
 
 namespace APPLICATION.DOMAIN.ENTITY.USER;
@@ -45,16 +44,6 @@ public class UserEntity : IdentityUser<Guid>
     /// CPF.
     /// </summary>
     public string CPF { get; set; }
-
-    /// <summary>
-    /// Plano vinculado ao usuário.
-    /// </summary>
-    public Guid? PlanId { get; set; }
-
-    /// <summary>
-    /// Dados do Plano
-    /// </summary>
-    public virtual PlanEntity Plan { get; set; }
 
     /// <summary>
     /// Data de criação

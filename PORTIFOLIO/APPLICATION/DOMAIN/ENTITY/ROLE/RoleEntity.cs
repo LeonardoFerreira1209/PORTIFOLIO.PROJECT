@@ -1,5 +1,4 @@
-﻿using APPLICATION.DOMAIN.ENTITY.PLAN;
-using APPLICATION.ENUMS;
+﻿using APPLICATION.ENUMS;
 using Microsoft.AspNetCore.Identity;
 
 namespace APPLICATION.DOMAIN.ENTITY.ROLE;
@@ -30,9 +29,4 @@ public class RoleEntity : IdentityRole<Guid>
     /// Status
     /// </summary>
     public Status Status { get; set; }
-
-    /// <summary>
-    /// Vinculo com plano.
-    /// </summary>
-    public virtual ICollection<PlanEntity> Plans { get; set; }
 }

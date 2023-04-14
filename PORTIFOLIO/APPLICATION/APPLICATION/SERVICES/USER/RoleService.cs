@@ -80,7 +80,7 @@ public class RoleService : IRoleService
             Log.Information($"[LOG INFORMATION] - Recuperando todas as roles\n");
 
             // Get roles.
-            var roles = await _roleManager.Roles.Include(role => role.Plans).ThenInclude(plan => plan.Users).ToListAsync();
+            var roles = await _roleManager.Roles.ToListAsync();
 
             // Response success.
             return new ApiResponse<object>(true, StatusCodes.SuccessOK, roles, new List<DadosNotificacao> { new DadosNotificacao("Roles recuperadas com sucesso.") });

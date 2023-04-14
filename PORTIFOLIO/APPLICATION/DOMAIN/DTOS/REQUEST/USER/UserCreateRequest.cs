@@ -68,11 +68,5 @@ namespace APPLICATION.DOMAIN.DTOS.REQUEST.USER
         /// </summary>
         [DataType(DataType.PhoneNumber)]
         public string PhoneNumber { get; set; }
-
-        /// <summary>
-        /// Plano vinculado com o usuário.
-        /// </summary>
-        public Guid PlanId { get; set; }
-
     }
 }

@@ -1,5 +1,4 @@
-﻿using APPLICATION.DOMAIN.DTOS.RESPONSE.PLAN;
-using APPLICATION.ENUMS;
+﻿using APPLICATION.ENUMS;
 
 namespace APPLICATION.DOMAIN.DTOS.RESPONSE.USER;
 
@@ -59,16 +58,6 @@ public class UserResponse
     /// CPF.
     /// </summary>
     public string CPF { get; set; }
-
-    /// <summary>
-    /// Identificador do plano.
-    /// </summary>
-    public Guid? PlanId { get; set; }
-
-    /// <summary>
-    /// Dados plano.
-    /// </summary>
-    public PlanResponse Plan { get; set; }
 
     /// <summary>
     /// Data de criação
