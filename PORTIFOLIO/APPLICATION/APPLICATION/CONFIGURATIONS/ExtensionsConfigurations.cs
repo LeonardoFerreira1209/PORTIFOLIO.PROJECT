@@ -632,9 +632,6 @@ public static class ExtensionsConfigurations
                 // Create user.
                 await userManager.CreateAsync(user);
 
-                // Set user id in user.
-                user.CreatedUserId = user.Id;
-
                 // Update user.
                 await userManager.UpdateAsync(user);
 
@@ -645,7 +642,6 @@ public static class ExtensionsConfigurations
                 var role = new RoleEntity
                 {
                     Name = "administrator",
-                    CreatedUserId = user.Id,
                     Status = Status.Active,
                     Created = DateTime.Now
                 };

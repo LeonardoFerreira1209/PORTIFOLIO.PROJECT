@@ -1,9 +1,10 @@
-﻿using APPLICATION.ENUMS;
+﻿using APPLICATION.DOMAIN.CONTRACTS.ENTITY;
+using APPLICATION.ENUMS;
 using Microsoft.AspNetCore.Identity;
 
 namespace APPLICATION.DOMAIN.ENTITY.ROLE;
 
-public class RoleEntity : IdentityRole<Guid>
+public class RoleEntity : IdentityRole<Guid>, IEntity
 {
     /// <summary>
     /// Data de criação
@@ -14,16 +15,6 @@ public class RoleEntity : IdentityRole<Guid>
     /// Data de atualização
     /// </summary>
     public DateTime? Updated { get; set; }
-
-    /// <summary>
-    /// Usuário de cadastro.
-    /// </summary>
-    public Guid CreatedUserId { get; set; }
-
-    /// <summary>
-    /// Usuário que atualizou.
-    /// </summary>
-    public Guid? UpdatedUserId { get; set; }
 
     /// <summary>
     /// Status

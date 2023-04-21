@@ -2,7 +2,6 @@
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION;
 using APPLICATION.DOMAIN.ENTITY.ROLE;
 using APPLICATION.DOMAIN.ENTITY.USER;
-using APPLICATION.INFRAESTRUTURE.REPOSITORY.BASE;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -12,14 +11,13 @@ using System.Security.Claims;
 
 namespace APPLICATION.INFRAESTRUTURE.REPOSITORY.USER;
 
-[ExcludeFromCodeCoverage]
-public class UserRepository : BaseRepository, IUserRepository
+public class UserRepository : GenericEntityCoreRepository<UserEntity>, IUserRepository 
 {
     private readonly SignInManager<UserEntity> _signInManager;
     private readonly UserManager<UserEntity> _userManager;
     private readonly RoleManager<RoleEntity> _roleManager;
 
-    public UserRepository(SignInManager<UserEntity> signInManager, UserManager<UserEntity> userManager, RoleManager<RoleEntity> roleManager, IOptions<AppSettings> appssetings) : base(appssetings)
+    public UserRepository(SignInManager<UserEntity> signInManager, UserManager<UserEntity> userManager, RoleManager<RoleEntity> roleManager, IOptions<AppSettings> appssetings)
     {
         _signInManager = signInManager;
         _userManager = userManager;
