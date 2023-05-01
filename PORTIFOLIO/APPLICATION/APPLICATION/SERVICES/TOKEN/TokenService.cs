@@ -16,17 +16,13 @@ namespace APPLICATION.APPLICATION.SERVICES.TOKEN
     public class TokenService : ITokenService
     {
         private readonly UserManager<UserEntity> _userManager;
-
         private readonly RoleManager<RoleEntity> _roleManager;
-
         private readonly IOptions<AppSettings> _appsettings;
 
         public TokenService(UserManager<UserEntity> userManager, RoleManager<RoleEntity> roleManager, IOptions<AppSettings> appsettings)
         {
             _userManager = userManager;
-
             _roleManager = roleManager;
-
             _appsettings = appsettings;
         }
 
@@ -45,7 +41,8 @@ namespace APPLICATION.APPLICATION.SERVICES.TOKEN
             var userEntity = await User(username);
 
             // Valid user.
-            if (userEntity is null) return (null, new List<DadosNotificacao>() { new DadosNotificacao("Usuário não foi encontrado.") });
+            if (userEntity is null) 
+                return (null, new List<DadosNotificacao>() { new DadosNotificacao("Usuário não foi encontrado.") });
 
             // Return user roles.
             var roles = await Roles(userEntity);
@@ -58,14 +55,14 @@ namespace APPLICATION.APPLICATION.SERVICES.TOKEN
             // Create de token and return.
             return await Task.FromResult(new TokenJwtBuilder()
                .AddUsername(username)
-               .AddSecurityKey(JwtSecurityKey.Create(_appsettings.Value.Auth.SecurityKey))
-               .AddSubject("HYPER.IO PROJECTS L.T.D.A")
-               .AddIssuer(_appsettings.Value.Auth.ValidIssuer)
-               .AddAudience(_appsettings.Value.Auth.ValidAudience)
-               .AddExpiry(_appsettings.Value.Auth.ExpiresIn)
-               .AddRoles(roles.ToList())
-               .AddClaims(claims.ToList())
-               .Builder(userEntity));
+                .AddSecurityKey(JwtSecurityKey.Create(_appsettings.Value.Auth.SecurityKey))
+                    .AddSubject("HYPER.IO PROJECTS L.T.D.A")
+                        .AddIssuer(_appsettings.Value.Auth.ValidIssuer)
+                            .AddAudience(_appsettings.Value.Auth.ValidAudience)
+                                .AddExpiry(_appsettings.Value.Auth.ExpiresIn)
+                                    .AddRoles(roles.ToList())
+                                        .AddClaims(claims.ToList())
+                                            .Builder(userEntity));
         }
 
         /// <summary>
@@ -73,7 +70,8 @@ namespace APPLICATION.APPLICATION.SERVICES.TOKEN
         /// </summary>
         /// <param name="username"></param>
         /// <returns></returns>
-        private async Task<UserEntity> User(string username) => await _userManager.Users.FirstOrDefaultAsync(u => u.UserName.Equals(username));
+        private async Task<UserEntity> User(string username) 
+            => await _userManager.Users.FirstOrDefaultAsync(u => u.UserName.Equals(username));
 
         /// <summary>
         /// Return de Roles.

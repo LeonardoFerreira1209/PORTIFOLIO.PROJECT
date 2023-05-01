@@ -1,8 +1,8 @@
-﻿using APPLICATION.DOMAIN.CONTRACTS.ENTITY;
+﻿using APPLICATION.DOMAIN.ENTITY.ENTITY;
 
 namespace APPLICATION.DOMAIN.CONTRACTS.REPOSITORY;
 
-public interface IGenericRepository<T> where T : class
+public interface IGenericRepository<T> where T : Entity 
 {
     /// <summary>
     /// Criar.
@@ -12,6 +12,13 @@ public interface IGenericRepository<T> where T : class
     Task<T> CreateAsync(T entity);
 
     /// <summary>
+    /// Criar vários.
+    /// </summary>
+    /// <param name="entities"></param>
+    /// <returns></returns>
+    Task<IList<T>> BulkInsertAsync(IList<T> entities);
+
+    /// <summary>
     /// Atualizar.
     /// </summary>
     /// <param name="entity"></param>
@@ -19,11 +26,18 @@ public interface IGenericRepository<T> where T : class
     Task<T> UpdateAsync(T entity);
 
     /// <summary>
-    /// Deletar.
+    /// Atualizar vários.
     /// </summary>
-    /// <param name="entity"></param>
+    /// <param name="entities"></param>
     /// <returns></returns>
-    Task<T> DeleteAsync(T entity);
+    Task<IList<T>> BulkUpdateAsync(IList<T> entities);
+
+    /// <summary>
+    /// Deletar vários.
+    /// </summary>
+    /// <param name="entities"></param>
+    /// <returns></returns>
+    Task BulkDeleteAsync(IList<T> entities);
 
     /// <summary>
     /// Recuperar por id.
@@ -33,11 +47,10 @@ public interface IGenericRepository<T> where T : class
     Task<T> GetByIdAsync(Guid id);
 
     /// <summary>
-    /// Recuperar por nome.
+    /// Recuperar todos.
     /// </summary>
-    /// <param name="name"></param>
     /// <returns></returns>
-    Task<T> GetByNameAsync(string name);
+    public Task<IList<T>> GetAllAsync();
 
     /// <summary>
     /// Salvar mudanças.

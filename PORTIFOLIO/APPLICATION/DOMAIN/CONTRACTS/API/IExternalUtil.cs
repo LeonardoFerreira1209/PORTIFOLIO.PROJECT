@@ -9,7 +9,6 @@ public interface IExternalUtil
     /// </summary>
     /// <param name="stream"></param>
     /// <returns></returns>
-    [Multipart]
-    [Post("/api/File/send/blobstorage")]
+    [Multipart][Post("/api/File/send/blobstorage")]
     Task<HttpResponseMessage> SendFileAsync([AliasAs("file")] StreamPart stream);
 }

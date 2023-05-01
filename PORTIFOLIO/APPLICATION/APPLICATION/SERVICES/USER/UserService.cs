@@ -12,7 +12,6 @@ using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
 using APPLICATION.DOMAIN.ENTITY.USER;
 using APPLICATION.DOMAIN.UTILS.Extensions;
 using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
-using APPLICATION.DOMAIN.UTILS.GLOBAL;
 using APPLICATION.DOMAIN.VALIDATORS;
 using APPLICATION.INFRAESTRUTURE.JOBS.QUEUED;
 using Microsoft.AspNetCore.Http;
@@ -68,17 +67,17 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                 // Validate de userRequest.
                 var validation = await new AuthenticationValidator().ValidateAsync(loginRequest); if (validation.IsValid is false) return validation.CarregarErrosValidator();
 
-                Log.Information($"[LOG INFORMATION] - Request validado com sucesso.\n");
-
                 Log.Information($"[LOG INFORMATION] - Recuperando usuário {JsonConvert.SerializeObject(loginRequest)}.\n");
 
                 // Get user by username.
                 var userEntity = await _userRepository.GetWithUsernameAsync(loginRequest.Username);
 
+                // api notifications;
+                var apiNotifications = new List<DadosNotificacao>();
+
                 // User is not null.
                 if (userEntity is not null)
                 {
-
                     // sigin user wirh username & password.
                     var signInResult = await _userRepository.PasswordSignInAsync(userEntity, loginRequest.Password, true, true);
 
@@ -90,29 +89,25 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                         {
                             Log.Information($"[LOG INFORMATION] - Falha ao recuperar usuário, está bloqueado.\n");
 
-                            // Response Locked.
-                            return new ApiResponse<object>(signInResult.Succeeded, StatusCodes.ErrorLocked, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário está bloqueado. Caso não desbloqueie em alguns minutos entre em contato com o suporte.") });
+                            apiNotifications.Add(
+                                    new DadosNotificacao((int)StatusCodes.ErrorLocked, "Usuário está bloqueado. Caso não desbloqueie em alguns minutos entre em contato com o suporte.")
+                                );
                         }
                         else if (signInResult.IsNotAllowed) // not allowed user.
                         {
                             Log.Information($"[LOG INFORMATION] - Falha ao recuperar usuário, não está confirmado.\n");
 
-                            // Response notAllowed.
-                            return new ApiResponse<object>(signInResult.Succeeded, StatusCodes.ErrorUnauthorized, null, new List<DadosNotificacao> { new DadosNotificacao("Email do usuário não está confirmado.") });
+                            apiNotifications.Add(
+                                    new DadosNotificacao((int)StatusCodes.ErrorUnauthorized, "Email do usuário não está confirmado.")
+                                );
                         }
                         else if (signInResult.RequiresTwoFactor) // requires two factor user.
                         {
                             Log.Information($"[LOG INFORMATION] - Falha ao recuperar usuário, requer verificação de dois fatores.\n");
 
-                            // Response twoFactor.
-                            return new ApiResponse<object>(signInResult.Succeeded, StatusCodes.ErrorUnauthorized, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário necessita de verificação de dois fatores.") });
-                        }
-                        else // incorrects params user.
-                        {
-                            Log.Information($"[LOG INFORMATION] - Falha ao recuperar usuário, dados incorretos.\n");
-
-                            // Response error unathorized.
-                            return new ApiResponse<object>(signInResult.Succeeded, StatusCodes.ErrorUnauthorized, null, new List<DadosNotificacao> { new DadosNotificacao("Os dados do usuário estão inválidos ou usuário não existe.") });
+                            apiNotifications.Add(
+                                    new DadosNotificacao((int)StatusCodes.ErrorUnauthorized, "Usuário necessita de verificação de dois fatores.")
+                                );
                         }
                     }
                 }
@@ -120,9 +115,14 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                 {
                     Log.Information($"[LOG INFORMATION] - Falha ao recuperar usuário, dados incorretos.\n");
 
-                    // Response error unathorized.
-                    return new ApiResponse<object>(false, StatusCodes.ErrorUnauthorized, null, new List<DadosNotificacao> { new DadosNotificacao("Os dados do usuário estão inválidos ou usuário não existe.") });
+                    apiNotifications.Add(
+                                new DadosNotificacao((int)StatusCodes.ErrorUnauthorized, "Os dados do usuário estão inválidos ou usuário não existe.")
+                            );
                 }
+
+                // Has errors.
+                if(apiNotifications.Any())
+                    return new ApiResponse<object>(false, StatusCodes.ErrorUnauthorized, loginRequest, apiNotifications);
 
                 Log.Information($"[LOG INFORMATION] - Gerando token.\n");
 
@@ -130,7 +130,8 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                 var (tokenJWT, messages) = await _tokenService.CreateJsonWebToken(loginRequest.Username);
 
                 // Token is null.
-                if (tokenJWT is null) return new ApiResponse<object>(false, StatusCodes.ErrorBadRequest, null, messages);
+                if (tokenJWT is null)
+                    return new ApiResponse<object>(false, StatusCodes.ErrorBadRequest, null, messages);
 
                 // Save user token.
                 await SetAuthenticationTokenAsync(userEntity, tokenJWT.Value);
@@ -161,7 +162,8 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                 Log.Information($"[LOG INFORMATION] - Recuperando usuário com Id {userId}.\n");
 
                 // get user by id.
-                var userEntity = await _userRepository.GetFullAsync(userId);
+                var userEntity
+                    = await _userRepository.GetAsync(userId);
 
                 // is not null.
                 if (userEntity is not null)
@@ -374,7 +376,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                         var fileResponse = (FileResponse)response.Dados;
 
                         // set image uri in entity.
-                        userEntity.ImageUri = fileResponse.FileUri;
+                        //userEntity.ImageUri = fileResponse.FileUri;
 
                         // update user.
                         await _userRepository.UpdateUserAsync(userEntity);
@@ -382,7 +384,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                         Log.Information($"[LOG INFORMATION] - Imagem do usuário atualizado com sucesso.\n");
 
                         // Response success.
-                        return new ApiResponse<object>(true, StatusCodes.SuccessOK, new FileResponse { FileUri = userEntity.ImageUri }, new List<DadosNotificacao> { new DadosNotificacao("Imagem do usuário atualizado com sucesso.") });
+                        return new ApiResponse<object>(true, StatusCodes.SuccessOK, new FileResponse { FileUri = null }, new List<DadosNotificacao> { new DadosNotificacao("Imagem do usuário atualizado com sucesso.") });
                     }
                     else
                     {
@@ -481,7 +483,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                 var userEntity = await _userRepository.GetWithUsernameAsync(username);
 
                 // Is not null.
-                if(userEntity is not null)
+                if (userEntity is not null)
                 {
                     Log.Information($"[LOG INFORMATION] - Adicionando a claim ({claimRequest.Type}/{claimRequest.Value}) no usuário.\n");
 
@@ -593,7 +595,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                 var userEntity = await _userRepository.GetWithUsernameAsync(username);
 
                 // User is not null.
-                if(userEntity is not null)
+                if (userEntity is not null)
                 {
                     Log.Information($"[LOG INFORMATION] - Adicionando a role ({roleName}) ao usuário.\n");
 
@@ -648,7 +650,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                 var userEntity = await _userRepository.GetAsync(userId);
 
                 // is not null.
-                if(userEntity is not null) 
+                if (userEntity is not null)
                 {
                     // Get roles.
                     var userRoles = await _userRepository.GetUserRolesAsync(userEntity);
@@ -709,7 +711,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                 var userEntity = await _userRepository.GetWithUsernameAsync(username);
 
                 // Is not null.
-                if(userEntity is not null)
+                if (userEntity is not null)
                 {
                     Log.Information($"[LOG INFORMATION] - Removendo role ({roleName}) do usuário.\n");
 
@@ -761,12 +763,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
 
             // Create User
             var identityResult = await _userRepository.CreateUserAsync(user, password);
-
-            // Logged user
-            var responsibleUser = GlobalData.GlobalUser?.Id;
-
-            // Responsible user is not null use he, is null use user created Id.
-            user.CreatedUserId = responsibleUser is not null ? responsibleUser.Value : user.Id;
 
             // Update user with created Id seted.
             await _userRepository.UpdateUserAsync(user);

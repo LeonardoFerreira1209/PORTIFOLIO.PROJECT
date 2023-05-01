@@ -47,13 +47,6 @@ public interface IUserRepository
     Task<UserEntity> GetWithUsernameAsync(string username);
 
     /// <summary>
-    /// Método responsável por recuperar um usuário completo.
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <returns></returns>
-    Task<UserEntity> GetFullAsync(Guid userId);
-
-    /// <summary>
     /// Método responsável por setar o nome de usuário.
     /// </summary>
     /// <param name="userEntity"></param>

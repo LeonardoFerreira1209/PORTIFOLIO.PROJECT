@@ -1,10 +1,9 @@
-﻿using APPLICATION.DOMAIN.CONTRACTS.ENTITY;
-using APPLICATION.ENUMS;
+﻿using APPLICATION.ENUMS;
 using Microsoft.AspNetCore.Identity;
 
 namespace APPLICATION.DOMAIN.ENTITY.ROLE;
 
-public class RoleEntity : IdentityRole<Guid>, IEntity
+public class RoleEntity : IdentityRole<Guid>
 {
     /// <summary>
     /// Data de criação

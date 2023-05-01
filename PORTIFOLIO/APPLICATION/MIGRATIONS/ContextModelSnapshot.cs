@@ -38,9 +38,6 @@ namespace APPLICATION.Migrations
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("CreatedUserId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("Name")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -54,9 +51,6 @@ namespace APPLICATION.Migrations
 
                     b.Property<DateTime?>("Updated")
                         .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("UpdatedUserId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
@@ -80,9 +74,6 @@ namespace APPLICATION.Migrations
                     b.Property<int>("Age")
                         .HasColumnType("int");
 
-                    b.Property<string>("BirthDay")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("CPF")
                         .HasColumnType("nvarchar(max)");
 
@@ -92,9 +83,6 @@ namespace APPLICATION.Migrations
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
-
-                    b.Property<Guid>("CreatedUserId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -108,9 +96,6 @@ namespace APPLICATION.Migrations
 
                     b.Property<int>("Gender")
                         .HasColumnType("int");
-
-                    b.Property<string>("ImageUri")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LastName")
                         .HasColumnType("nvarchar(max)");
@@ -152,9 +137,6 @@ namespace APPLICATION.Migrations
 
                     b.Property<DateTime?>("Updated")
                         .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("UpdatedUserId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)

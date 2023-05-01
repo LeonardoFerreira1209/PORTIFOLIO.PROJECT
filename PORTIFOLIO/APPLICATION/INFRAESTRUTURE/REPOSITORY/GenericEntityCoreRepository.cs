@@ -1,14 +1,22 @@
 ﻿using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY;
+using APPLICATION.DOMAIN.ENTITY.ENTITY;
 using APPLICATION.INFRAESTRUTURE.CONTEXTO;
+using EFCore.BulkExtensions;
+using Microsoft.EntityFrameworkCore;
 
 namespace APPLICATION.INFRAESTRUTURE.REPOSITORY
 {
-    public abstract class GenericEntityCoreRepository<T> : IGenerictEntityCoreRepository<T> where T : class
+    public class GenericEntityCoreRepository<T> : IGenerictEntityCoreRepository<T> where T : Entity
     {
+        private readonly Context _context;
+
         /// <summary>
         /// Ctor
         /// </summary>
-        protected GenericEntityCoreRepository() { }
+        public GenericEntityCoreRepository(Context context)
+        {
+            _context = context;
+        }
 
         /// <summary>
         /// Criar.
@@ -17,11 +25,21 @@ namespace APPLICATION.INFRAESTRUTURE.REPOSITORY
         /// <returns></returns>
         public async Task<T> CreateAsync(T entity)
         {
-            using (var context = new Context())
-
-            await context.Set<T>().AddAsync(entity);
+            await _context.Set<T>().AddAsync(entity);
 
             return entity;
+        }
+
+        /// <summary>
+        /// Criar vários.
+        /// </summary>
+        /// <param name="entities"></param>
+        /// <returns></returns>
+        public async Task<IList<T>> BulkInsertAsync(IList<T> entities)
+        {
+            await _context.BulkInsertAsync(entities);
+
+            return entities;
         }
 
         /// <summary>
@@ -29,103 +47,89 @@ namespace APPLICATION.INFRAESTRUTURE.REPOSITORY
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        public Task<T> UpdateAsync(T entity)
+        public async Task<T> UpdateAsync(T entity)
         {
-            throw new NotImplementedException();
+            await _context.Set<T>().BatchUpdateAsync(entity);
+
+            return entity;
+        }
+
+        /// <summary>
+        /// Atualizar vários.
+        /// </summary>
+        /// <param name="entities"></param>
+        /// <returns></returns>
+        public async Task<IList<T>> BulkUpdateAsync(IList<T> entities)
+        {
+            await _context.BulkUpdateAsync(entities);
+
+            return entities;
         }
 
         /// <summary>
         /// Deletar.
         /// </summary>
-        /// <param name="entity"></param>
+        /// <param name="entities"></param>
         /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        public Task<T> DeleteAsync(T entity)
-        {
-            throw new NotImplementedException();
-        }
+        public async Task BulkDeleteAsync(IList<T> entities)
+            => await _context.BulkDeleteAsync(entities);
 
         /// <summary>
         /// Recuperar por Id.
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
         public Task<T> GetByIdAsync(Guid id)
-        {
-            throw new NotImplementedException();
-        }
+            => _context.Set<T>().FirstOrDefaultAsync(entity => entity.Id.Equals(id));
 
         /// <summary>
-        /// Recuperar por nome.
+        /// Recuperar todos.
         /// </summary>
-        /// <param name="name"></param>
         /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        public Task<T> GetByNameAsync(string name)
-        {
-            throw new NotImplementedException();
-        }
+        public async Task<IList<T>> GetAllAsync()
+            => await _context.Set<T>().ToListAsync();
 
         /// <summary>
         /// Começar uma transação no banco de dados.
         /// </summary>
         /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        public Task BeginTransactAsync()
-        {
-            throw new NotImplementedException();
-        }
+        public async Task BeginTransactAsync()
+            => await _context.Database.BeginTransactionAsync();
 
         /// <summary>
         /// Fechar uma conexão com o banco de dados.
         /// </summary>
         /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        public Task CloseConnectionAsync()
-        {
-            throw new NotImplementedException();
-        }
+        public async Task CloseConnectionAsync()
+            => await _context.Database.CloseConnectionAsync();
 
         /// <summary>
         /// Commitar e finalizar uma transação no banco de dados.
         /// </summary>
         /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        public Task CommitTransactAsync()
-        {
-            throw new NotImplementedException();
-        }
+        public async Task CommitTransactAsync()
+            => await _context.Database.CommitTransactionAsync();
 
         /// <summary>
         /// Abrir uma conexão com o banco de dados.
         /// </summary>
         /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        public Task OpenConnectAsync()
-        {
-            throw new NotImplementedException();
-        }
+        public async Task OpenConnectAsync()
+            => await _context.Database.OpenConnectionAsync();
 
         /// <summary>
         /// Resetar uma transação.
         /// </summary>
         /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        public Task RollBackTransactionAsync()
-        {
-            throw new NotImplementedException();
-        }
+        public async Task RollBackTransactionAsync()
+            => await _context.Database.RollbackTransactionAsync();
 
         /// <summary>
         /// Salvar mudanças.
         /// </summary>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public Task SaveChangesAsync()
-        {
-            throw new NotImplementedException();
-        }
+        public async Task SaveChangesAsync()
+            => await _context.SaveChangesAsync();
     }
 }

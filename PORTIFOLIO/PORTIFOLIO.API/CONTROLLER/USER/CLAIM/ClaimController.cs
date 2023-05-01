@@ -20,7 +20,7 @@ namespace PORTIFOLIO.API.CONTROLLER.USER.CLAIM
     {
         private readonly IUserService _userService;
 
-        public ClaimController(IUserService userService) { _userService = userService; }
+        protected ClaimController(IUserService userService) { _userService = userService; }
 
         /// <summary>
         /// Método responsável por adicionar uma claim no usuário
@@ -39,7 +39,8 @@ namespace PORTIFOLIO.API.CONTROLLER.USER.CLAIM
             using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(claimRequest)))
             using (LogContext.PushProperty("Metodo", "AddClaim"))
             {
-                return await Tracker.Time(() => _userService.AddClaimAsync(username, claimRequest), "Adicionar claim no usuário.");
+                return await Tracker.Time(() 
+                    => _userService.AddClaimAsync(username, claimRequest), "Adicionar claim no usuário.");
             }
         }
 
@@ -60,7 +61,8 @@ namespace PORTIFOLIO.API.CONTROLLER.USER.CLAIM
             using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(claimRequest)))
             using (LogContext.PushProperty("Metodo", "RemoveClaim"))
             {
-                return await Tracker.Time(() => _userService.RemoveClaimAsync(username, claimRequest), "Remover claim do usuário.");
+                return await Tracker.Time(() 
+                    => _userService.RemoveClaimAsync(username, claimRequest), "Remover claim do usuário.");
             }
         }
     }

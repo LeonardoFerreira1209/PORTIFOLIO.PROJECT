@@ -10,7 +10,10 @@ namespace APPLICATION.INFRAESTRUTURE.CONTEXTO;
 /// </summary>
 public class Context : IdentityDbContext<UserEntity, RoleEntity, Guid>
 {
-    public Context() { }
+    public Context(DbContextOptions<Context> options) : base(options)
+    {
+        Database.EnsureCreated();
+    }
 
     /// <summary>
     /// Configrações fos datatypes.

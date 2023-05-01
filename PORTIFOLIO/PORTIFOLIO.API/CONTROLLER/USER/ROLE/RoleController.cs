@@ -23,7 +23,7 @@ namespace PORTIFOLIO.API.CONTROLLER.USER.ROLE
 
         private readonly IRoleService _roleService;
 
-        public RoleController(IUserService userService, IRoleService roleService)
+        internal RoleController(IUserService userService, IRoleService roleService)
         {
             _userService = userService;
             _roleService = roleService;
@@ -45,7 +45,8 @@ namespace PORTIFOLIO.API.CONTROLLER.USER.ROLE
             using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(userId)))
             using (LogContext.PushProperty("Metodo", "GetUserRoles"))
             {
-                return await Tracker.Time(() => _userService.GetUserRolesAsync(userId), "Recuperar roles do usuário.");
+                return await Tracker.Time(() 
+                    => _userService.GetUserRolesAsync(userId), "Recuperar roles do usuário.");
             }
         }
 
@@ -63,7 +64,8 @@ namespace PORTIFOLIO.API.CONTROLLER.USER.ROLE
             using (LogContext.PushProperty("Controller", "RoleController"))
             using (LogContext.PushProperty("Metodo", "GetAll"))
             {
-                return await Tracker.Time(() => _roleService.GetAsync(), "Recuperar todas as roles.");
+                return await Tracker.Time(() 
+                    => _roleService.GetAsync(), "Recuperar todas as roles.");
             }
         }
 
@@ -83,7 +85,8 @@ namespace PORTIFOLIO.API.CONTROLLER.USER.ROLE
             using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(roleRequest)))
             using (LogContext.PushProperty("Metodo", "AddRole"))
             {
-                return await Tracker.Time(() => _roleService.CreateAsync(roleRequest), "Adicionar role.");
+                return await Tracker.Time(() 
+                    => _roleService.CreateAsync(roleRequest), "Adicionar role.");
             }
         }
 
@@ -103,7 +106,8 @@ namespace PORTIFOLIO.API.CONTROLLER.USER.ROLE
             using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(roleRequest)))
             using (LogContext.PushProperty("Metodo", "AddClaimsToRole"))
             {
-                return await Tracker.Time(() => _roleService.AddClaimsAsync(roleRequest), "Adicionar claims em uma role.");
+                return await Tracker.Time(() 
+                    => _roleService.AddClaimsAsync(roleRequest), "Adicionar claims em uma role.");
             }
         }
 
@@ -123,7 +127,8 @@ namespace PORTIFOLIO.API.CONTROLLER.USER.ROLE
             using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(roleRequest)))
             using (LogContext.PushProperty("Metodo", "RemoverClaimToRole"))
             {
-                return await Tracker.Time(() => _roleService.RemoveClaimsAsync(roleRequest), "Remover claims em uma role.");
+                return await Tracker.Time(() 
+                    => _roleService.RemoveClaimsAsync(roleRequest), "Remover claims em uma role.");
             }
         }
 
@@ -144,7 +149,8 @@ namespace PORTIFOLIO.API.CONTROLLER.USER.ROLE
             using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(roleName)))
             using (LogContext.PushProperty("Metodo", "AddRoleToUser"))
             {
-                return await Tracker.Time(() => _userService.AddRoleAsync(username, roleName), "Adicionar role no usuário.");
+                return await Tracker.Time(() 
+                    => _userService.AddRoleAsync(username, roleName), "Adicionar role no usuário.");
             }
         }
 
@@ -165,7 +171,8 @@ namespace PORTIFOLIO.API.CONTROLLER.USER.ROLE
             using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(roleName)))
             using (LogContext.PushProperty("Metodo", "RemoveRoleToUser"))
             {
-                return await Tracker.Time(() => _userService.RemoveRoleAsync(username, roleName), "Remover role do usuário.");
+                return await Tracker.Time(() 
+                    => _userService.RemoveRoleAsync(username, roleName), "Remover role do usuário.");
             }
         }
     }

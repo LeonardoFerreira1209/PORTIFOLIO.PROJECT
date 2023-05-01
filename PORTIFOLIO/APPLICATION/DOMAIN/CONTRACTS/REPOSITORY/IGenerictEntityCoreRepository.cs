@@ -1,8 +1,8 @@
-﻿using APPLICATION.DOMAIN.CONTRACTS.ENTITY;
+﻿using APPLICATION.DOMAIN.ENTITY.ENTITY;
 
 namespace APPLICATION.DOMAIN.CONTRACTS.REPOSITORY;
 
-public interface IGenerictEntityCoreRepository<T> : IGenericRepository<T> where T : class
+public interface IGenerictEntityCoreRepository<T> : IGenericRepository<T> where T : Entity
 {
     /// <summary>
     /// Começar transação.

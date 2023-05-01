@@ -41,7 +41,8 @@ namespace PORTIFOLIO.API.CONTROLLER.USER.USER
             using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(userCreateRequest)))
             using (LogContext.PushProperty("Metodo", "Create"))
             {
-                return await Tracker.Time(() => _userService.CreateAsync(userCreateRequest), "Criar usuário");
+                return await Tracker.Time(() 
+                    => _userService.CreateAsync(userCreateRequest), "Criar usuário");
             }
         }
 
@@ -61,7 +62,8 @@ namespace PORTIFOLIO.API.CONTROLLER.USER.USER
             using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(userUpdateRequest)))
             using (LogContext.PushProperty("Metodo", "Create"))
             {
-                return await Tracker.Time(() => _userService.UpdateAsync(userUpdateRequest), "Atualizar usuário");
+                return await Tracker.Time(() 
+                    => _userService.UpdateAsync(userUpdateRequest), "Atualizar usuário");
             }
         }
 
@@ -81,7 +83,8 @@ namespace PORTIFOLIO.API.CONTROLLER.USER.USER
             using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(id)))
             using (LogContext.PushProperty("Metodo", "Create"))
             {
-                return await Tracker.Time(() => _userService.UpdateUserIamgeAsync(id, Request.Form.Files[0]), "Atualizar imagem do uauário");
+                return await Tracker.Time(() 
+                    => _userService.UpdateUserIamgeAsync(id, Request.Form.Files[0]), "Atualizar imagem do uauário");
             }
         }
 
@@ -104,7 +107,8 @@ namespace PORTIFOLIO.API.CONTROLLER.USER.USER
             using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(new { username, password })))
             using (LogContext.PushProperty("Metodo", "Authentication"))
             {
-                return await Tracker.Time(() => _userService.AuthenticationAsync(new LoginRequest(username, password)), "Autenticar usuário");
+                return await Tracker.Time(() 
+                    => _userService.AuthenticationAsync(new LoginRequest(username, password)), "Autenticar usuário");
             }
         }
 
@@ -124,7 +128,8 @@ namespace PORTIFOLIO.API.CONTROLLER.USER.USER
             using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(userId)))
             using (LogContext.PushProperty("Metodo", "Get"))
             {
-                return await Tracker.Time(() => _userService.GetAsync(userId), "Recuperar um usuário");
+                return await Tracker.Time(() 
+                    => _userService.GetAsync(userId), "Recuperar um usuário");
             }
         }
 
@@ -147,7 +152,8 @@ namespace PORTIFOLIO.API.CONTROLLER.USER.USER
             using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(request)))
             using (LogContext.PushProperty("Metodo", "activate"))
             {
-                return await Tracker.Time(() => _userService.ActivateAsync(request), "Ativar usuário");
+                return await Tracker.Time(() 
+                    => _userService.ActivateAsync(request), "Ativar usuário");
             }
         }
     }

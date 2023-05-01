@@ -9,6 +9,17 @@ public class DadosNotificacao
 {
     public DadosNotificacao(string mensagem) { Mensagem = mensagem; }
 
+    public DadosNotificacao(int errorCode, string mensagem) {
+        
+        ErrorCode = errorCode;
+        Mensagem = mensagem; 
+    }
+
+    /// <summary>
+    /// Código do erro.
+    /// </summary>
+    public int ErrorCode { get; set; }
+
     /// <summary>
     /// Mensagem da notificação.
     /// </summary>

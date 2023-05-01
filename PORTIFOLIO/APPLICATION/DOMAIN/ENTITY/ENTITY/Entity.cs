@@ -1,8 +1,8 @@
 ﻿using APPLICATION.ENUMS;
 
-namespace APPLICATION.DOMAIN.CONTRACTS.ENTITY
+namespace APPLICATION.DOMAIN.ENTITY.ENTITY
 {
-    public interface IEntity
+    public abstract class Entity
     {
         /// <summary>
         /// Id
@@ -23,6 +23,5 @@ namespace APPLICATION.DOMAIN.CONTRACTS.ENTITY
         /// Status
         /// </summary>
         public Status Status { get; set; }
-
     }
 }

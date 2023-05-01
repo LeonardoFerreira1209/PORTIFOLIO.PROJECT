@@ -1,5 +1,4 @@
-﻿using APPLICATION.DOMAIN.CONTRACTS.ENTITY;
-using APPLICATION.ENUMS;
+﻿using APPLICATION.ENUMS;
 using Microsoft.AspNetCore.Identity;
 
 namespace APPLICATION.DOMAIN.ENTITY.USER;
@@ -22,19 +21,9 @@ public class UserEntity : IdentityUser<Guid>
     public int Age { get; set; }
 
     /// <summary>
-    /// Data de aniversário.
-    /// </summary>
-    public string BirthDay { get; set; }
-
-    /// <summary>
     /// Gênero.
     /// </summary>
     public Gender Gender { get; set; }
-
-    /// <summary>
-    /// Imagem de perfil.
-    /// </summary>
-    public string ImageUri { get; set; }
 
     /// <summary>
     /// RG.
