@@ -32,7 +32,7 @@ public class FileService : IFileService
             Log.Information($"[LOG INFORMATION] - Adicionando imagem no azure blob storage.\n");
 
             // Validade formFile.
-            var validation = await new ImageUploadValidator().ValidateAsync(formFile); if (validation.IsValid is false) return validation.CarregarErrosValidator();
+            var validation = await new ImageUploadValidator().ValidateAsync(formFile); //if (validation.IsValid is false) return validation.CarregarErrosValidator();
 
             // Declare a memory stream.
             var memoryStream = new MemoryStream();

@@ -27,6 +27,7 @@
     <PackageReference Include="Hangfire.Core" Version="1.7.34" />
     <PackageReference Include="Hangfire.MemoryStorage" Version="1.7.0" />
     <PackageReference Include="Hangfire.SqlServer" Version="1.7.34" />
+    <PackageReference Include="MediatR" Version="12.0.1" />
     <PackageReference Include="Microsoft.ApplicationInsights" Version="2.21.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Abstractions" Version="2.2.0" />
@@ -63,6 +64,8 @@
 
   <ItemGroup>
     <Folder Include="DOMAIN\CONTRACTS\FACTORY\" />
+    <Folder Include="DOMAIN\EXCEPTIONS\" />
+    <Folder Include="DOMAIN\HANDLERS\" />
     <Folder Include="MIGRATIONS\" />
   </ItemGroup>
 

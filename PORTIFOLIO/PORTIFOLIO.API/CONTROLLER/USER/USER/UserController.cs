@@ -6,6 +6,7 @@ using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
 using APPLICATION.DOMAIN.UTILS;
 using APPLICATION.DOMAIN.UTILS.AUTH.CUSTOMAUTHORIZE.ATTRIBUTE;
 using APPLICATION.ENUMS;
+using MediatR;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -21,9 +22,14 @@ namespace PORTIFOLIO.API.CONTROLLER.USER.USER
     [Route("api/[controller]")][ApiController]
     public class UserController : ControllerBase
     {
+        private readonly IMediator _mediator;
         private readonly IUserService _userService;
 
-        public UserController(IUserService userService) { _userService = userService; }
+        public UserController(
+            IUserService userService) 
+        { 
+            _userService = userService; 
+        }
 
         /// <summary>
         /// Método responsável por adicionar um usuario.
@@ -35,7 +41,7 @@ namespace PORTIFOLIO.API.CONTROLLER.USER.USER
         [ProducesResponseType(typeof(ApiResponse<UserResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<ApiResponse<object>> Create(UserCreateRequest userCreateRequest)
+        public async Task<IActionResult> Create(UserCreateRequest userCreateRequest)
         {
             using (LogContext.PushProperty("Controller", "UserController"))
             using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(userCreateRequest)))
@@ -56,7 +62,7 @@ namespace PORTIFOLIO.API.CONTROLLER.USER.USER
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<ApiResponse<object>> Update(UserUpdateRequest userUpdateRequest)
+        public async Task<IActionResult> Update(UserUpdateRequest userUpdateRequest)
         {
             using (LogContext.PushProperty("Controller", "UserController"))
             using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(userUpdateRequest)))
@@ -77,7 +83,7 @@ namespace PORTIFOLIO.API.CONTROLLER.USER.USER
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<ApiResponse<object>> UpdateUserImage(Guid id)
+        public async Task<IActionResult> UpdateUserImage(Guid id)
         {
             using (LogContext.PushProperty("Controller", "UserController"))
             using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(id)))
@@ -101,7 +107,7 @@ namespace PORTIFOLIO.API.CONTROLLER.USER.USER
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status423Locked)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<ApiResponse<object>> Authentication([FromHeader][Required] string username, [FromHeader][Required] string password)
+        public async Task<IActionResult> Authentication([FromHeader][Required] string username, [FromHeader][Required] string password)
         {
             using (LogContext.PushProperty("Controller", "UserController"))
             using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(new { username, password })))
@@ -122,7 +128,7 @@ namespace PORTIFOLIO.API.CONTROLLER.USER.USER
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<ApiResponse<object>> Get(Guid userId)
+        public async Task<IActionResult> Get(Guid userId)
         {
             using (LogContext.PushProperty("Controller", "UserController"))
             using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(userId)))
@@ -144,7 +150,7 @@ namespace PORTIFOLIO.API.CONTROLLER.USER.USER
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<ApiResponse<object>> Activate(string code, Guid userId)
+        public async Task<IActionResult> Activate(string code, Guid userId)
         {
             var request = new ActivateUserRequest(code, userId);
 

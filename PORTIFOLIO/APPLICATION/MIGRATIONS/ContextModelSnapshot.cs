@@ -71,9 +71,6 @@ namespace APPLICATION.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
-                    b.Property<int>("Age")
-                        .HasColumnType("int");
-
                     b.Property<string>("CPF")
                         .HasColumnType("nvarchar(max)");
 

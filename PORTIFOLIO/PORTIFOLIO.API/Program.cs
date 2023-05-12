@@ -53,7 +53,7 @@ try
 
     // Continuação do pipeline...
     builder.Services
-        //.ConfigureSerilog()
+        .ConfigureSerilog()
         .ConfigureSubscribers()
         .ConfigureHealthChecks(configurations)
         .ConfigureCors()
@@ -89,9 +89,6 @@ try
         {
             Authorization = new[] { new CustomAuthorizeHangfireFilter() }
         });
-
-    // Chamando as configurações de Minimal APIS.
-    applicationbuilder.UseMinimalAPI(configurations);
 
     Log.Information($"[LOG INFORMATION] - Inicializando aplicação [TOOLS.USER.API]\n");
 

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace APPLICATION.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20230427173927_INITIAL")]
+    [Migration("20230501151451_INITIAL")]
     partial class INITIAL
     {
         /// <inheritdoc />
@@ -72,9 +72,6 @@ namespace APPLICATION.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("AccessFailedCount")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Age")
                         .HasColumnType("int");
 
                     b.Property<string>("CPF")

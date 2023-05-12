@@ -1,7 +1,7 @@
-﻿using APPLICATION.DOMAIN.DTOS.REQUEST.USER;
+﻿using APPLICATION.DOMAIN.BUILDERS.USER;
+using APPLICATION.DOMAIN.DTOS.REQUEST.USER;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.USER;
 using APPLICATION.DOMAIN.ENTITY.USER;
-using APPLICATION.ENUMS;
 
 namespace APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 
@@ -11,51 +11,33 @@ namespace APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 public static class UserExtensions
 {
     /// <summary>
-    /// Convert um user create para um userEntity.
+    /// Converte um user create para um userEntity.
     /// </summary>
     /// <param name="userRequest"></param>
     /// <returns></returns>
     public static UserEntity ToIdentityUser(this UserCreateRequest userRequest)
-    {
-        return new UserEntity
-        {
-            FirstName = userRequest.FirstName,
-            LastName = userRequest.LastName,
-            Age = DateTime.Today.Year - DateTime.Parse(userRequest.BirthDay).Year,
-            CPF = userRequest.CPF,
-            RG = userRequest.RG,
-            Gender = userRequest.Gender,
-            UserName = userRequest.UserName,
-            Email = userRequest.Email,
-            PhoneNumber = userRequest.PhoneNumber,
-            PasswordHash = userRequest.Password,
-            Created = DateTime.Now,
-            Status = Status.Active
-        };
-    }
+        => UserBuilder.BuildCreateUser(
+            userRequest.FirstName, userRequest.LastName, userRequest.UserName, userRequest.Email,
+            userRequest.CPF, userRequest.RG, userRequest.Gender, userRequest.PhoneNumber, userRequest.Password
+            );
 
     /// <summary>
     /// Convert um user update para um userEntity.
     /// </summary>
-    /// <param name="userRequest"></param>
+    /// <param name="userUpdateRequest"></param>
     /// <returns></returns>
     public static UserEntity ToCompleteUserUpdateWithRequest(this UserUpdateRequest userUpdateRequest, UserEntity user)
-    {
-        user.FirstName = userUpdateRequest.FirstName;
-        user.LastName = userUpdateRequest.LastName;
-        user.Age = DateTime.Today.Year - DateTime.Parse(userUpdateRequest.BirthDay).Year;
-        user.Gender = userUpdateRequest.Gender;
-        user.CPF = userUpdateRequest.CPF;
-        user.RG = userUpdateRequest.RG;
-        user.Updated = DateTime.Now;
-
-        return user;
-    }
+        => UserBuilder.BuildCompleteUser(
+            userUpdateRequest.FirstName, userUpdateRequest.LastName, userUpdateRequest.UserName, userUpdateRequest.Email,
+            userUpdateRequest.CPF, userUpdateRequest.RG, userUpdateRequest.Gender, userUpdateRequest.PhoneNumber, user.Status, user.NormalizedEmail, user.NormalizedUserName,
+            user.AccessFailedCount, user.ConcurrencyStamp, user.EmailConfirmed, user.LockoutEnabled, user.LockoutEnd,
+            user.PasswordHash, user.PhoneNumberConfirmed, user.SecurityStamp, user.TwoFactorEnabled
+            );
 
     /// <summary>
     /// Convert um userEntity para um user response.
     /// </summary>
-    /// <param name="userRequest"></param>
+    /// <param name="user"></param>
     /// <returns></returns>
     public static UserResponse ToResponse(this UserEntity user)
     {
@@ -66,7 +48,6 @@ public static class UserExtensions
             LastName = user.LastName,
             Email = user.Email,
             PhoneNumber = user.PhoneNumber,
-            Age = user.Age,
             CPF = user.CPF,
             RG = user.RG,
             Created = user.Created,

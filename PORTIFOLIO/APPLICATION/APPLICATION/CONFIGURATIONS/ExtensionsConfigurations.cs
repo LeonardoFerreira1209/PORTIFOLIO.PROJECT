@@ -688,16 +688,6 @@ public static class ExtensionsConfigurations
     }
 
     /// <summary>
-    /// Configruação de minimals APIS.
-    /// </summary>
-    /// <param name="applicationBuilder"></param>
-    /// <returns></returns>
-    public static WebApplication UseMinimalAPI(this WebApplication application, IConfiguration configurations)
-    {
-        return application;
-    }
-
-    /// <summary>
     /// Retorna um provider do service.
     /// </summary>
     /// <param name="services"></param>

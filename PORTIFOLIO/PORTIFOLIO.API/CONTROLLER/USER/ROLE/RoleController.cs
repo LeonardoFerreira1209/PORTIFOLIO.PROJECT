@@ -39,7 +39,7 @@ namespace PORTIFOLIO.API.CONTROLLER.USER.ROLE
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<ApiResponse<object>> GetUserRoles(Guid userId)
+        public async Task<IActionResult> GetUserRoles(Guid userId)
         {
             using (LogContext.PushProperty("Controller", "RoleController"))
             using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(userId)))
@@ -143,7 +143,7 @@ namespace PORTIFOLIO.API.CONTROLLER.USER.ROLE
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<ApiResponse<object>> AddRoleToUser([Required] string username, string roleName)
+        public async Task<IActionResult> AddRoleToUser([Required] string username, string roleName)
         {
             using (LogContext.PushProperty("Controller", "RoleController"))
             using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(roleName)))
@@ -165,7 +165,7 @@ namespace PORTIFOLIO.API.CONTROLLER.USER.ROLE
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<ApiResponse<object>> RemoveRoleToUser([Required] string username, string roleName)
+        public async Task<IActionResult> RemoveRoleToUser([Required] string username, string roleName)
         {
             using (LogContext.PushProperty("Controller", "RoleController"))
             using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(roleName)))

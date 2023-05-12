@@ -13,9 +13,9 @@ namespace APPLICATION.INFRAESTRUTURE.REPOSITORY
         /// <summary>
         /// Ctor
         /// </summary>
-        public GenericEntityCoreRepository(Context context)
-        {
-            _context = context;
+        public GenericEntityCoreRepository
+            (Context context) {
+                _context = context;
         }
 
         /// <summary>
@@ -128,7 +128,6 @@ namespace APPLICATION.INFRAESTRUTURE.REPOSITORY
         /// Salvar mudanças.
         /// </summary>
         /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
         public async Task SaveChangesAsync()
             => await _context.SaveChangesAsync();
     }

@@ -16,6 +16,7 @@ using APPLICATION.DOMAIN.VALIDATORS;
 using APPLICATION.INFRAESTRUTURE.JOBS.QUEUED;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Serilog;
@@ -56,7 +57,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         /// </summary>
         /// <param name="loginRequest"></param>
         /// <returns></returns>
-        public async Task<ApiResponse<object>> AuthenticationAsync(LoginRequest loginRequest)
+        public async Task<ObjectResult> AuthenticationAsync(LoginRequest loginRequest)
         {
             Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(AuthenticationAsync)}\n");
 
@@ -72,7 +73,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                 // Get user by username.
                 var userEntity = await _userRepository.GetWithUsernameAsync(loginRequest.Username);
 
-                // api notifications;
                 var apiNotifications = new List<DadosNotificacao>();
 
                 // User is not null.
@@ -122,7 +122,9 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
 
                 // Has errors.
                 if(apiNotifications.Any())
-                    return new ApiResponse<object>(false, StatusCodes.ErrorUnauthorized, loginRequest, apiNotifications);
+                    return new UnauthorizedObjectResult(
+                        new ApiResponse<object>(
+                            false, StatusCodes.ErrorUnauthorized, loginRequest, apiNotifications));
 
                 Log.Information($"[LOG INFORMATION] - Gerando token.\n");
 
@@ -131,20 +133,26 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
 
                 // Token is null.
                 if (tokenJWT is null)
-                    return new ApiResponse<object>(false, StatusCodes.ErrorBadRequest, null, messages);
+                    return new BadRequestObjectResult(
+                        new ApiResponse<object>(
+                            false, StatusCodes.ErrorBadRequest, null, messages));
 
                 // Save user token.
                 await SetAuthenticationTokenAsync(userEntity, tokenJWT.Value);
 
                 // Return Json Web Token.
-                return new ApiResponse<object>(true, StatusCodes.SuccessCreated, tokenJWT, messages);
+                return new OkObjectResult(
+                    new ApiResponse<object>(
+                        true, StatusCodes.SuccessCreated, tokenJWT, messages));
             }
             catch (Exception exception)
             {
                 Log.Error($"[LOG ERROR] - {exception.Message}\n");
 
                 // Response error
-                return new ApiResponse<object>(false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) });
+                return new ObjectResult(
+                    new ApiResponse<object>(
+                        false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) }));
             }
         }
 
@@ -153,7 +161,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
-        public async Task<ApiResponse<object>> GetAsync(Guid userId)
+        public async Task<ObjectResult> GetAsync(Guid userId)
         {
             Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(GetAsync)}\n");
 
@@ -174,14 +182,18 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                     Log.Information($"[LOG INFORMATION] - Usuário recuperado com sucesso {JsonConvert.SerializeObject(userResponse)}.\n");
 
                     // return success.
-                    return new ApiResponse<object>(true, StatusCodes.SuccessOK, userResponse, new List<DadosNotificacao> { new DadosNotificacao("Usuario recuperado com sucesso.") });
+                    return new OkObjectResult(
+                        new ApiResponse<object>(
+                            true, StatusCodes.SuccessOK, userResponse, new List<DadosNotificacao> { new DadosNotificacao("Usuario recuperado com sucesso.") }));
                 }
                 else
                 {
                     Log.Information($"[LOG INFORMATION] - Usuário não encontrado.\n");
 
                     // return error.
-                    return new ApiResponse<object>(false, StatusCodes.ErrorNotFound, null, new List<DadosNotificacao> { new DadosNotificacao("Usuario não encontrado.") });
+                    return new NotFoundObjectResult(
+                        new ApiResponse<object>(
+                            false, StatusCodes.ErrorNotFound, null, new List<DadosNotificacao> { new DadosNotificacao("Usuario não encontrado.") }));
                 }
             }
             catch (Exception exception)
@@ -189,7 +201,9 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                 Log.Error($"[LOG ERROR] - {exception.Message}\n");
 
                 // Response error
-                return new ApiResponse<object>(false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) });
+                return new ObjectResult(
+                    new ApiResponse<object>(
+                        false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) }));
             }
         }
 
@@ -198,7 +212,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         /// </summary>
         /// <param name="userCreateRequest"></param>
         /// <returns></returns>
-        public async Task<ApiResponse<object>> CreateAsync(UserCreateRequest userCreateRequest)
+        public async Task<ObjectResult> CreateAsync(UserCreateRequest userCreateRequest)
         {
             Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(CreateAsync)}\n");
 
@@ -224,18 +238,24 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                     await ConfirmeUserForEmailAsync(user);
 
                     // Response success.
-                    return new ApiResponse<object>(response.Succeeded, StatusCodes.SuccessCreated, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário criado com sucesso.") });
+                    return new OkObjectResult(
+                        new ApiResponse<object>(
+                            response.Succeeded, StatusCodes.SuccessCreated, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário criado com sucesso.") }));
                 }
 
                 // Response error
-                return new ApiResponse<object>(response.Succeeded, StatusCodes.ErrorBadRequest, null, response.Errors.Select((e) => new DadosNotificacao(e.Code.CustomExceptionMessage())).ToList());
+                return new BadRequestObjectResult(
+                    new ApiResponse<object>(
+                        response.Succeeded, StatusCodes.ErrorBadRequest, null, response.Errors.Select((e) => new DadosNotificacao(e.Code.CustomExceptionMessage())).ToList()));
             }
             catch (Exception exception)
             {
                 Log.Error($"[LOG ERROR] - {exception.Message}\n");
 
                 // Response error.
-                return new ApiResponse<object>(false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) });
+                return new ObjectResult(
+                    new ApiResponse<object>(
+                        false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) }));
             }
         }
 
@@ -244,7 +264,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         /// </summary>
         /// <param name="userUpdateRequest"></param>
         /// <returns></returns>
-        public async Task<ApiResponse<object>> UpdateAsync(UserUpdateRequest userUpdateRequest)
+        public async Task<ObjectResult> UpdateAsync(UserUpdateRequest userUpdateRequest)
         {
             Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(UpdateAsync)}\n");
 
@@ -274,7 +294,9 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                         {
                             Log.Information($"[LOG INFORMATION] - Erro ao atualizar nome de usuário.\n");
 
-                            return new ApiResponse<object>(false, StatusCodes.ErrorBadRequest, null, new List<DadosNotificacao> { new DadosNotificacao(setUsernameResponse.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) });
+                            return new BadRequestObjectResult(
+                                new ApiResponse<object>(
+                                    false, StatusCodes.ErrorBadRequest, null, new List<DadosNotificacao> { new DadosNotificacao(setUsernameResponse.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) }));
                         }
                     }
 
@@ -287,7 +309,9 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                         {
                             Log.Information($"[LOG INFORMATION] - Erro ao trocar senha.\n");
 
-                            return new ApiResponse<object>(false, StatusCodes.ErrorBadRequest, null, new List<DadosNotificacao> { new DadosNotificacao(changePasswordResponse.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) });
+                            return new BadRequestObjectResult(
+                                new ApiResponse<object>(
+                                    false, StatusCodes.ErrorBadRequest, null, new List<DadosNotificacao> { new DadosNotificacao(changePasswordResponse.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) }));
                         }
                     }
 
@@ -300,7 +324,9 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                         {
                             Log.Information($"[LOG INFORMATION] - Erro ao atualizar e-mail de usuário.\n");
 
-                            return new ApiResponse<object>(false, StatusCodes.ErrorBadRequest, null, new List<DadosNotificacao> { new DadosNotificacao(setEmailResponse.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) });
+                            return new BadRequestObjectResult(
+                                new ApiResponse<object>(
+                                    false, StatusCodes.ErrorBadRequest, null, new List<DadosNotificacao> { new DadosNotificacao(setEmailResponse.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) }));
                         }
 
                         // Confirm user for e-mail.
@@ -316,7 +342,9 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                         {
                             Log.Information($"[LOG INFORMATION] - Erro ao atualizar celular do usuário.\n");
 
-                            return new ApiResponse<object>(false, StatusCodes.ErrorBadRequest, null, new List<DadosNotificacao> { new DadosNotificacao(setPhoneNumberResponse.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) });
+                            return new BadRequestObjectResult(
+                                new ApiResponse<object>(
+                                    false, StatusCodes.ErrorBadRequest, null, new List<DadosNotificacao> { new DadosNotificacao(setPhoneNumberResponse.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) }));
                         }
                     }
 
@@ -329,14 +357,18 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                     Log.Information($"[LOG INFORMATION] - Usuário atualizado com sucesso.\n");
 
                     // Response success.
-                    return new ApiResponse<object>(true, StatusCodes.SuccessOK, userEntity, new List<DadosNotificacao> { new DadosNotificacao("Usuário atualizado com sucesso.") });
+                    return new OkObjectResult(
+                        new ApiResponse<object>(
+                            true, StatusCodes.SuccessOK, userEntity, new List<DadosNotificacao> { new DadosNotificacao("Usuário atualizado com sucesso.") }));
                 }
                 else
                 {
                     Log.Information($"[LOG INFORMATION] - Usuário não encontrado.\n");
 
-                    // Response success.
-                    return new ApiResponse<object>(false, StatusCodes.ErrorNotFound, userUpdateRequest, new List<DadosNotificacao> { new DadosNotificacao("Usuário não encontrado..") });
+                    // Response error.
+                    return new NotFoundObjectResult(
+                        new ApiResponse<object>(
+                            false, StatusCodes.ErrorNotFound, userUpdateRequest, new List<DadosNotificacao> { new DadosNotificacao("Usuário não encontrado..") }));
                 }
             }
             catch (Exception exception)
@@ -344,7 +376,9 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                 Log.Error($"[LOG ERROR] - {exception.Message}\n");
 
                 // Response error
-                return new ApiResponse<object>(false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) });
+                return new ObjectResult(
+                    new ApiResponse<object>(
+                        false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) }));
             }
         }
 
@@ -354,7 +388,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         /// <param name="id"></param>
         /// <param name="formFile"></param>
         /// <returns></returns>
-        public async Task<ApiResponse<object>> UpdateUserIamgeAsync(Guid id, IFormFile formFile)
+        public async Task<ObjectResult> UpdateUserIamgeAsync(Guid id, IFormFile formFile)
         {
             Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(UpdateUserIamgeAsync)}\n");
 
@@ -384,14 +418,18 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                         Log.Information($"[LOG INFORMATION] - Imagem do usuário atualizado com sucesso.\n");
 
                         // Response success.
-                        return new ApiResponse<object>(true, StatusCodes.SuccessOK, new FileResponse { FileUri = null }, new List<DadosNotificacao> { new DadosNotificacao("Imagem do usuário atualizado com sucesso.") });
+                        return new OkObjectResult(
+                            new ApiResponse<object>(
+                                true, StatusCodes.SuccessOK, new FileResponse { FileUri = null }, new List<DadosNotificacao> { new DadosNotificacao("Imagem do usuário atualizado com sucesso.") }));
                     }
                     else
                     {
                         Log.Information($"[LOG INFORMATION] - Erro ao armazenar imagem no blob do azure.\n");
 
                         // Response success.
-                        return new ApiResponse<object>(false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao("Erro ao armazenar imagem no blob do azure.") });
+                        return new ObjectResult(
+                            new ApiResponse<object>(
+                                false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao("Erro ao armazenar imagem no blob do azure.") }));
                     }
                 }
                 else
@@ -399,7 +437,9 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                     Log.Information($"[LOG INFORMATION] - Usuário não encontrado.\n");
 
                     // Response success.
-                    return new ApiResponse<object>(false, StatusCodes.ErrorNotFound, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário não encontrado.") });
+                    return new NotFoundObjectResult(
+                        new ApiResponse<object>(
+                            false, StatusCodes.ErrorNotFound, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário não encontrado.") }));
                 }
             }
             catch (Exception exception)
@@ -407,7 +447,9 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                 Log.Error($"[LOG ERROR] - {exception.Message}\n");
 
                 // Response error
-                return new ApiResponse<object>(false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) });
+                return new ObjectResult(
+                    new ApiResponse<object>(
+                        false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) }));
             }
         }
 
@@ -416,7 +458,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         /// </summary>
         /// <param name="activateUserRequest"></param>
         /// <returns></returns>
-        public async Task<ApiResponse<object>> ActivateAsync(ActivateUserRequest activateUserRequest)
+        public async Task<ObjectResult> ActivateAsync(ActivateUserRequest activateUserRequest)
         {
             Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(ActivateAsync)}\n");
 
@@ -441,19 +483,25 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                         Log.Information($"[LOG INFORMATION] - Usuário ativado com sucesso.\n");
 
                         // Success response.
-                        return new ApiResponse<object>(response.Succeeded, StatusCodes.SuccessOK, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário ativado com sucesso.") });
+                        return new OkObjectResult(
+                            new ApiResponse<object>(
+                                response.Succeeded, StatusCodes.SuccessOK, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário ativado com sucesso.") }));
                     }
 
                     Log.Information($"[LOG INFORMATION] - Falha na ativãção do usuário.\n");
 
-                    return new ApiResponse<object>(false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao("Falha na ativãção do usuário!") });
+                    return new ObjectResult(
+                        new ApiResponse<object>(
+                            false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao("Falha na ativãção do usuário!") }));
                 }
                 else
                 {
                     Log.Information($"[LOG ERROR] - Usuário não encontrado.\n");
 
-                    // Response success.
-                    return new ApiResponse<object>(false, StatusCodes.ErrorNotFound, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário não encontrado.") });
+                    // Response error.
+                    return new NotFoundObjectResult(
+                        new ApiResponse<object>(
+                            false, StatusCodes.ErrorNotFound, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário não encontrado.") }));
                 }
             }
             catch (Exception exception)
@@ -461,7 +509,9 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                 Log.Error($"[LOG ERROR] - {exception.Message}\n");
 
                 // Error response.
-                return new ApiResponse<object>(false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) });
+                return new ObjectResult(
+                    new ApiResponse<object>(
+                        false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) }));
             }
         }
 
@@ -471,7 +521,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         /// <param name="username"></param>
         /// <param name="claimRequest"></param>
         /// <returns></returns>
-        public async Task<ApiResponse<object>> AddClaimAsync(string username, ClaimRequest claimRequest)
+        public async Task<ObjectResult> AddClaimAsync(string username, ClaimRequest claimRequest)
         {
             Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(AddClaimAsync)}\n");
 
@@ -496,20 +546,26 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                         Log.Information($"[LOG INFORMATION] - Claim adicionada com sucesso.\n");
 
                         // Success response.
-                        return new ApiResponse<object>(identityResult.Succeeded, StatusCodes.SuccessOK, null, new List<DadosNotificacao> { new DadosNotificacao($"Claim {claimRequest.Type} / {claimRequest.Value}, adicionada com sucesso ao usuário {username}.") });
+                        return new OkObjectResult(
+                            new ApiResponse<object>(
+                                identityResult.Succeeded, StatusCodes.SuccessOK, null, new List<DadosNotificacao> { new DadosNotificacao($"Claim {claimRequest.Type} / {claimRequest.Value}, adicionada com sucesso ao usuário {username}.") }));
                     }
 
                     Log.Information($"[LOG ERROR] - Falha ao adicionar claim.\n");
 
                     // Response error.
-                    return new ApiResponse<object>(identityResult.Succeeded, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao("Falha ao adicionar claim!") });
+                    return new ObjectResult(
+                        new ApiResponse<object>(
+                            identityResult.Succeeded, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao("Falha ao adicionar claim!") }));
                 }
                 else
                 {
                     Log.Information($"[LOG ERROR] - Usuário não encontrado.\n");
 
                     // Response success.
-                    return new ApiResponse<object>(false, StatusCodes.ErrorNotFound, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário não encontrado.") });
+                    return new NotFoundObjectResult(
+                        new ApiResponse<object>(
+                            false, StatusCodes.ErrorNotFound, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário não encontrado.") }));
                 }
             }
             catch (Exception exception)
@@ -517,7 +573,9 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                 Log.Error($"[LOG ERROR] - {exception.Message}\n");
 
                 // Error response.
-                return new ApiResponse<object>(false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) });
+                return new ObjectResult(
+                    new ApiResponse<object>(
+                        false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) }));
             }
         }
 
@@ -527,7 +585,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         /// <param name="username"></param>
         /// <param name="claimRequest"></param>
         /// <returns></returns>
-        public async Task<ApiResponse<object>> RemoveClaimAsync(string username, ClaimRequest claimRequest)
+        public async Task<ObjectResult> RemoveClaimAsync(string username, ClaimRequest claimRequest)
         {
             Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(RemoveClaimAsync)}\n");
 
@@ -552,20 +610,26 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                         Log.Information($"[LOG INFORMATION] - Claim remvida com sucesso.\n");
 
                         // Response success.
-                        return new ApiResponse<object>(identityResult.Succeeded, StatusCodes.SuccessOK, null, new List<DadosNotificacao> { new DadosNotificacao($"Claim {claimRequest.Type} / {claimRequest.Value}, removida com sucesso do usuário {username}.") });
+                        return new OkObjectResult(
+                            new ApiResponse<object>(
+                                identityResult.Succeeded, StatusCodes.SuccessOK, null, new List<DadosNotificacao> { new DadosNotificacao($"Claim {claimRequest.Type} / {claimRequest.Value}, removida com sucesso do usuário {username}.") }));
                     }
 
                     Log.Information($"[LOG ERROR] - Falha ao remover claim.\n");
 
                     // Response error.
-                    return new ApiResponse<object>(identityResult.Succeeded, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao("Falha ao remover claim!") });
+                    return new ObjectResult(
+                        new ApiResponse<object>(
+                            identityResult.Succeeded, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao("Falha ao remover claim!") }));
                 }
                 else
                 {
                     Log.Information($"[LOG ERROR] - Usuário não encontrado.\n");
 
                     // Response success.
-                    return new ApiResponse<object>(false, StatusCodes.ErrorNotFound, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário não encontrado.") });
+                    return new NotFoundObjectResult(
+                        new ApiResponse<object>(
+                            false, StatusCodes.ErrorNotFound, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário não encontrado.") }));
                 }
             }
             catch (Exception exception)
@@ -573,7 +637,9 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                 Log.Error($"[LOG ERROR] - {exception.Message}\n");
 
                 // Error response.
-                return new ApiResponse<object>(false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) });
+                return new ObjectResult(
+                    new ApiResponse<object>(
+                        false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) }));
             }
         }
 
@@ -583,7 +649,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         /// <param name="username"></param>
         /// <param name="roleName"></param>
         /// <returns></returns>
-        public async Task<ApiResponse<object>> AddRoleAsync(string username, string roleName)
+        public async Task<ObjectResult> AddRoleAsync(string username, string roleName)
         {
             Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(AddRoleAsync)}\n");
 
@@ -608,28 +674,36 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                         Log.Information($"[LOG INFORMATION] - Role adicionada com sucesso.\n");
 
                         // Response success.
-                        return new ApiResponse<object>(response.Succeeded, StatusCodes.SuccessOK, null, new List<DadosNotificacao> { new DadosNotificacao($"Role {roleName}, adicionada com sucesso ao usuário {username}.") });
+                        return new OkObjectResult(
+                            new ApiResponse<object>(
+                                response.Succeeded, StatusCodes.SuccessOK, null, new List<DadosNotificacao> { new DadosNotificacao($"Role {roleName}, adicionada com sucesso ao usuário {username}.") }));
                     }
                     else
                     {
                         Log.Information($"[LOG ERROR] - Falha ao adicionar role.\n");
 
                         // Response error.
-                        return new ApiResponse<object>(false, StatusCodes.ErrorBadRequest, null, new List<DadosNotificacao> { new DadosNotificacao("Falha ao adicionar role!") });
+                        return new BadRequestObjectResult(
+                            new ApiResponse<object>(
+                                false, StatusCodes.ErrorBadRequest, null, new List<DadosNotificacao> { new DadosNotificacao("Falha ao adicionar role!") }));
                     }
                 }
 
                 Log.Information($"[LOG ERROR] - Usuário não encontrado.\n");
 
                 // Response error.
-                return new ApiResponse<object>(false, StatusCodes.ErrorNotFound, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário não encontrado!") });
+                return new NotFoundObjectResult(
+                    new ApiResponse<object>(
+                        false, StatusCodes.ErrorNotFound, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário não encontrado!") }));
             }
             catch (Exception exception)
             {
                 Log.Error($"[LOG ERROR] - {exception.Message}\n");
 
                 // Error response.
-                return new ApiResponse<object>(false, StatusCodes.ServerErrorInternalServerError, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) });
+                return new ObjectResult(
+                    new ApiResponse<object>(
+                        false, StatusCodes.ServerErrorInternalServerError, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) }));
             }
         }
 
@@ -638,7 +712,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
-        public async Task<ApiResponse<object>> GetUserRolesAsync(Guid userId)
+        public async Task<ObjectResult> GetUserRolesAsync(Guid userId)
         {
             Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(RoleService)} - METHOD {nameof(GetUserRolesAsync)}\n");
 
@@ -674,14 +748,18 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                     Log.Information($"[LOG INFORMATION] - Roles recuperadas.\n");
 
                     // Response success.
-                    return new ApiResponse<object>(true, StatusCodes.SuccessOK, roles.ToList(), new List<DadosNotificacao> { new DadosNotificacao("Roles recuperadas com sucesso.") });
+                    return new OkObjectResult(
+                        new ApiResponse<object>(
+                            true, StatusCodes.SuccessOK, roles.ToList(), new List<DadosNotificacao> { new DadosNotificacao("Roles recuperadas com sucesso.") }));
                 }
                 else
                 {
                     Log.Information($"[LOG ERROR] - Usuário não encontrado.\n");
 
-                    // Response success.
-                    return new ApiResponse<object>(false, StatusCodes.ErrorNotFound, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário não encontrado.") });
+                    // Response error.
+                    return new NotFoundObjectResult(
+                        new ApiResponse<object>(
+                            false, StatusCodes.ErrorNotFound, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário não encontrado.") }));
                 }
             }
             catch (Exception exception)
@@ -689,7 +767,9 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                 Log.Error($"[LOG ERROR] - {exception.InnerException} - {exception.Message}\n");
 
                 // Error response.
-                return new ApiResponse<object>(false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) });
+                return new ObjectResult(
+                    new ApiResponse<object>(
+                        false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) }));
             }
         }
 
@@ -699,7 +779,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         /// <param name="username"></param>
         /// <param name="roleName"></param>
         /// <returns></returns>
-        public async Task<ApiResponse<object>> RemoveRoleAsync(string username, string roleName)
+        public async Task<ObjectResult> RemoveRoleAsync(string username, string roleName)
         {
             Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(RemoveRoleAsync)}\n");
 
@@ -724,20 +804,26 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                         Log.Information($"[LOG INFORMATION] - Role removida com sucesso.\n");
 
                         // Response success
-                        return new ApiResponse<object>(response.Succeeded, StatusCodes.SuccessOK, null, new List<DadosNotificacao> { new DadosNotificacao($"Role {roleName}, removida com sucesso do usuário {username}.") });
+                        return new OkObjectResult(
+                            new ApiResponse<object>(
+                                response.Succeeded, StatusCodes.SuccessOK, null, new List<DadosNotificacao> { new DadosNotificacao($"Role {roleName}, removida com sucesso do usuário {username}.") }));
                     }
 
                     Log.Information($"[LOG INFORMATION] - Falha ao remover role.\n");
 
                     // Response error.
-                    return new ApiResponse<object>(response.Succeeded, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao("Falha ao remover role.!") });
+                    return new ObjectResult(
+                        new ApiResponse<object>(
+                            response.Succeeded, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao("Falha ao remover role.!") }));
                 }
                 else
                 {
                     Log.Information($"[LOG ERROR] - Usuário não encontrado.\n");
 
                     // Response success.
-                    return new ApiResponse<object>(false, StatusCodes.ErrorNotFound, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário não encontrado.") });
+                    return new NotFoundObjectResult(
+                        new ApiResponse<object>(
+                            false, StatusCodes.ErrorNotFound, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário não encontrado.") }));
                 }
             }
             catch (Exception exception)
@@ -745,7 +831,9 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                 Log.Error($"[LOG ERROR] - {exception.Message}\n");
 
                 // Error response.
-                return new ApiResponse<object>(false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) });
+                return new ObjectResult(
+                    new ApiResponse<object>(
+                        false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) }));
             }
         }
 

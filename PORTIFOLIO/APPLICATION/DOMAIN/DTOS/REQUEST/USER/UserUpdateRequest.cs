@@ -24,16 +24,6 @@ namespace APPLICATION.DOMAIN.DTOS.REQUEST.USER
         public string LastName { get; set; }
 
         /// <summary>
-        /// Idade.
-        /// </summary>
-        public int Age { get; set; }
-
-        /// <summary>
-        /// Data de aniversário.
-        /// </summary>
-        public string BirthDay { get; set; }
-
-        /// <summary>
         /// Gênero.
         /// </summary>
         public Gender Gender { get; set; }

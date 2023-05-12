@@ -1,27 +1,32 @@
 ﻿using APPLICATION.ENUMS;
 
-namespace APPLICATION.DOMAIN.ENTITY.ENTITY
+namespace APPLICATION.DOMAIN.ENTITY.ENTITY;
+
+public abstract class Entity
 {
-    public abstract class Entity
-    {
-        /// <summary>
-        /// Id
-        /// </summary>
-        public Guid Id { get; set; }
+    protected Entity(Guid id) => Id = id;
 
-        /// <summary>
-        /// Data de criação
-        /// </summary>
-        public DateTime Created { get; set; }
+    protected Entity() {
 
-        /// <summary>
-        /// Data de atualização
-        /// </summary>
-        public DateTime? Updated { get; set; }
-
-        /// <summary>
-        /// Status
-        /// </summary>
-        public Status Status { get; set; }
     }
+
+    /// <summary>
+    /// Id
+    /// </summary>
+    public Guid Id { get; protected set; }
+
+    /// <summary>
+    /// Data de criação
+    /// </summary>
+    public DateTime Created { get; protected set; }
+
+    /// <summary>
+    /// Data de atualização
+    /// </summary>
+    public DateTime? Updated { get; protected set; }
+
+    /// <summary>
+    /// Status
+    /// </summary>
+    public Status Status { get; protected set; }
 }

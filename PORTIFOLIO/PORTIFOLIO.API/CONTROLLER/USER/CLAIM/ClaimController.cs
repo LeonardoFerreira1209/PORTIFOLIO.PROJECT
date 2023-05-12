@@ -33,7 +33,7 @@ namespace PORTIFOLIO.API.CONTROLLER.USER.CLAIM
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<ApiResponse<object>> AddClaim([Required] string username, [FromBody] ClaimRequest claimRequest)
+        public async Task<IActionResult> AddClaim([Required] string username, [FromBody] ClaimRequest claimRequest)
         {
             using (LogContext.PushProperty("Controller", "ClaimController"))
             using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(claimRequest)))
@@ -55,7 +55,7 @@ namespace PORTIFOLIO.API.CONTROLLER.USER.CLAIM
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<ApiResponse<object>> RemoveClaim([Required] string username, ClaimRequest claimRequest)
+        public async Task<IActionResult> RemoveClaim([Required] string username, ClaimRequest claimRequest)
         {
             using (LogContext.PushProperty("Controller", "ClaimController"))
             using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(claimRequest)))
