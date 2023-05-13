@@ -28,7 +28,7 @@ public sealed class UserBuilder
     /// <param name="phoneNumber"></param>
     /// <param name="passwordHash"></param>
     /// <returns></returns>
-    public static UserEntity BuildCreateUser(string firstName, string lastName, string userName,
+    public static UserEntity BuildCreateUserEntity(string firstName, string lastName, string userName,
        string email, string cpf, string rg, Gender gender, string phoneNumber, string passwordHash
        ) =>
        new()
@@ -69,7 +69,7 @@ public sealed class UserBuilder
     /// <param name="securityStamp"></param>
     /// <param name="twoFactorEnabled"></param>
     /// <returns></returns>
-    public static UserEntity BuildCompleteUser(string firstName, string lastName, string userName,
+    public static UserEntity BuildCompleteUserEntity(string firstName, string lastName, string userName,
         string email, string cpf, string rg, Gender gender, string phoneNumber, Status status, string normalizedEmail, string normalizedUserName,
         int accessFailedCount, string concurrencyStamp, bool emailConfirmed, bool lockoutEnabled, 
         DateTimeOffset? lockoutEnd, string passwordHash, bool phoneNumberConfirmed, string securityStamp,

@@ -16,7 +16,7 @@ public static class UserExtensions
     /// <param name="userRequest"></param>
     /// <returns></returns>
     public static UserEntity ToIdentityUser(this UserCreateRequest userRequest)
-        => UserBuilder.BuildCreateUser(
+        => UserBuilder.BuildCreateUserEntity(
             userRequest.FirstName, userRequest.LastName, userRequest.UserName, userRequest.Email,
             userRequest.CPF, userRequest.RG, userRequest.Gender, userRequest.PhoneNumber, userRequest.Password
             );
@@ -27,7 +27,7 @@ public static class UserExtensions
     /// <param name="userUpdateRequest"></param>
     /// <returns></returns>
     public static UserEntity ToCompleteUserUpdateWithRequest(this UserUpdateRequest userUpdateRequest, UserEntity user)
-        => UserBuilder.BuildCompleteUser(
+        => UserBuilder.BuildCompleteUserEntity(
             userUpdateRequest.FirstName, userUpdateRequest.LastName, userUpdateRequest.UserName, userUpdateRequest.Email,
             userUpdateRequest.CPF, userUpdateRequest.RG, userUpdateRequest.Gender, userUpdateRequest.PhoneNumber, user.Status, user.NormalizedEmail, user.NormalizedUserName,
             user.AccessFailedCount, user.ConcurrencyStamp, user.EmailConfirmed, user.LockoutEnabled, user.LockoutEnd,
