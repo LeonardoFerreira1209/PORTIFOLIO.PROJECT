@@ -13,7 +13,9 @@ public class UserRepository : IUserRepository
     private readonly UserManager<UserEntity> _userManager;
     private readonly RoleManager<RoleEntity> _roleManager;
 
-    public UserRepository(SignInManager<UserEntity> signInManager, UserManager<UserEntity> userManager, RoleManager<RoleEntity> roleManager)
+    public UserRepository(SignInManager<UserEntity> signInManager, 
+        UserManager<UserEntity> userManager, 
+        RoleManager<RoleEntity> roleManager)
     {
         _signInManager = signInManager;
         _userManager = userManager;
@@ -40,7 +42,6 @@ public class UserRepository : IUserRepository
     public async Task<IdentityResult> CreateUserAsync(UserEntity userEntity, string password)
         => await _userManager.CreateAsync(userEntity, password);
 
-
     /// <summary>
     /// Método responsavel por atualizar um usuário.
     /// </summary>
@@ -56,6 +57,25 @@ public class UserRepository : IUserRepository
     /// <returns></returns>
     public async Task<UserEntity> GetAsync(Guid userId)
         => await _userManager.FindByIdAsync(userId.ToString());
+
+    /// <summary>
+    /// Método responsável por recuperar vários usuários por id.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    public async Task<IEnumerable<UserEntity>> GetByIdsAsync(List<Guid> userIds)
+        => await _userManager.Users.Where(user => userIds.Contains(user.Id)).ToListAsync();
+
+    /// <summary>
+    /// Método responsável por recuperar vários usuários por nome.
+    /// </summary>
+    /// <param name="names"></param>
+    /// <returns></returns>
+    public async Task<IEnumerable<UserEntity>> GetByNamesAsync(List<string> names)
+        => await _userManager.Users.Where(user => 
+               names.Contains(user.FirstName) 
+            || names.Contains(user.LastName)
+        ).ToListAsync();
 
     /// <summary>
     /// Método responsável por recuperar um usuário pelo username.

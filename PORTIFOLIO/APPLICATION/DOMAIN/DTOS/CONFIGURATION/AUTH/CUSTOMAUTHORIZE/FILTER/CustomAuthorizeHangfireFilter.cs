@@ -1,7 +1,7 @@
 ﻿using Hangfire.Annotations;
 using Hangfire.Dashboard;
 
-namespace APPLICATION.DOMAIN.UTILS.AUTH.CUSTOMAUTHORIZE.FILTER
+namespace APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.CUSTOMAUTHORIZE.FILTER
 {
     public class CustomAuthorizeHangfireFilter : IDashboardAuthorizationFilter
     {

@@ -40,6 +40,20 @@ public interface IUserRepository
     Task<UserEntity> GetAsync(Guid userId);
 
     /// <summary>
+    /// Método responsável por recuperar vários usuários por id.
+    /// </summary>
+    /// <param name="userIds"></param>
+    /// <returns></returns>
+    Task<IEnumerable<UserEntity>> GetByIdsAsync(List<Guid> userIds);
+
+    /// <summary>
+    /// Método responsável por recuperar vários usuários por nome.
+    /// </summary>
+    /// <param name="names"></param>
+    /// <returns></returns>
+    Task<IEnumerable<UserEntity>> GetByNamesAsync(List<string> names);
+
+    /// <summary>
     /// Método responsável por recuperar um usuário pelo username.
     /// </summary>
     /// <param name="username"></param>

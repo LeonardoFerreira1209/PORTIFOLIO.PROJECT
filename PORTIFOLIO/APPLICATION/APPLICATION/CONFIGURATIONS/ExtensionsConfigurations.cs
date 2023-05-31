@@ -402,7 +402,7 @@ public static class ExtensionsConfigurations
         }
 
         services
-            .AddTransient(x => configurations)
+            .AddSingleton(serviceProvider => configurations)
             // Services
             .AddTransient<IUserService, UserService>()
             .AddTransient<IRoleService, RoleService>()
@@ -410,9 +410,8 @@ public static class ExtensionsConfigurations
             .AddTransient<IFileService, FileService>()
             // Facades
             .AddSingleton<IUtilFacade, UtilFacade>()
-            // Generics Repository
-            .AddScoped(typeof(IGenerictEntityCoreRepository<>), typeof(GenericEntityCoreRepository<>))
             // Repository
+            .AddScoped(typeof(IGenerictEntityCoreRepository<>), typeof(GenericEntityCoreRepository<>))
             .AddScoped<IUserRepository, UserRepository>()
             // Infra
             .AddSingleton<IUserEmailServiceBusSenderProvider, UserEmailServiceBusSenderProvider>()

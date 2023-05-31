@@ -16,17 +16,22 @@
     <PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="6.0.2" />
     <PackageReference Include="AutoMapper" Version="12.0.1" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
-    <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.13.1" />
+    <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.14.0" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.16.0" />
     <PackageReference Include="Dapper" Version="2.0.123" />
     <PackageReference Include="DocsBRValidator" Version="1.3.1" />
-    <PackageReference Include="EFCore.BulkExtensions" Version="7.0.4" />
+    <PackageReference Include="EFCore.BulkExtensions" Version="7.1.1" />
     <PackageReference Include="FluentScheduler" Version="5.5.1" />
     <PackageReference Include="FluentValidation" Version="11.5.2" />
-    <PackageReference Include="Hangfire.AspNetCore" Version="1.7.34" />
-    <PackageReference Include="Hangfire.Core" Version="1.7.34" />
+    <PackageReference Include="GreenDonut" Version="13.0.5" />
+    <PackageReference Include="Hangfire.AspNetCore" Version="1.8.0" />
+    <PackageReference Include="Hangfire.Core" Version="1.8.0" />
     <PackageReference Include="Hangfire.MemoryStorage" Version="1.7.0" />
-    <PackageReference Include="Hangfire.SqlServer" Version="1.7.34" />
+    <PackageReference Include="Hangfire.SqlServer" Version="1.8.0" />
+    <PackageReference Include="HotChocolate" Version="13.0.5" />
+    <PackageReference Include="HotChocolate.Abstractions" Version="13.0.5" />
+    <PackageReference Include="HotChocolate.AspNetCore" Version="13.0.5" />
+    <PackageReference Include="HotChocolate.Data" Version="13.0.5" />
     <PackageReference Include="MediatR" Version="12.0.1" />
     <PackageReference Include="Microsoft.ApplicationInsights" Version="2.21.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
@@ -65,7 +70,9 @@
   <ItemGroup>
     <Folder Include="DOMAIN\CONTRACTS\FACTORY\" />
     <Folder Include="DOMAIN\EXCEPTIONS\" />
+    <Folder Include="DOMAIN\GRAPHQL\QUERYTYPE\" />
     <Folder Include="DOMAIN\HANDLERS\" />
+    <Folder Include="DOMAIN\UTILS\AUTH\" />
     <Folder Include="MIGRATIONS\" />
   </ItemGroup>
 

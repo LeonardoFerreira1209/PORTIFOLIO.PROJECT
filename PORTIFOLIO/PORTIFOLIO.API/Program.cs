@@ -1,7 +1,9 @@
 using APPLICATION.APPLICATION.CONFIGURATIONS;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION;
-using APPLICATION.DOMAIN.UTILS.AUTH.CUSTOMAUTHORIZE.FILTER;
+using APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.CUSTOMAUTHORIZE.FILTER;
+using APPLICATION.DOMAIN.GRAPHQL.QUERY;
 using Hangfire;
+using HotChocolate.Types.Pagination;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -42,6 +44,14 @@ try
         .ConfigureSwagger(configurations)
         .ConfigureDependencies(configurations, builder.Environment)
         .ConfigureRefit(configurations);
+
+    builder.Services.AddGraphQLServer().AddQueryType<UserQuery>()
+        .SetPagingOptions(new PagingOptions
+        {
+            MaxPageSize = 10,
+            IncludeTotalCount = true,
+            DefaultPageSize = 10,
+        });
 
     // Se for em produção executa.
     if (builder.Environment.IsProduction())
@@ -89,6 +99,8 @@ try
         {
             Authorization = new[] { new CustomAuthorizeHangfireFilter() }
         });
+
+    applicationbuilder.MapGraphQL();
 
     Log.Information($"[LOG INFORMATION] - Inicializando aplicação [TOOLS.USER.API]\n");
 

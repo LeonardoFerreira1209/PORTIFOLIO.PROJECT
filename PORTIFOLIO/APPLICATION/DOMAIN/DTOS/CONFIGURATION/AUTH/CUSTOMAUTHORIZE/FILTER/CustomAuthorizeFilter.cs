@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 
-namespace APPLICATION.DOMAIN.UTILS.AUTH.CUSTOMAUTHORIZE.FILTER;
+namespace APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.CUSTOMAUTHORIZE.FILTER;
 
 [ExcludeFromCodeCoverage]
 public class CustomAuthorizeFilter : IAuthorizationFilter
