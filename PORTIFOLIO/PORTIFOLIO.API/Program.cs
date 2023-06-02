@@ -2,6 +2,7 @@ using APPLICATION.APPLICATION.CONFIGURATIONS;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.CUSTOMAUTHORIZE.FILTER;
 using APPLICATION.DOMAIN.GRAPHQL.QUERY;
+using APPLICATION.INFRAESTRUTURE.MIDDLEWARE;
 using Hangfire;
 using HotChocolate.Types.Pagination;
 using Microsoft.AspNetCore.Builder;
@@ -79,6 +80,8 @@ try
 
     // Preparando WebApplication Build.
     var applicationbuilder = builder.Build();
+
+    applicationbuilder.UseMiddleware<ErrorHandlerMiddleware>();
 
     // Chamada das connfigurações do WebApplication Build.
     applicationbuilder

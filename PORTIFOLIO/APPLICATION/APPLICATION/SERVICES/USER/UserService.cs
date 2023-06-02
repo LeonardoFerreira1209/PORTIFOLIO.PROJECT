@@ -65,26 +65,20 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
             {
                 Log.Information($"[LOG INFORMATION] - Validando request.\n");
 
-                // Validate de userRequest.
-                var validation = await new AuthenticationValidator().ValidateAsync(loginRequest); if (validation.IsValid is false) return validation.CarregarErrosValidator();
+                var validation = await new AuthenticationValidator().ValidateAsync(loginRequest); if (validation.IsValid is false) await validation.CarregarErrosValidator();
 
                 Log.Information($"[LOG INFORMATION] - Recuperando usuário {JsonConvert.SerializeObject(loginRequest)}.\n");
 
-                // Get user by username.
                 var userEntity = await _userRepository.GetWithUsernameAsync(loginRequest.Username);
 
                 var apiNotifications = new List<DadosNotificacao>();
 
-                // User is not null.
                 if (userEntity is not null)
                 {
-                    // sigin user wirh username & password.
                     var signInResult = await _userRepository.PasswordSignInAsync(userEntity, loginRequest.Password, true, true);
 
-                    // return error response.
                     if (signInResult.Succeeded is false)
                     {
-                        // locked user.
                         if (signInResult.IsLockedOut)
                         {
                             Log.Information($"[LOG INFORMATION] - Falha ao recuperar usuário, está bloqueado.\n");
@@ -93,7 +87,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                                     new DadosNotificacao((int)StatusCodes.ErrorLocked, "Usuário está bloqueado. Caso não desbloqueie em alguns minutos entre em contato com o suporte.")
                                 );
                         }
-                        else if (signInResult.IsNotAllowed) // not allowed user.
+                        else if (signInResult.IsNotAllowed)
                         {
                             Log.Information($"[LOG INFORMATION] - Falha ao recuperar usuário, não está confirmado.\n");
 
@@ -101,7 +95,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                                     new DadosNotificacao((int)StatusCodes.ErrorUnauthorized, "Email do usuário não está confirmado.")
                                 );
                         }
-                        else if (signInResult.RequiresTwoFactor) // requires two factor user.
+                        else if (signInResult.RequiresTwoFactor)
                         {
                             Log.Information($"[LOG INFORMATION] - Falha ao recuperar usuário, requer verificação de dois fatores.\n");
 
@@ -111,7 +105,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                         }
                     }
                 }
-                else // incorrects params user.
+                else
                 {
                     Log.Information($"[LOG INFORMATION] - Falha ao recuperar usuário, dados incorretos.\n");
 
@@ -120,7 +114,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                             );
                 }
 
-                // Has errors.
                 if(apiNotifications.Any())
                     return new UnauthorizedObjectResult(
                         new ApiResponse<object>(
@@ -128,19 +121,15 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
 
                 Log.Information($"[LOG INFORMATION] - Gerando token.\n");
 
-                // Create token jwr.
                 var (tokenJWT, messages) = await _tokenService.CreateJsonWebToken(loginRequest.Username);
 
-                // Token is null.
                 if (tokenJWT is null)
                     return new BadRequestObjectResult(
                         new ApiResponse<object>(
                             false, StatusCodes.ErrorBadRequest, null, messages));
 
-                // Save user token.
                 await SetAuthenticationTokenAsync(userEntity, tokenJWT.Value);
 
-                // Return Json Web Token.
                 return new OkObjectResult(
                     new ApiResponse<object>(
                         true, StatusCodes.SuccessCreated, tokenJWT, messages));
@@ -149,7 +138,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
             {
                 Log.Error($"[LOG ERROR] - {exception.Message}\n");
 
-                // Response error
                 return new ObjectResult(
                     new ApiResponse<object>(
                         false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) }));
@@ -169,19 +157,15 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
             {
                 Log.Information($"[LOG INFORMATION] - Recuperando usuário com Id {userId}.\n");
 
-                // get user by id.
                 var userEntity
                     = await _userRepository.GetAsync(userId);
 
-                // is not null.
                 if (userEntity is not null)
                 {
-                    // Convert to response.
                     var userResponse = userEntity.ToResponse();
 
                     Log.Information($"[LOG INFORMATION] - Usuário recuperado com sucesso {JsonConvert.SerializeObject(userResponse)}.\n");
 
-                    // return success.
                     return new OkObjectResult(
                         new ApiResponse<object>(
                             true, StatusCodes.SuccessOK, userResponse, new List<DadosNotificacao> { new DadosNotificacao("Usuario recuperado com sucesso.") }));
@@ -190,7 +174,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                 {
                     Log.Information($"[LOG INFORMATION] - Usuário não encontrado.\n");
 
-                    // return error.
                     return new NotFoundObjectResult(
                         new ApiResponse<object>(
                             false, StatusCodes.ErrorNotFound, null, new List<DadosNotificacao> { new DadosNotificacao("Usuario não encontrado.") }));
@@ -200,7 +183,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
             {
                 Log.Error($"[LOG ERROR] - {exception.Message}\n");
 
-                // Response error
                 return new ObjectResult(
                     new ApiResponse<object>(
                         false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) }));
@@ -220,30 +202,23 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
             {
                 Log.Information($"[LOG INFORMATION] - Validando request.\n");
 
-                // Validate person reques
-                var validation = await new CreateUserValidator().ValidateAsync(userCreateRequest); if (validation.IsValid is false) return validation.CarregarErrosValidator();
+                var validation = await new CreateUserValidator().ValidateAsync(userCreateRequest); if (validation.IsValid is false) await validation.CarregarErrosValidator();
 
                 Log.Information($"[LOG INFORMATION] - Request validado com sucesso.\n");
 
-                // Convert userCreatedRequest to identityUser
                 var user = userCreateRequest.ToIdentityUser();
 
-                // Build a user.
                 var response = await BuildUserAsync(user, userCreateRequest.Password);
 
-                // Response succes true
                 if (response.Succeeded)
                 {
-                    // Confirm user for e-mail
                     await ConfirmeUserForEmailAsync(user);
 
-                    // Response success.
                     return new OkObjectResult(
                         new ApiResponse<object>(
                             response.Succeeded, StatusCodes.SuccessCreated, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário criado com sucesso.") }));
                 }
 
-                // Response error
                 return new BadRequestObjectResult(
                     new ApiResponse<object>(
                         response.Succeeded, StatusCodes.ErrorBadRequest, null, response.Errors.Select((e) => new DadosNotificacao(e.Code.CustomExceptionMessage())).ToList()));
@@ -252,10 +227,11 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
             {
                 Log.Error($"[LOG ERROR] - {exception.Message}\n");
 
-                // Response error.
-                return new ObjectResult(
-                    new ApiResponse<object>(
-                        false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) }));
+                throw;
+
+                //return new ObjectResult(
+                //    new ApiResponse<object>(
+                //        false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) }));
             }
         }
 
@@ -272,20 +248,16 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
             {
                 Log.Information($"[LOG INFORMATION] - Validando request.\n");
 
-                // Validate de userRequest.
-                var validation = await new UpdateUserValidator().ValidateAsync(userUpdateRequest); if (validation.IsValid is false) return validation.CarregarErrosValidator(userUpdateRequest);
+                var validation = await new UpdateUserValidator().ValidateAsync(userUpdateRequest); if (validation.IsValid is false) await validation.CarregarErrosValidator(userUpdateRequest);
 
                 Log.Information($"[LOG INFORMATION] - Request validado com sucesso.\n");
 
                 Log.Information($"[LOG INFORMATION] - Atualizando dados do usuário {JsonConvert.SerializeObject(userUpdateRequest)}.\n");
 
-                // Get user.
                 var userEntity = await _userRepository.GetAsync(userUpdateRequest.Id);
 
-                // User is valid ?.
                 if (userEntity is not null)
                 {
-                    // update username.
                     if (!userUpdateRequest.UserName.Equals(userEntity.UserName))
                     {
                         var setUsernameResponse = await _userRepository.SetUserNameAsync(userEntity, userUpdateRequest.UserName);
@@ -300,7 +272,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                         }
                     }
 
-                    // update password.
                     if (!string.IsNullOrEmpty(userUpdateRequest.Password))
                     {
                         var changePasswordResponse = await _userRepository.ChangePasswordAsync(userEntity, userUpdateRequest.CurrentPassword, userUpdateRequest.Password);
@@ -315,7 +286,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                         }
                     }
 
-                    // update e-mail.
                     if (!userUpdateRequest.Email.Equals(userEntity.Email))
                     {
                         var setEmailResponse = await _userRepository.SetEmailAsync(userEntity, userUpdateRequest.Email);
@@ -329,11 +299,9 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                                     false, StatusCodes.ErrorBadRequest, null, new List<DadosNotificacao> { new DadosNotificacao(setEmailResponse.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) }));
                         }
 
-                        // Confirm user for e-mail.
                         await ConfirmeUserForEmailAsync(userEntity);
                     }
 
-                    // update phoneNumber
                     if (!userUpdateRequest.PhoneNumber.Equals(userEntity.PhoneNumber))
                     {
                         var setPhoneNumberResponse = await _userRepository.SetPhoneNumberAsync(userEntity, userUpdateRequest.PhoneNumber);
@@ -348,15 +316,12 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                         }
                     }
 
-                    // Complete user.
                     userEntity = userUpdateRequest.ToCompleteUserUpdateWithRequest(userEntity);
 
-                    // update user.
                     await _userRepository.UpdateUserAsync(userEntity);
 
                     Log.Information($"[LOG INFORMATION] - Usuário atualizado com sucesso.\n");
 
-                    // Response success.
                     return new OkObjectResult(
                         new ApiResponse<object>(
                             true, StatusCodes.SuccessOK, userEntity, new List<DadosNotificacao> { new DadosNotificacao("Usuário atualizado com sucesso.") }));
@@ -365,7 +330,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                 {
                     Log.Information($"[LOG INFORMATION] - Usuário não encontrado.\n");
 
-                    // Response error.
                     return new NotFoundObjectResult(
                         new ApiResponse<object>(
                             false, StatusCodes.ErrorNotFound, userUpdateRequest, new List<DadosNotificacao> { new DadosNotificacao("Usuário não encontrado..") }));
@@ -394,30 +358,22 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
 
             try
             {
-                // Get user.
                 var userEntity = await _userRepository.GetAsync(id);
 
-                // User is valid ?.
                 if (userEntity is not null)
                 {
-                    // Response of Azure blob.
                     var response = await _utilFacade.SendAsync(formFile);
 
-                    // Is success.
                     if (response.Sucesso)
                     {
-                        // convert to file response.
                         var fileResponse = (FileResponse)response.Dados;
 
-                        // set image uri in entity.
                         //userEntity.ImageUri = fileResponse.FileUri;
 
-                        // update user.
                         await _userRepository.UpdateUserAsync(userEntity);
 
                         Log.Information($"[LOG INFORMATION] - Imagem do usuário atualizado com sucesso.\n");
 
-                        // Response success.
                         return new OkObjectResult(
                             new ApiResponse<object>(
                                 true, StatusCodes.SuccessOK, new FileResponse { FileUri = null }, new List<DadosNotificacao> { new DadosNotificacao("Imagem do usuário atualizado com sucesso.") }));
@@ -426,7 +382,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                     {
                         Log.Information($"[LOG INFORMATION] - Erro ao armazenar imagem no blob do azure.\n");
 
-                        // Response success.
                         return new ObjectResult(
                             new ApiResponse<object>(
                                 false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao("Erro ao armazenar imagem no blob do azure.") }));
@@ -436,7 +391,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                 {
                     Log.Information($"[LOG INFORMATION] - Usuário não encontrado.\n");
 
-                    // Response success.
                     return new NotFoundObjectResult(
                         new ApiResponse<object>(
                             false, StatusCodes.ErrorNotFound, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário não encontrado.") }));
@@ -446,7 +400,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
             {
                 Log.Error($"[LOG ERROR] - {exception.Message}\n");
 
-                // Response error
                 return new ObjectResult(
                     new ApiResponse<object>(
                         false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) }));
@@ -466,23 +419,18 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
             {
                 Log.Information($"[LOG INFORMATION] - Recuperando usuário.\n");
 
-                // Get user form Id.
                 var userEntity = await _userRepository.GetAsync(activateUserRequest.UserId);
 
-                // Is not null.
                 if (userEntity is not null)
                 {
                     Log.Information($"[LOG INFORMATION] - Confirmando e-mail do usuário {userEntity.UserName}.\n");
 
-                    // Confirm e-mail user.
                     var response = await _userRepository.ConfirmEmailAsync(userEntity, HttpUtility.UrlDecode(activateUserRequest.Code.Replace(";", "%")));
 
-                    // Response success true
                     if (response.Succeeded)
                     {
                         Log.Information($"[LOG INFORMATION] - Usuário ativado com sucesso.\n");
 
-                        // Success response.
                         return new OkObjectResult(
                             new ApiResponse<object>(
                                 response.Succeeded, StatusCodes.SuccessOK, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário ativado com sucesso.") }));
@@ -498,7 +446,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                 {
                     Log.Information($"[LOG ERROR] - Usuário não encontrado.\n");
 
-                    // Response error.
                     return new NotFoundObjectResult(
                         new ApiResponse<object>(
                             false, StatusCodes.ErrorNotFound, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário não encontrado.") }));
@@ -508,7 +455,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
             {
                 Log.Error($"[LOG ERROR] - {exception.Message}\n");
 
-                // Error response.
                 return new ObjectResult(
                     new ApiResponse<object>(
                         false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) }));
@@ -529,23 +475,18 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
             {
                 Log.Information($"[LOG INFORMATION] - Recuperando usuario {username}.\n");
 
-                // Get user for username.
                 var userEntity = await _userRepository.GetWithUsernameAsync(username);
 
-                // Is not null.
                 if (userEntity is not null)
                 {
                     Log.Information($"[LOG INFORMATION] - Adicionando a claim ({claimRequest.Type}/{claimRequest.Value}) no usuário.\n");
 
-                    // Add claim in user.
                     var identityResult = await _userRepository.AddClaimUserAsync(userEntity, new Claim(claimRequest.Type, claimRequest.Value));
 
-                    // Response success true.
                     if (identityResult.Succeeded)
                     {
                         Log.Information($"[LOG INFORMATION] - Claim adicionada com sucesso.\n");
 
-                        // Success response.
                         return new OkObjectResult(
                             new ApiResponse<object>(
                                 identityResult.Succeeded, StatusCodes.SuccessOK, null, new List<DadosNotificacao> { new DadosNotificacao($"Claim {claimRequest.Type} / {claimRequest.Value}, adicionada com sucesso ao usuário {username}.") }));
@@ -553,7 +494,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
 
                     Log.Information($"[LOG ERROR] - Falha ao adicionar claim.\n");
 
-                    // Response error.
                     return new ObjectResult(
                         new ApiResponse<object>(
                             identityResult.Succeeded, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao("Falha ao adicionar claim!") }));
@@ -562,7 +502,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                 {
                     Log.Information($"[LOG ERROR] - Usuário não encontrado.\n");
 
-                    // Response success.
                     return new NotFoundObjectResult(
                         new ApiResponse<object>(
                             false, StatusCodes.ErrorNotFound, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário não encontrado.") }));
@@ -572,7 +511,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
             {
                 Log.Error($"[LOG ERROR] - {exception.Message}\n");
 
-                // Error response.
                 return new ObjectResult(
                     new ApiResponse<object>(
                         false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) }));
@@ -593,23 +531,18 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
             {
                 Log.Information($"[LOG INFORMATION] - Recuperando usuário {username}.\n");
 
-                // Get user for username.
                 var userIdentity = await _userRepository.GetWithUsernameAsync(username);
 
-                // Is not null.
                 if (userIdentity is not null)
                 {
                     Log.Information($"[LOG INFORMATION] - Removendo a claim ({claimRequest.Type}/{claimRequest.Value}) do usuário.\n");
 
-                    // Remove claim.
                     var identityResult = await _userRepository.RemoveClaimUserAsync(userIdentity, new Claim(claimRequest.Type, claimRequest.Value));
 
-                    // Response success true.
                     if (identityResult.Succeeded)
                     {
                         Log.Information($"[LOG INFORMATION] - Claim remvida com sucesso.\n");
 
-                        // Response success.
                         return new OkObjectResult(
                             new ApiResponse<object>(
                                 identityResult.Succeeded, StatusCodes.SuccessOK, null, new List<DadosNotificacao> { new DadosNotificacao($"Claim {claimRequest.Type} / {claimRequest.Value}, removida com sucesso do usuário {username}.") }));
@@ -617,7 +550,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
 
                     Log.Information($"[LOG ERROR] - Falha ao remover claim.\n");
 
-                    // Response error.
                     return new ObjectResult(
                         new ApiResponse<object>(
                             identityResult.Succeeded, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao("Falha ao remover claim!") }));
@@ -626,7 +558,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                 {
                     Log.Information($"[LOG ERROR] - Usuário não encontrado.\n");
 
-                    // Response success.
                     return new NotFoundObjectResult(
                         new ApiResponse<object>(
                             false, StatusCodes.ErrorNotFound, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário não encontrado.") }));
@@ -636,7 +567,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
             {
                 Log.Error($"[LOG ERROR] - {exception.Message}\n");
 
-                // Error response.
                 return new ObjectResult(
                     new ApiResponse<object>(
                         false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) }));
@@ -657,23 +587,18 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
             {
                 Log.Information($"[LOG INFORMATION] - Recuperando dados do usuário {username}.\n");
 
-                // Get user for username.
                 var userEntity = await _userRepository.GetWithUsernameAsync(username);
 
-                // User is not null.
                 if (userEntity is not null)
                 {
                     Log.Information($"[LOG INFORMATION] - Adicionando a role ({roleName}) ao usuário.\n");
 
-                    // Add Role.
                     var response = await _userRepository.AddToUserRoleAsync(userEntity, roleName);
 
-                    // Response is not null and success true.
                     if (response is not null && response.Succeeded)
                     {
                         Log.Information($"[LOG INFORMATION] - Role adicionada com sucesso.\n");
 
-                        // Response success.
                         return new OkObjectResult(
                             new ApiResponse<object>(
                                 response.Succeeded, StatusCodes.SuccessOK, null, new List<DadosNotificacao> { new DadosNotificacao($"Role {roleName}, adicionada com sucesso ao usuário {username}.") }));
@@ -682,7 +607,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                     {
                         Log.Information($"[LOG ERROR] - Falha ao adicionar role.\n");
 
-                        // Response error.
                         return new BadRequestObjectResult(
                             new ApiResponse<object>(
                                 false, StatusCodes.ErrorBadRequest, null, new List<DadosNotificacao> { new DadosNotificacao("Falha ao adicionar role!") }));
@@ -691,7 +615,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
 
                 Log.Information($"[LOG ERROR] - Usuário não encontrado.\n");
 
-                // Response error.
                 return new NotFoundObjectResult(
                     new ApiResponse<object>(
                         false, StatusCodes.ErrorNotFound, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário não encontrado!") }));
@@ -700,7 +623,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
             {
                 Log.Error($"[LOG ERROR] - {exception.Message}\n");
 
-                // Error response.
                 return new ObjectResult(
                     new ApiResponse<object>(
                         false, StatusCodes.ServerErrorInternalServerError, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) }));
@@ -720,34 +642,25 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
             {
                 Log.Information($"[LOG INFORMATION] - Recuperando todas as roles do usuário.\n");
 
-                // Get user for Id.
                 var userEntity = await _userRepository.GetAsync(userId);
 
-                // is not null.
                 if (userEntity is not null)
                 {
-                    // Get roles.
                     var userRoles = await _userRepository.GetUserRolesAsync(userEntity);
 
-                    // Instance of role response
                     var roles = new List<RolesResponse>();
 
-                    // for in response
                     foreach (var roleName in userRoles)
                     {
-                        // get role.
                         var roleEntity = await _userRepository.GetRoleAsync(roleName);
 
-                        // get role claims
                         var roleClaims = await _userRepository.GetRoleClaimsAsync(roleEntity);
 
-                        // add roles.
                         roles.Add(new RolesResponse { Name = roleName, Claims = roleClaims });
                     }
 
                     Log.Information($"[LOG INFORMATION] - Roles recuperadas.\n");
 
-                    // Response success.
                     return new OkObjectResult(
                         new ApiResponse<object>(
                             true, StatusCodes.SuccessOK, roles.ToList(), new List<DadosNotificacao> { new DadosNotificacao("Roles recuperadas com sucesso.") }));
@@ -756,7 +669,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                 {
                     Log.Information($"[LOG ERROR] - Usuário não encontrado.\n");
 
-                    // Response error.
                     return new NotFoundObjectResult(
                         new ApiResponse<object>(
                             false, StatusCodes.ErrorNotFound, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário não encontrado.") }));
@@ -766,7 +678,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
             {
                 Log.Error($"[LOG ERROR] - {exception.InnerException} - {exception.Message}\n");
 
-                // Error response.
                 return new ObjectResult(
                     new ApiResponse<object>(
                         false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) }));
@@ -787,23 +698,18 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
             {
                 Log.Information($"[LOG INFORMATION] - Recuperando dados do usuário {username}.\n");
 
-                // Get user for username.
                 var userEntity = await _userRepository.GetWithUsernameAsync(username);
 
-                // Is not null.
                 if (userEntity is not null)
                 {
                     Log.Information($"[LOG INFORMATION] - Removendo role ({roleName}) do usuário.\n");
 
-                    // Remove role.
                     var response = await _userRepository.RemoveToUserRoleAsync(userEntity, roleName);
 
-                    // Response success true.
                     if (response.Succeeded)
                     {
                         Log.Information($"[LOG INFORMATION] - Role removida com sucesso.\n");
 
-                        // Response success
                         return new OkObjectResult(
                             new ApiResponse<object>(
                                 response.Succeeded, StatusCodes.SuccessOK, null, new List<DadosNotificacao> { new DadosNotificacao($"Role {roleName}, removida com sucesso do usuário {username}.") }));
@@ -811,7 +717,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
 
                     Log.Information($"[LOG INFORMATION] - Falha ao remover role.\n");
 
-                    // Response error.
                     return new ObjectResult(
                         new ApiResponse<object>(
                             response.Succeeded, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao("Falha ao remover role.!") }));
@@ -820,7 +725,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                 {
                     Log.Information($"[LOG ERROR] - Usuário não encontrado.\n");
 
-                    // Response success.
                     return new NotFoundObjectResult(
                         new ApiResponse<object>(
                             false, StatusCodes.ErrorNotFound, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário não encontrado.") }));
@@ -830,7 +734,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
             {
                 Log.Error($"[LOG ERROR] - {exception.Message}\n");
 
-                // Error response.
                 return new ObjectResult(
                     new ApiResponse<object>(
                         false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) }));
@@ -849,13 +752,10 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
 
             Log.Information("[LOG INFORMATION] - Criando usuário\n");
 
-            // Create User
             var identityResult = await _userRepository.CreateUserAsync(user, password);
 
-            // Update user with created Id seted.
             await _userRepository.UpdateUserAsync(user);
 
-            // Return result.
             return identityResult;
         }
 
@@ -870,15 +770,12 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
 
             Log.Information($"[LOG INFORMATION] - Gerando codigo de confirmação de e-mail.\n");
 
-            // Generate email code.
             var confirmationCode = await _userRepository.GenerateEmailConfirmationTokenAsync(user);
 
-            // Codify email code.
             var codifyEmailCode = HttpUtility.UrlEncode(confirmationCode).Replace("%", ";");
 
             Log.Information($"[LOG INFORMATION] - Código gerado - {codifyEmailCode}.\n");
 
-            // Create Queued Job.
             SendUserEmailToServiceBusJob.Execute(new UserEmailMessageDto
             {
                 Receivers = new List<string> { user.Email },
