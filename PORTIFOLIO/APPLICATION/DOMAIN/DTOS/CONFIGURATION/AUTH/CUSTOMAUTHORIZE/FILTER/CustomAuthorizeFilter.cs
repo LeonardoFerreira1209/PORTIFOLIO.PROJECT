@@ -1,13 +1,9 @@
-﻿using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
-using APPLICATION.ENUMS;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
-using System.Diagnostics.CodeAnalysis;
+﻿using Microsoft.AspNetCore.Mvc.Filters;
 using System.Security.Claims;
+using static APPLICATION.DOMAIN.EXCEPTIONS.USER.CustomUserException;
 
 namespace APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.CUSTOMAUTHORIZE.FILTER;
 
-[ExcludeFromCodeCoverage]
 public class CustomAuthorizeFilter : IAuthorizationFilter
 {
     private readonly List<Claim> _claims;
@@ -24,11 +20,11 @@ public class CustomAuthorizeFilter : IAuthorizationFilter
     /// <param name="context"></param>
     public void OnAuthorization(AuthorizationFilterContext context)
     {
-        var hasClaim = context.HttpContext.User.Claims.Any(userClaim => _claims.Any(claim => userClaim.Type.Equals(claim.Type) && userClaim.Value.Equals(claim.Value)));
+        var hasClaim = 
+            context.HttpContext.User.Claims.Any(
+                userClaim => _claims.Any(
+                    claim => userClaim.Type.Equals(claim.Type) && userClaim.Value.Equals(claim.Value)));
 
-        if (hasClaim is false)
-        {
-            context.Result = new ObjectResult(new ApiResponse<object>(false, StatusCodes.ErrorForbidden, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário não têm permissão para acessar essa funcionalidade.") }));
-        }
+        if (hasClaim is false) throw new UnauthorizedUserException(context.HttpContext.User);
     }
 }

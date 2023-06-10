@@ -1,66 +1,38 @@
-﻿using APPLICATION.ENUMS;
+﻿using System.Net;
 
 namespace APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
-
-/// <summary>
-/// Dados a ser retornado em uma notificação do sistema.
-/// </summary>
-public class DadosNotificacao
-{
-    public DadosNotificacao(string mensagem) { Mensagem = mensagem; }
-
-    public DadosNotificacao(int errorCode, string mensagem) {
-        
-        ErrorCode = errorCode;
-        Mensagem = mensagem; 
-    }
-
-    /// <summary>
-    /// Código do erro.
-    /// </summary>
-    public int ErrorCode { get; set; }
-
-    /// <summary>
-    /// Mensagem da notificação.
-    /// </summary>
-    public string Mensagem { get; set; }
-}
 
 /// <summary>
 /// Retorno das APIS.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public class ApiResponse<T> where T : class
+public class ApiResponse<T> : BaseApiResponse
 {
-    public ApiResponse() { }
+    /// <summary>
+    /// Construtor simples
+    /// </summary>
+    /// <param name="statusCode"></param>
+    public ApiResponse(HttpStatusCode statusCode) : base(statusCode) { }
 
-    public ApiResponse(bool sucesso, StatusCodes statusCode, List<DadosNotificacao> notificacaos = null)
-    {
-        Sucesso = sucesso; StatusCode = statusCode; Notificacoes = notificacaos;
+    /// <summary>
+    /// Construtor sem recebimento de dados.
+    /// </summary>
+    /// <param name="sucesso"></param>
+    /// <param name="statusCode"></param>
+    /// <param name="notificacoes"></param>
+    public ApiResponse(bool sucesso, HttpStatusCode statusCode, List<DadosNotificacao> notificacoes = null) : base(statusCode, sucesso, notificacoes) {
+        
     }
 
-    public ApiResponse(bool sucesso, StatusCodes statusCode, T dados = null, List<DadosNotificacao> notificacoes = null)
-    {
-        Sucesso = sucesso; StatusCode = statusCode; Dados = dados; Notificacoes = notificacoes;
+    /// <summary>
+    /// Construtor que recebe todos os itens.
+    /// </summary>
+    /// <param name="sucesso"></param>
+    /// <param name="statusCode"></param>
+    /// <param name="dados"></param>
+    /// <param name="notificacoes"></param>
+    public ApiResponse(bool sucesso, HttpStatusCode statusCode, object dados = null, List<DadosNotificacao> notificacoes = null) : base(statusCode, sucesso, dados, notificacoes) {
+
     }
 
-    /// <summary>
-    /// Status cde.
-    /// </summary>
-    public StatusCodes StatusCode { get; set; }
-
-    /// <summary>
-    /// Retorna true se a requisição para API foi bem sucedida.
-    /// </summary>
-    public bool Sucesso { get; set; }
-
-    /// <summary>
-    /// Dados a serem retornados na requisição.
-    /// </summary>
-    public T Dados { get; set; }
-
-    /// <summary>
-    /// Notificações que retornam da requisição, sejam elas Sucesso, Erro, Informação.
-    /// </summary>
-    public List<DadosNotificacao> Notificacoes { get; set; }
 }

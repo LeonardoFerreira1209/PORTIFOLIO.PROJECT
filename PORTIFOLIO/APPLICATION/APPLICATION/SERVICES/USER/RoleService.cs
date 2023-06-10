@@ -3,10 +3,10 @@ using APPLICATION.DOMAIN.DTOS.REQUEST.USER;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
 using APPLICATION.DOMAIN.ENTITY.ROLE;
 using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
-using APPLICATION.ENUMS;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using System.Net;
 using System.Security.Claims;
 
 namespace APPLICATION.APPLICATION.SERVICES.USER;
@@ -50,20 +50,20 @@ public class RoleService : IRoleService
                 }
 
                 // Response success.
-                return new ApiResponse<object>(response.Succeeded, StatusCodes.SuccessCreated, null, new List<DadosNotificacao> { new DadosNotificacao("Role criado com sucesso.") });
+                return new ApiResponse<object>(response.Succeeded, HttpStatusCode.Created, null, new List<DadosNotificacao> { new DadosNotificacao("Role criado com sucesso.") });
             }
 
             Log.Information($"[LOG INFORMATION] - Falha ao criar role.\n");
 
             // Response error.
-            return new ApiResponse<object>(response.Succeeded, StatusCodes.ErrorBadRequest, null, response.Errors.Select(e => new DadosNotificacao(e.Description)).ToList());
+            return new ApiResponse<object>(response.Succeeded, HttpStatusCode.BadRequest, null, response.Errors.Select(e => new DadosNotificacao(e.Description)).ToList());
         }
         catch (Exception exception)
         {
             Log.Error($"[LOG ERROR] - {exception.InnerException} - {exception.Message}\n");
 
             // Error response.
-            return new ApiResponse<object>(false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) });
+            return new ApiResponse<object>(false, HttpStatusCode.InternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) });
         }
     }
 
@@ -83,14 +83,14 @@ public class RoleService : IRoleService
             var roles = await _roleManager.Roles.ToListAsync();
 
             // Response success.
-            return new ApiResponse<object>(true, StatusCodes.SuccessOK, roles, new List<DadosNotificacao> { new DadosNotificacao("Roles recuperadas com sucesso.") });
+            return new ApiResponse<object>(true, HttpStatusCode.OK, roles, new List<DadosNotificacao> { new DadosNotificacao("Roles recuperadas com sucesso.") });
         }
         catch (Exception exception)
         {
             Log.Error($"[LOG ERROR] - {exception.InnerException} - {exception.Message}\n");
 
             // Error response.
-            return new ApiResponse<object>(false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) });
+            return new ApiResponse<object>(false, HttpStatusCode.InternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) });
         }
     }
 
@@ -123,18 +123,18 @@ public class RoleService : IRoleService
                 }
 
                 // Response success.
-                return new ApiResponse<object>(true, StatusCodes.SuccessOK, null, new List<DadosNotificacao> { new DadosNotificacao($"Claim adicionada a role {roleRequest.Name} com sucesso.") });
+                return new ApiResponse<object>(true, HttpStatusCode.OK, null, new List<DadosNotificacao> { new DadosNotificacao($"Claim adicionada a role {roleRequest.Name} com sucesso.") });
             }
 
             // Response error.
-            return new ApiResponse<object>(false, StatusCodes.ErrorNotFound, null, new List<DadosNotificacao> { new DadosNotificacao($"Role com o nome {roleRequest.Name} não existe.") });
+            return new ApiResponse<object>(false, HttpStatusCode.NotFound, null, new List<DadosNotificacao> { new DadosNotificacao($"Role com o nome {roleRequest.Name} não existe.") });
         }
         catch (Exception exception)
         {
             Log.Error($"[LOG ERROR] - {exception.InnerException} - {exception.Message}\n");
 
             // Error response.
-            return new ApiResponse<object>(false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) });
+            return new ApiResponse<object>(false, HttpStatusCode.InternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) });
         }
     }
 
@@ -166,19 +166,19 @@ public class RoleService : IRoleService
                 }
 
                 // Response success.
-                return new ApiResponse<object>(true, StatusCodes.SuccessOK, null, new List<DadosNotificacao> { new DadosNotificacao($"Claim removida da role {roleRequest.Name} com sucesso.") });
+                return new ApiResponse<object>(true, HttpStatusCode.OK, null, new List<DadosNotificacao> { new DadosNotificacao($"Claim removida da role {roleRequest.Name} com sucesso.") });
             }
 
             Log.Information($"[LOG INFORMATION] - Role não existe.\n");
 
-            return new ApiResponse<object>(false, StatusCodes.ErrorNotFound, null, new List<DadosNotificacao> { new DadosNotificacao($"Role com o nome {roleRequest.Name} não existe.") });
+            return new ApiResponse<object>(false, HttpStatusCode.NotFound, null, new List<DadosNotificacao> { new DadosNotificacao($"Role com o nome {roleRequest.Name} não existe.") });
         }
         catch (Exception exception)
         {
             Log.Error($"[LOG ERROR] - {exception.Message}\n");
 
             // Error response.
-            return new ApiResponse<object>(false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) });
+            return new ApiResponse<object>(false, HttpStatusCode.InternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) });
         }
     }
 }

@@ -1,8 +1,9 @@
-﻿using APPLICATION.DOMAIN.DTOS.REQUEST.USER;
+﻿using APPLICATION.DOMAIN.EXCEPTIONS;
 using APPLICATION.DOMAIN.EXCEPTIONS.USER;
 using Microsoft.AspNetCore.Http;
 using System.Net;
 using System.Text.Json;
+using static APPLICATION.DOMAIN.EXCEPTIONS.USER.CustomUserException;
 
 namespace APPLICATION.INFRAESTRUTURE.MIDDLEWARE;
 
@@ -29,7 +30,7 @@ public class ErrorHandlerMiddleware
         }
     }
 
-    protected Task HandleExceptionAsync(
+    protected static Task HandleExceptionAsync(
         HttpContext context, Exception exception)
     {
         context.Response.ContentType = "application/json";
@@ -41,8 +42,9 @@ public class ErrorHandlerMiddleware
     private static (HttpStatusCode statusCode, string json) GenerateResponse(Exception exception)
         => exception switch
         {
-            InvalidCreateUserRequestException<UserCreateRequest> userDataEx => (InvalidCreateUserRequestException<UserCreateRequest>.statusCode,
-                                                                                    JsonSerializer.Serialize(new { reason = userDataEx.Reason, data = userDataEx.Object })),
+            BaseException customEx => (customEx.Response.StatusCode,
+                                                           JsonSerializer.Serialize(customEx.Response)),
+
             _ => (HttpStatusCode.InternalServerError, JsonSerializer.Serialize(new { error = exception.Message }))
         };
 }

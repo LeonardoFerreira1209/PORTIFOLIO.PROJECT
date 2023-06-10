@@ -187,10 +187,10 @@ public class TokenJwtBuilder
                 new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString()),
                 new Claim(JwtRegisteredClaimNames.Typ, "Bearer"),
                 new Claim(JwtRegisteredClaimNames.Email, userEntity.Email),
-                new Claim("phoneNumber", userEntity.PhoneNumber),
+                new Claim("phoneNumber", userEntity.PhoneNumber ?? string.Empty),
                 new Claim(JwtRegisteredClaimNames.Website, "https://toolsuserapi.azurewebsites.net/")
 
-            }.Union(roles.AsParallel()).Union(claims.AsParallel());
+            }.Union(roles).Union(claims);
 
             Log.Information($"[LOG INFORMATION] - Token gerado com sucesso.\n");
 
@@ -209,7 +209,7 @@ public class TokenJwtBuilder
         {
             Log.Error($"[LOG ERROR] - {exception.Message}\n");
 
-            return (null, new List<DadosNotificacao>() { new DadosNotificacao(exception.Message) });
+            throw;
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using APPLICATION.APPLICATION.CONFIGURATIONS;
-using APPLICATION.DOMAIN.CONTRACTS.SERVICES.FILE;
+﻿using APPLICATION.DOMAIN.CONTRACTS.SERVICES.FILE;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.FILE;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
@@ -8,7 +7,7 @@ using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Serilog;
-using StatusCodes = APPLICATION.ENUMS.StatusCodes;
+using System.Net;
 
 namespace APPLICATION.APPLICATION.SERVICES.FILE;
 
@@ -52,14 +51,14 @@ public class FileService : IFileService
             Log.Information($"[LOG INFORMATION] - Imagem adicionada ao blob com sucesso, Url: {blobClient.Uri.AbsoluteUri}.\n");
 
             // Response error.
-            return new ApiResponse<object>(true, StatusCodes.SuccessOK, new FileResponse { FileUri = blobClient.Uri.AbsoluteUri } , new List<DadosNotificacao> { new DadosNotificacao($"Imagem adicionada ao blob com sucesso, Url: {blobClient.Uri.AbsoluteUri}.\n") });
+            return new ApiResponse<object>(true, HttpStatusCode.OK, new FileResponse { FileUri = blobClient.Uri.AbsoluteUri } , new List<DadosNotificacao> { new DadosNotificacao($"Imagem adicionada ao blob com sucesso, Url: {blobClient.Uri.AbsoluteUri}.\n") });
         }
         catch (Exception exception)
         {
             Log.Error($"[LOG ERROR] - {exception.Message}\n");
 
             // Error response.
-            return new ApiResponse<object>(false, StatusCodes.ServerErrorInternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) });
+            return new ApiResponse<object>(false, HttpStatusCode.InternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) });
         }
     }
 }

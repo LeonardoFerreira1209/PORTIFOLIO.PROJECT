@@ -2,6 +2,7 @@
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.TOKEN;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.TOKEN;
+using APPLICATION.DOMAIN.DTOS.REQUEST.USER;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
 using APPLICATION.DOMAIN.ENTITY.ROLE;
 using APPLICATION.DOMAIN.ENTITY.USER;
@@ -10,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Serilog;
 using System.Security.Claims;
+using static APPLICATION.DOMAIN.EXCEPTIONS.USER.CustomUserException;
 
 namespace APPLICATION.APPLICATION.SERVICES.TOKEN
 {
@@ -38,11 +40,7 @@ namespace APPLICATION.APPLICATION.SERVICES.TOKEN
             Log.Information($"[LOG INFORMATION] - Recuperando dados do token do usuário\n");
 
             // Return de user.
-            var userEntity = await User(username);
-
-            // Valid user.
-            if (userEntity is null) 
-                return (null, new List<DadosNotificacao>() { new DadosNotificacao("Usuário não foi encontrado.") });
+            var userEntity = await User(username) ?? throw new NotFoundUserException(username);
 
             // Return user roles.
             var roles = await Roles(userEntity);
