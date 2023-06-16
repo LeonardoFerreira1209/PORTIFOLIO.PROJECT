@@ -69,67 +69,81 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
             {
                 Log.Information($"[LOG INFORMATION] - Validando request.\n");
 
-                var validation = await new AuthenticationValidator().ValidateAsync(loginRequest); if (validation.IsValid is false) await validation.CarregarErrosValidator();
+                await new AuthenticationValidator().ValidateAsync(loginRequest).ContinueWith(async (task) =>
+                {
+                    var validation = task.Result;
+
+                    if (validation.IsValid is false) 
+                        await validation.CarregarErrosValidator();
+                });
 
                 Log.Information($"[LOG INFORMATION] - Recuperando usuário {JsonConvert.SerializeObject(loginRequest)}.\n");
 
-                var userEntity = await _userRepository.GetWithUsernameAsync(loginRequest.Username);
-
-                var apiNotifications = new List<DadosNotificacao>();
-
-                if (userEntity is not null)
+                return await _userRepository.GetWithUsernameAsync(loginRequest.Username).ContinueWith(async (task) =>
                 {
-                    var signInResult = await _userRepository.PasswordSignInAsync(userEntity, loginRequest.Password, true, true);
+                    var userEntity = task.Result;
 
-                    if (signInResult.Succeeded is false)
+                    if (userEntity is not null)
                     {
-                        if (signInResult.IsLockedOut)
+                        await _userRepository.PasswordSignInAsync(userEntity, loginRequest.Password, true, true).ContinueWith((task) =>
                         {
-                            Log.Information($"[LOG INFORMATION] - Falha ao recuperar usuário, está bloqueado.\n");
+                            var signInResult = task.Result;
 
-                            throw new LockedOutAuthenticationException(loginRequest);
-                        }
+                            if (signInResult.Succeeded is false)
+                            {
+                                if (signInResult.IsLockedOut)
+                                {
+                                    Log.Information($"[LOG INFORMATION] - Falha ao recuperar usuário, está bloqueado.\n");
 
-                        if (signInResult.IsNotAllowed)
-                        {
-                            Log.Information($"[LOG INFORMATION] - Falha ao recuperar usuário, não está confirmado.\n");
+                                    throw new LockedOutAuthenticationException(loginRequest);
+                                }
 
-                            throw new IsNotAllowedAuthenticationException(loginRequest);
-                        }
+                                if (signInResult.IsNotAllowed)
+                                {
+                                    Log.Information($"[LOG INFORMATION] - Falha ao recuperar usuário, não está confirmado.\n");
 
-                        if (signInResult.RequiresTwoFactor)
-                        {
-                            Log.Information($"[LOG INFORMATION] - Falha ao recuperar usuário, requer verificação de dois fatores.\n");
+                                    throw new IsNotAllowedAuthenticationException(loginRequest);
+                                }
 
-                            throw new RequiresTwoFactorAuthenticationException(loginRequest);
-                        }
+                                if (signInResult.RequiresTwoFactor)
+                                {
+                                    Log.Information($"[LOG INFORMATION] - Falha ao recuperar usuário, requer verificação de dois fatores.\n");
 
-                        Log.Information($"[LOG INFORMATION] - Falha na autenticação dados incorretos!\n");
+                                    throw new RequiresTwoFactorAuthenticationException(loginRequest);
+                                }
 
-                        throw new InvalidUserAuthenticationException(loginRequest);
+                                Log.Information($"[LOG INFORMATION] - Falha na autenticação dados incorretos!\n");
+
+                                throw new InvalidUserAuthenticationException(loginRequest);
+                            }
+                        });
                     }
-                }
-                else
-                {
-                    Log.Information($"[LOG INFORMATION] - Falha ao recuperar usuário!\n");
+                    else
+                    {
+                        Log.Information($"[LOG INFORMATION] - Falha ao recuperar usuário!\n");
 
-                    throw new NotFoundUserException(loginRequest);
-                }
+                        throw new NotFoundUserException(loginRequest);
+                    }
 
-                Log.Information($"[LOG INFORMATION] - Gerando token.\n");
+                    Log.Information($"[LOG INFORMATION] - Gerando token.\n");
 
-                var (tokenJWT, messages) = 
-                    await _tokenService.CreateJsonWebToken(loginRequest.Username);
+                    var result = await _tokenService.CreateJsonWebToken(loginRequest.Username).ContinueWith(async (task) =>
+                    {
+                        var (tokenJwt, notifications) = task.Result;
 
-                if (tokenJWT is null) 
-                    throw new CustomException(HttpStatusCode.BadRequest, tokenJWT, messages);
+                        if (tokenJwt is null)
+                            throw new CustomException(HttpStatusCode.BadRequest, tokenJwt, notifications);
 
-                await SetAuthenticationTokenAsync
-                    (userEntity, tokenJWT.Value);
+                        await SetAuthenticationTokenAsync(userEntity, tokenJwt.Value);
 
-                return new OkObjectResult(
-                    new ApiResponse<TokenJWT>(
-                        true, HttpStatusCode.Created, tokenJWT, messages));
+                        return (tokenJwt, notifications);
+
+                    }).Result;
+
+                    return new OkObjectResult(
+                        new ApiResponse<TokenJWT>(
+                            true, HttpStatusCode.Created, result.tokenJwt, result.notifications));
+                }).Result;
             }
             catch (Exception exception)
             {

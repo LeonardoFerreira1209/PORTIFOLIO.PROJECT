@@ -1,9 +1,7 @@
 ﻿using APPLICATION.DOMAIN.EXCEPTIONS;
-using APPLICATION.DOMAIN.EXCEPTIONS.USER;
 using Microsoft.AspNetCore.Http;
 using System.Net;
 using System.Text.Json;
-using static APPLICATION.DOMAIN.EXCEPTIONS.USER.CustomUserException;
 
 namespace APPLICATION.INFRAESTRUTURE.MIDDLEWARE;
 
@@ -34,8 +32,12 @@ public class ErrorHandlerMiddleware
         HttpContext context, Exception exception)
     {
         context.Response.ContentType = "application/json";
-        var (statusCode, json) = GenerateResponse(exception);
+
+        var (statusCode, json) = 
+            GenerateResponse(exception);
+
         context.Response.StatusCode = (int)statusCode;
+
         return context.Response.WriteAsync(json);
     }
 
