@@ -18,7 +18,6 @@ using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 using APPLICATION.DOMAIN.VALIDATORS;
 using APPLICATION.INFRAESTRUTURE.JOBS.QUEUED;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -69,41 +68,35 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
 
             try
             {
-                await new AuthenticationValidator().ValidateAsync(loginRequest).ContinueWith(async (validationTask) =>
+                await new AuthenticationValidator().ValidateAsync(
+                    loginRequest).ContinueWith(async (validationTask) =>
                 {
                     var validation = validationTask.Result;
 
                     if (validation.IsValid is false)
-                        await validation.CarregarErrosValidator();
+                        await validation.GetValidationErrors();
                 });
 
-                return await _userRepository.GetWithUsernameAsync(loginRequest.Username).ContinueWith(async (userEntityTask) =>
+                return await _userRepository.GetWithUsernameAsync(
+                    loginRequest.Username).ContinueWith(async (userEntityTask) =>
                 {
-                    var userEntity = userEntityTask.Result;
+                    var userEntity = 
+                        userEntityTask.Result 
+                        ?? throw new NotFoundUserException(loginRequest);
 
-                    if (userEntity is not null)
+                    await _userRepository.PasswordSignInAsync(
+                        userEntity, loginRequest.Password, true, true).ContinueWith((signInResultTask) =>
                     {
-                        await _userRepository.PasswordSignInAsync(userEntity, loginRequest.Password, true, true).ContinueWith((signInResultTask) =>
-                        {
-                            var signInResult = signInResultTask.Result;
+                        var signInResult = signInResultTask.Result;
 
-                            if (signInResult.Succeeded is false)
-                                ThrownAuthorizationException(signInResult, loginRequest);
-                        });
-                    }
-                    else
-                    {
-                        Log.Information($"[LOG INFORMATION] - Falha ao recuperar usuário!\n");
-
-                        throw new NotFoundUserException(loginRequest);
-                    }
+                        if (signInResult.Succeeded is false) ThrownAuthorizationException(signInResult, loginRequest);
+                    });
 
                     var tokenJWT = await GenerateTokenJwtAsync(userEntity, loginRequest);
 
                     return new OkObjectResult(
                         new ApiResponse<TokenJWT>(
-                            true, HttpStatusCode.Created, tokenJWT, new List<DadosNotificacao>
-                            {
+                            true, HttpStatusCode.Created, tokenJWT, new List<DadosNotificacao>  {
                                 new DadosNotificacao("Token criado com sucesso!")
                             })
                         );
@@ -112,7 +105,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
             }
             catch (Exception exception)
             {
-                Log.Error($"[LOG ERROR] - {exception.Message}\n"); throw;
+                Log.Error($"[LOG ERROR] - Exception:{exception.Message} - {JsonConvert.SerializeObject(exception)}\n"); throw;
             }
         }
 
@@ -127,30 +120,23 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
 
             try
             {
-                Log.Information($"[LOG INFORMATION] - Recuperando usuário com Id {userId}.\n");
-
-                var userEntity = await _userRepository.GetAsync(userId);
-
-                if (userEntity is not null)
+                return await _userRepository.GetAsync(userId).ContinueWith(userEntityTask =>
                 {
-                    var userResponse = userEntity.ToResponse();
+                    var userEntity = userEntityTask.Result;
 
-                    Log.Information($"[LOG INFORMATION] - Usuário recuperado com sucesso {JsonConvert.SerializeObject(userResponse)}.\n");
+                    if (userEntity is not null) throw new NotFoundUserException(userId);
+
+                    var userResponse = userEntity.ToResponse();
 
                     return new OkObjectResult(
                         new ApiResponse<UserResponse>(
-                            true, HttpStatusCode.OK, userResponse, new List<DadosNotificacao> { new DadosNotificacao("Usuario recuperado com sucesso.") }));
-                }
-
-                Log.Information($"[LOG INFORMATION] - Usuário não encontrado.\n");
-
-                throw new NotFoundUserException(userId);
+                            true, HttpStatusCode.OK, userResponse, new List<DadosNotificacao> { new DadosNotificacao("Usuario recuperado com sucesso.") })
+                        );
+                });
             }
             catch (Exception exception)
             {
-                Log.Error($"[LOG ERROR] - {exception.Message}\n");
-
-                throw;
+                Log.Error($"[LOG ERROR] - Exception:{exception.Message} - {JsonConvert.SerializeObject(exception)}\n"); throw;
             }
         }
 
@@ -165,33 +151,32 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
 
             try
             {
-                Log.Information($"[LOG INFORMATION] - Validando request.\n");
+                await new CreateUserValidator().ValidateAsync(userCreateRequest).ContinueWith(async (validationTask) =>
+                {
+                    var validation = validationTask.Result;
 
-                var validation = await new CreateUserValidator().ValidateAsync(userCreateRequest); if (validation.IsValid is false) await validation.CarregarErrosValidator(userCreateRequest);
-
-                Log.Information($"[LOG INFORMATION] - Request validado com sucesso.\n");
+                    if (validation.IsValid is false) await validation.GetValidationErrors();
+                });
 
                 var user = userCreateRequest.ToIdentityUser();
 
-                var response = await BuildUserAsync(user, userCreateRequest.Password);
-
-                if (response.Succeeded)
+                return await _userRepository.CreateUserAsync(user, userCreateRequest.Password).ContinueWith(identityResultTask =>
                 {
-                    await ConfirmeUserForEmailAsync(user);
+                    var identityResult = identityResultTask.Result;
+
+                    if(identityResult.Succeeded is false) throw new CustomException(
+                        HttpStatusCode.BadRequest, userCreateRequest, identityResult.Errors.Select((e) => new DadosNotificacao(e.Code.CustomExceptionMessage())).ToList());
+
+                    ConfirmeUserForEmailAsync(user).Wait();
 
                     return new OkObjectResult(
                         new ApiResponse<object>(
-                            response.Succeeded, HttpStatusCode.Created, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário criado com sucesso.") }));
-                }
-
-                throw new CustomException(
-                    HttpStatusCode.BadRequest, userCreateRequest, response.Errors.Select((e) => new DadosNotificacao(e.Code.CustomExceptionMessage())).ToList());
+                            identityResult.Succeeded, HttpStatusCode.Created, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário criado com sucesso.") }));
+                });
             }
             catch (Exception exception)
             {
-                Log.Error($"[LOG ERROR] - {exception.Message}\n");
-
-                throw;
+                Log.Error($"[LOG ERROR] - Exception: {exception.Message}  -  {JsonConvert.SerializeObject(exception)}\n"); throw;
             }
         }
 
@@ -208,7 +193,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
             {
                 Log.Information($"[LOG INFORMATION] - Validando request.\n");
 
-                var validation = await new UpdateUserValidator().ValidateAsync(userUpdateRequest); if (validation.IsValid is false) await validation.CarregarErrosValidator(userUpdateRequest);
+                var validation = await new UpdateUserValidator().ValidateAsync(userUpdateRequest); if (validation.IsValid is false) await validation.GetValidationErrors(userUpdateRequest);
 
                 Log.Information($"[LOG INFORMATION] - Request validado com sucesso.\n");
 
@@ -692,25 +677,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         }
 
         /// <summary>
-        /// Método responsavel por gerar um usuário e vincular roles e claims.
-        /// </summary>
-        /// <param name="user"></param>
-        /// <param name="password"></param>
-        /// <returns></returns>
-        private async Task<IdentityResult> BuildUserAsync(UserEntity user, string password)
-        {
-            Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(BuildUserAsync)}\n");
-
-            Log.Information("[LOG INFORMATION] - Criando usuário\n");
-
-            var identityResult = await _userRepository.CreateUserAsync(user, password);
-
-            await _userRepository.UpdateUserAsync(user);
-
-            return identityResult;
-        }
-
-        /// <summary>
         /// Método responsavel por gerar um token de autorização e enviar por e-mail.
         /// </summary>
         /// <param name="user"></param>
@@ -789,22 +755,12 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
             {
                 var tokenJwt = tokenTask.Result;
 
-                await SetAuthenticationTokenAsync(userEntity, tokenJwt.Value);
+                await _userRepository
+                    .SetUserAuthenticationTokenAsync(userEntity, "LOCAL-TOKEN", "AUTHENTICATION-TOKEN", tokenJwt.Value);
 
                 return tokenJwt;
 
             }).Result;
-        }
-
-        /// <summary>
-        /// Método responsável por atualizar o token do usuário.
-        /// </summary>
-        /// <param name="userEntity"></param>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        private async Task SetAuthenticationTokenAsync(UserEntity userEntity, string token)
-        {
-            await _userRepository.SetUserAuthenticationTokenAsync(userEntity, "EVENTHUB", "AUTHENTICATIONTOKEN", token);
         }
     }
 }

@@ -25,6 +25,9 @@ public class CustomAuthorizeFilter : IAuthorizationFilter
                 userClaim => _claims.Any(
                     claim => userClaim.Type.Equals(claim.Type) && userClaim.Value.Equals(claim.Value)));
 
-        if (hasClaim is false) throw new UnauthorizedUserException(context.HttpContext.User);
+        if (hasClaim is false) throw new UnauthorizedUserException(new {
+            hasClaims = hasClaim,
+            claims = _claims
+        });
     }
 }

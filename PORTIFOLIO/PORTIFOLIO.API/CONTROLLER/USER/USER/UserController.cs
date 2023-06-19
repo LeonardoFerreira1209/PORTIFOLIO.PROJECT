@@ -6,7 +6,6 @@ using APPLICATION.DOMAIN.DTOS.RESPONSE.USER;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
 using APPLICATION.DOMAIN.UTILS;
 using APPLICATION.ENUMS;
-using MediatR;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -22,7 +21,6 @@ namespace PORTIFOLIO.API.CONTROLLER.USER.USER
     [Route("api/[controller]")][ApiController]
     public class UserController : ControllerBase
     {
-        private readonly IMediator _mediator;
         private readonly IUserService _userService;
 
         public UserController(
