@@ -2,8 +2,6 @@
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.TOKEN;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.TOKEN;
-using APPLICATION.DOMAIN.DTOS.REQUEST.USER;
-using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
 using APPLICATION.DOMAIN.ENTITY.ROLE;
 using APPLICATION.DOMAIN.ENTITY.USER;
 using Microsoft.AspNetCore.Identity;
@@ -33,24 +31,19 @@ namespace APPLICATION.APPLICATION.SERVICES.TOKEN
         /// </summary>
         /// <param name="username"></param>
         /// <returns></returns>
-        public async Task<(TokenJWT tokenJWT, List<DadosNotificacao> messages)> CreateJsonWebToken(string username)
+        /// <exception cref="NotFoundUserException"></exception>
+        public async Task<TokenJWT> CreateJsonWebToken(string username)
         {
             Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(TokenService)} - METHOD {nameof(CreateJsonWebToken)}\n");
 
-            Log.Information($"[LOG INFORMATION] - Recuperando dados do token do usuário\n");
-
-            // Return de user.
             var userEntity = await User(username) ?? throw new NotFoundUserException(username);
 
-            // Return user roles.
             var roles = await Roles(userEntity);
 
-            // Return user claims.
             var claims = await Claims(userEntity, roles);
 
             Log.Information($"[LOG INFORMATION] - Criando o token do usuário.\n");
 
-            // Create de token and return.
             return await Task.FromResult(new TokenJwtBuilder()
                .AddUsername(username)
                 .AddSecurityKey(JwtSecurityKey.Create(_appsettings.Value.Auth.SecurityKey))
@@ -58,8 +51,8 @@ namespace APPLICATION.APPLICATION.SERVICES.TOKEN
                         .AddIssuer(_appsettings.Value.Auth.ValidIssuer)
                             .AddAudience(_appsettings.Value.Auth.ValidAudience)
                                 .AddExpiry(_appsettings.Value.Auth.ExpiresIn)
-                                    .AddRoles(roles.ToList())
-                                        .AddClaims(claims.ToList())
+                                    .AddRoles(roles)
+                                        .AddClaims(claims)
                                             .Builder(userEntity));
         }
 
@@ -68,7 +61,7 @@ namespace APPLICATION.APPLICATION.SERVICES.TOKEN
         /// </summary>
         /// <param name="username"></param>
         /// <returns></returns>
-        private async Task<UserEntity> User(string username) 
+        private async Task<UserEntity> User(string username)
             => await _userManager.Users.FirstOrDefaultAsync(u => u.UserName.Equals(username));
 
         /// <summary>
@@ -76,13 +69,14 @@ namespace APPLICATION.APPLICATION.SERVICES.TOKEN
         /// </summary>
         /// <param name="user"></param>
         /// <returns></returns>
-        private async Task<IList<Claim>> Roles(UserEntity user)
+        private async Task<List<Claim>> Roles(UserEntity user)
         {
-            // Return roles.
-            var roles = await _userManager.GetRolesAsync(user);
+            return await _userManager.GetRolesAsync(user).ContinueWith(rolesTask =>
+            {
+                var roles = rolesTask.Result;
 
-            // Return IList of Claims role type.
-            return roles.AsParallel().Select(roles => new Claim("role", roles)).ToList();
+                return roles.AsParallel().Select(role => new Claim("role", role)).ToList();
+            });
         }
 
         /// <summary>
@@ -92,27 +86,25 @@ namespace APPLICATION.APPLICATION.SERVICES.TOKEN
         /// <returns></returns>
         private async Task<List<Claim>> Claims(UserEntity user, IList<Claim> roles)
         {
-            // Instance Claim list.
             var claims = new List<Claim>();
 
-            // Return all user claims.
             claims.AddRange(await _userManager.GetClaimsAsync(user));
 
-            // Set a list of role names.
             var rolesName = roles.AsParallel().Select(role => role.Value).ToList();
 
-            // Roles not null and have any value.
             if (roles is not null && roles.Any())
             {
-                // Select roles id.
-                var identityRoles = await _roleManager.Roles.Where(role => rolesName.Contains(role.Name)).ToListAsync();
+                await _roleManager.Roles.Where(role 
+                    => rolesName.Contains(role.Name)).ToListAsync().ContinueWith(rolesTask =>
+                {
+                    var roles = rolesTask.Result;
 
-                // Get role claims and add in claim array.
-                identityRoles.AsParallel().ForAll(identityRole => claims.AddRange(_roleManager.GetClaimsAsync(identityRole).Result));
+                    roles.AsParallel().ForAll(role 
+                        => claims.AddRange(_roleManager.GetClaimsAsync(role).Result));
+                });
             }
 
-            // Return claims.
-            return claims;
+            return claims.Distinct().ToList();
         }
     }
 }

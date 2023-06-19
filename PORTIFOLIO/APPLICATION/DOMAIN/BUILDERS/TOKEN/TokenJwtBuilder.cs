@@ -1,5 +1,4 @@
 ﻿using APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.TOKEN;
-using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
 using APPLICATION.DOMAIN.ENTITY.USER;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
@@ -142,43 +141,15 @@ public class TokenJwtBuilder
     }
 
     /// <summary>
-    /// Método que verifica se os dados estão validos.
-    /// </summary>
-    /// <exception cref="ArgumentNullException"></exception>
-    private (bool success, List<DadosNotificacao> messages) EnsureArguments()
-    {
-        var notifications = new List<DadosNotificacao>();
-
-        if (securityKey == null) notifications.Add(new DadosNotificacao("securotyKey não existe!"));
-
-        if (string.IsNullOrEmpty(subject)) notifications.Add(new DadosNotificacao("subject não existe!"));
-
-        if (string.IsNullOrEmpty(issuer)) notifications.Add(new DadosNotificacao("issuer não existe!"));
-
-        if (string.IsNullOrEmpty(audience)) notifications.Add(new DadosNotificacao("audience não existe!"));
-
-        return notifications.Count > 0 ? (false, null) : (true, notifications);
-    }
-
-    /// <summary>
     /// Método que cria e retorna o token.
     /// </summary>
     /// <returns></returns>
-    public (TokenJWT, List<DadosNotificacao>) Builder(UserEntity userEntity)
+    public TokenJWT Builder(UserEntity userEntity)
     {
         Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(TokenJwtBuilder)} - METHOD {nameof(Builder)}\n");
 
         try
         {
-            // Verifica os dados.
-            var (success, messages) = EnsureArguments(); if (success is false)
-            {
-                Log.Error($"[LOG ERROR] - {messages}\n");
-
-                return (null, messages);
-            }
-
-            // Adiciona as claims a uma lista.
             var baseClaims = new[]
             {
                 new Claim("id", userEntity.Id.ToString()),
@@ -188,28 +159,24 @@ public class TokenJwtBuilder
                 new Claim(JwtRegisteredClaimNames.Typ, "Bearer"),
                 new Claim(JwtRegisteredClaimNames.Email, userEntity.Email),
                 new Claim("phoneNumber", userEntity.PhoneNumber ?? string.Empty),
-                new Claim(JwtRegisteredClaimNames.Website, "https://toolsuserapi.azurewebsites.net/")
+                new Claim(JwtRegisteredClaimNames.Website, "https://www.linkedin.com/in/leonardoferreiraalmeida/")
 
             }.Union(roles).Union(claims);
 
             Log.Information($"[LOG INFORMATION] - Token gerado com sucesso.\n");
 
-            // Gera o token com os dados passados.
-            return (new TokenJWT(
+            return new TokenJWT(
                             new JwtSecurityToken(
                                 issuer: issuer,
                                 audience: audience,
                                 claims: baseClaims,
                                 expires: DateTime.Now.AddMinutes(expiryInMinutes),
                                 signingCredentials: new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256))
-
-                        ), messages);
+                        );
         }
         catch (Exception exception)
         {
-            Log.Error($"[LOG ERROR] - {exception.Message}\n");
-
-            throw;
+            Log.Error($"[LOG ERROR] - {exception.Message}\n"); throw;
         }
     }
 }

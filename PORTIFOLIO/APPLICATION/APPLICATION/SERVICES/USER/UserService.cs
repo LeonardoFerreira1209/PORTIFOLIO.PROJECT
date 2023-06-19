@@ -28,6 +28,7 @@ using System.Net;
 using System.Security.Claims;
 using System.Web;
 using static APPLICATION.DOMAIN.EXCEPTIONS.USER.CustomUserException;
+using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
 namespace APPLICATION.APPLICATION.SERVICES.USER
 {
@@ -61,61 +62,33 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         /// </summary>
         /// <param name="loginRequest"></param>
         /// <returns></returns>
+        /// <exception cref="NotFoundUserException"></exception>
         public async Task<ObjectResult> AuthenticationAsync(LoginRequest loginRequest)
         {
             Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(AuthenticationAsync)}\n");
 
             try
             {
-                Log.Information($"[LOG INFORMATION] - Validando request.\n");
-
-                await new AuthenticationValidator().ValidateAsync(loginRequest).ContinueWith(async (task) =>
+                await new AuthenticationValidator().ValidateAsync(loginRequest).ContinueWith(async (validationTask) =>
                 {
-                    var validation = task.Result;
+                    var validation = validationTask.Result;
 
-                    if (validation.IsValid is false) 
+                    if (validation.IsValid is false)
                         await validation.CarregarErrosValidator();
                 });
 
-                Log.Information($"[LOG INFORMATION] - Recuperando usuário {JsonConvert.SerializeObject(loginRequest)}.\n");
-
-                return await _userRepository.GetWithUsernameAsync(loginRequest.Username).ContinueWith(async (task) =>
+                return await _userRepository.GetWithUsernameAsync(loginRequest.Username).ContinueWith(async (userEntityTask) =>
                 {
-                    var userEntity = task.Result;
+                    var userEntity = userEntityTask.Result;
 
                     if (userEntity is not null)
                     {
-                        await _userRepository.PasswordSignInAsync(userEntity, loginRequest.Password, true, true).ContinueWith((task) =>
+                        await _userRepository.PasswordSignInAsync(userEntity, loginRequest.Password, true, true).ContinueWith((signInResultTask) =>
                         {
-                            var signInResult = task.Result;
+                            var signInResult = signInResultTask.Result;
 
                             if (signInResult.Succeeded is false)
-                            {
-                                if (signInResult.IsLockedOut)
-                                {
-                                    Log.Information($"[LOG INFORMATION] - Falha ao recuperar usuário, está bloqueado.\n");
-
-                                    throw new LockedOutAuthenticationException(loginRequest);
-                                }
-
-                                if (signInResult.IsNotAllowed)
-                                {
-                                    Log.Information($"[LOG INFORMATION] - Falha ao recuperar usuário, não está confirmado.\n");
-
-                                    throw new IsNotAllowedAuthenticationException(loginRequest);
-                                }
-
-                                if (signInResult.RequiresTwoFactor)
-                                {
-                                    Log.Information($"[LOG INFORMATION] - Falha ao recuperar usuário, requer verificação de dois fatores.\n");
-
-                                    throw new RequiresTwoFactorAuthenticationException(loginRequest);
-                                }
-
-                                Log.Information($"[LOG INFORMATION] - Falha na autenticação dados incorretos!\n");
-
-                                throw new InvalidUserAuthenticationException(loginRequest);
-                            }
+                                ThrownAuthorizationException(signInResult, loginRequest);
                         });
                     }
                     else
@@ -125,31 +98,21 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                         throw new NotFoundUserException(loginRequest);
                     }
 
-                    Log.Information($"[LOG INFORMATION] - Gerando token.\n");
-
-                    var result = await _tokenService.CreateJsonWebToken(loginRequest.Username).ContinueWith(async (task) =>
-                    {
-                        var (tokenJwt, notifications) = task.Result;
-
-                        if (tokenJwt is null)
-                            throw new CustomException(HttpStatusCode.BadRequest, tokenJwt, notifications);
-
-                        await SetAuthenticationTokenAsync(userEntity, tokenJwt.Value);
-
-                        return (tokenJwt, notifications);
-
-                    }).Result;
+                    var tokenJWT = await GenerateTokenJwtAsync(userEntity, loginRequest);
 
                     return new OkObjectResult(
                         new ApiResponse<TokenJWT>(
-                            true, HttpStatusCode.Created, result.tokenJwt, result.notifications));
+                            true, HttpStatusCode.Created, tokenJWT, new List<DadosNotificacao>
+                            {
+                                new DadosNotificacao("Token criado com sucesso!")
+                            })
+                        );
+
                 }).Result;
             }
             catch (Exception exception)
             {
-                Log.Error($"[LOG ERROR] - {exception.Message}\n");
-
-                throw;
+                Log.Error($"[LOG ERROR] - {exception.Message}\n"); throw;
             }
         }
 
@@ -263,7 +226,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                         {
                             Log.Information($"[LOG INFORMATION] - Erro ao atualizar nome de usuário.\n");
 
-                            throw new CustomException(HttpStatusCode.BadRequest, userUpdateRequest, 
+                            throw new CustomException(HttpStatusCode.BadRequest, userUpdateRequest,
                                 new List<DadosNotificacao> { new DadosNotificacao(setUsernameResponse.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) });
                         }
                     }
@@ -276,7 +239,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                         {
                             Log.Information($"[LOG INFORMATION] - Erro ao trocar senha.\n");
 
-                            throw new CustomException(HttpStatusCode.BadRequest, userUpdateRequest, 
+                            throw new CustomException(HttpStatusCode.BadRequest, userUpdateRequest,
                                 new List<DadosNotificacao> { new DadosNotificacao(changePasswordResponse.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) });
                         }
                     }
@@ -289,7 +252,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                         {
                             Log.Information($"[LOG INFORMATION] - Erro ao atualizar e-mail de usuário.\n");
 
-                            throw new CustomException(HttpStatusCode.BadRequest, userUpdateRequest, 
+                            throw new CustomException(HttpStatusCode.BadRequest, userUpdateRequest,
                                 new List<DadosNotificacao> { new DadosNotificacao(setEmailResponse.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) });
                         }
 
@@ -304,7 +267,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                         {
                             Log.Information($"[LOG INFORMATION] - Erro ao atualizar celular do usuário.\n");
 
-                            throw new CustomException(HttpStatusCode.BadRequest, userUpdateRequest, 
+                            throw new CustomException(HttpStatusCode.BadRequest, userUpdateRequest,
                                 new List<DadosNotificacao> { new DadosNotificacao(setPhoneNumberResponse.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) });
                         }
                     }
@@ -773,6 +736,64 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                 ButtonText = "Liberar acesso",
                 TemplateName = "Activate.Template"
             });
+        }
+
+        /// <summary>
+        /// Método responsável por tratar os erros de autenticação.
+        /// </summary>
+        /// <param name="signInResult"></param>
+        /// <param name="loginRequest"></param>
+        /// <returns></returns>
+        /// <exception cref="LockedOutAuthenticationException"></exception>
+        /// <exception cref="IsNotAllowedAuthenticationException"></exception>
+        /// <exception cref="RequiresTwoFactorAuthenticationException"></exception>
+        /// <exception cref="InvalidUserAuthenticationException"></exception>
+        private static void ThrownAuthorizationException(SignInResult signInResult, LoginRequest loginRequest)
+        {
+            if (signInResult.IsLockedOut)
+            {
+                Log.Information($"[LOG INFORMATION] - Falha ao recuperar usuário, está bloqueado.\n");
+
+                throw new LockedOutAuthenticationException(loginRequest);
+            }
+            else if (signInResult.IsNotAllowed)
+            {
+                Log.Information($"[LOG INFORMATION] - Falha ao recuperar usuário, não está confirmado.\n");
+
+                throw new IsNotAllowedAuthenticationException(loginRequest);
+            }
+            else if (signInResult.RequiresTwoFactor)
+            {
+                Log.Information($"[LOG INFORMATION] - Falha ao recuperar usuário, requer verificação de dois fatores.\n");
+
+                throw new RequiresTwoFactorAuthenticationException(loginRequest);
+            }
+            else
+            {
+                Log.Information($"[LOG INFORMATION] - Falha na autenticação dados incorretos!\n");
+
+                throw new InvalidUserAuthenticationException(loginRequest);
+            }
+        }
+
+        /// <summary>
+        /// Método responsavel por gerar um tokenJwt.
+        /// </summary>
+        /// <param name="userEntity"></param>
+        /// <param name="loginRequest"></param>
+        /// <returns></returns>
+        /// <exception cref="CustomException"></exception>
+        private async Task<TokenJWT> GenerateTokenJwtAsync(UserEntity userEntity, LoginRequest loginRequest)
+        {
+            return await _tokenService.CreateJsonWebToken(loginRequest.Username).ContinueWith(async (tokenTask) =>
+            {
+                var tokenJwt = tokenTask.Result;
+
+                await SetAuthenticationTokenAsync(userEntity, tokenJwt.Value);
+
+                return tokenJwt;
+
+            }).Result;
         }
 
         /// <summary>
