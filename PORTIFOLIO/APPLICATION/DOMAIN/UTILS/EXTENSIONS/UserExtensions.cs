@@ -26,13 +26,9 @@ public static class UserExtensions
     /// </summary>
     /// <param name="userUpdateRequest"></param>
     /// <returns></returns>
-    public static UserEntity ToCompleteUserUpdateWithRequest(this UserUpdateRequest userUpdateRequest, UserEntity user)
-        => UserBuilder.BuildCompleteUserEntity(
-            userUpdateRequest.FirstName, userUpdateRequest.LastName, userUpdateRequest.UserName, userUpdateRequest.Email,
-            userUpdateRequest.CPF, userUpdateRequest.RG, userUpdateRequest.Gender, userUpdateRequest.PhoneNumber, user.Status, user.NormalizedEmail, user.NormalizedUserName,
-            user.AccessFailedCount, user.ConcurrencyStamp, user.EmailConfirmed, user.LockoutEnabled, user.LockoutEnd,
-            user.PasswordHash, user.PhoneNumberConfirmed, user.SecurityStamp, user.TwoFactorEnabled
-            );
+    public static UserEntity TransformUserEntityFromUserUpdateRequest(this UserEntity userEntity, UserUpdateRequest userUpdateRequest)
+        => UserBuilder.BuilderUserEntityFromUserUpdateRequest(
+            userEntity, userUpdateRequest);
 
     /// <summary>
     /// Convert um userEntity para um user response.

@@ -55,7 +55,7 @@ public class UserRepository : IUserRepository
     /// </summary>
     /// <param name="userId"></param>
     /// <returns></returns>
-    public async Task<UserEntity> GetAsync(Guid userId)
+    public async Task<UserEntity> GetByAsync(Guid userId)
         => await _userManager.FindByIdAsync(userId.ToString());
 
     /// <summary>

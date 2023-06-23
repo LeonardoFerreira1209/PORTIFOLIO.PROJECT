@@ -37,7 +37,7 @@ public interface IUserRepository
     /// </summary>
     /// <param name="userId"></param>
     /// <returns></returns>
-    Task<UserEntity> GetAsync(Guid userId);
+    Task<UserEntity> GetByAsync(Guid userId);
 
     /// <summary>
     /// Método responsável por recuperar vários usuários por id.

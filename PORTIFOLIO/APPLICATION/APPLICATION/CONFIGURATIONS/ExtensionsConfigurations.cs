@@ -405,7 +405,6 @@ public static class ExtensionsConfigurations
             .AddSingleton(serviceProvider => configurations)
             // Services
             .AddTransient<IUserService, UserService>()
-            .AddTransient<IRoleService, RoleService>()
             .AddTransient<ITokenService, TokenService>()
             .AddTransient<IFileService, FileService>()
             // Facades

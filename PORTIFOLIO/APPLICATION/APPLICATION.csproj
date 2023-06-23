@@ -19,6 +19,7 @@
     <PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="6.0.2" />
     <PackageReference Include="AutoMapper" Version="12.0.1" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+    <PackageReference Include="Azure.Communication.Email" Version="1.0.0" />
     <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.14.0" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.16.0" />
     <PackageReference Include="Dapper" Version="2.0.123" />

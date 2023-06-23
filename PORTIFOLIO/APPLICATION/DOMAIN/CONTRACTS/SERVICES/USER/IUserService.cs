@@ -1,5 +1,5 @@
 ﻿using APPLICATION.DOMAIN.DTOS.REQUEST.USER;
-using Microsoft.AspNetCore.Http;
+using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
 using Microsoft.AspNetCore.Mvc;
 
 namespace APPLICATION.DOMAIN.CONTRACTS.SERVICES.USER;
@@ -18,7 +18,7 @@ public interface IUserService
     /// </summary>
     /// <param name="userId"></param>
     /// <returns></returns>
-    Task<ObjectResult> GetAsync(Guid userId);
+    Task<ObjectResult> GetByIdAsync(Guid userId);
 
     /// <summary>
     /// Método responsável por criar um novo usuário.
@@ -28,26 +28,18 @@ public interface IUserService
     Task<ObjectResult> CreateAsync(UserCreateRequest userCreateRequest);
 
     /// <summary>
-    /// Método responsável por atualizar um usuário.
+    ///  Método responsável por atualizar um usuário.
     /// </summary>
-    /// <param name="userRequest"></param>
+    /// <param name="userUpdateRequest"></param>
     /// <returns></returns>
     Task<ObjectResult> UpdateAsync(UserUpdateRequest userUpdateRequest);
-
-    /// <summary>
-    /// Método responsável por atualizar a imagem de um usuario.
-    /// </summary>
-    /// <param name="id"></param>
-    /// <param name="formFile"></param>
-    /// <returns></returns>
-    Task<ObjectResult> UpdateUserIamgeAsync(Guid id, IFormFile formFile);
 
     /// <summary>
     /// Método responsavel por ativar um usuário.
     /// </summary>
     /// <param name="activateUserRequest"></param>
     /// <returns></returns>
-    Task<ObjectResult> ActivateAsync(ActivateUserRequest activateUserRequest);
+    Task<ObjectResult> ActivateUserAsync(ActivateUserRequest activateUserRequest);
 
     /// <summary>
     /// Método responsavel por adicionar uma claim ao usuário.
@@ -55,7 +47,7 @@ public interface IUserService
     /// <param name="username"></param>
     /// <param name="claimRequest"></param>
     /// <returns></returns>
-    Task<ObjectResult> AddClaimAsync(string username, ClaimRequest claimRequest);
+    Task<ObjectResult> AddUserClaimAsync(string username, ClaimRequest claimRequest);
 
     /// <summary>
     /// Método responsavel por remover uma claim do usuário.
@@ -63,7 +55,7 @@ public interface IUserService
     /// <param name="username"></param>
     /// <param name="claimRequest"></param>
     /// <returns></returns>
-    Task<ObjectResult> RemoveClaimAsync(string username, ClaimRequest claimRequest);
+    Task<ObjectResult> RemoveUserClaimAsync(string username, ClaimRequest claimRequest);
 
     /// <summary>
     /// Método responsavel por adicionar uma role ao usuário.
@@ -71,7 +63,7 @@ public interface IUserService
     /// <param name="username"></param>
     /// <param name="roleName"></param>
     /// <returns></returns>
-    Task<ObjectResult> AddRoleAsync(string username, string roleName);
+    Task<ObjectResult> AddUserRoleAsync(string username, string roleName);
 
     /// <summary>
     /// Método responsavel por recuperar roles do usuário.
@@ -86,5 +78,32 @@ public interface IUserService
     /// <param name="username"></param>
     /// <param name="roleName"></param>
     /// <returns></returns>
-    Task<ObjectResult> RemoveRoleAsync(string username, string roleName);
+    Task<ObjectResult> RemoveUserRoleAsync(string username, string roleName);
+
+    /// <summary>
+    /// Método responsável por criar uma nova role.
+    /// </summary>
+    /// <param name="roleRequest"></param>
+    /// <returns></returns>
+    Task<ApiResponse<object>> CreateRoleAsync(RoleRequest roleRequest);
+
+    /// <summary>
+    /// Método responsavel por retornar todas as roles.
+    /// </summary>
+    /// <returns></returns>
+    Task<ApiResponse<object>> GetRolesAsync();
+
+    /// <summary>
+    /// Método responsável por adicionar uma nova lista de claims na role.
+    /// </summary>
+    /// <param name="roleRequest"></param>
+    /// <returns></returns>
+    Task<ApiResponse<object>> AddClaimsToRoleAsync(RoleRequest roleRequest);
+
+    /// <summary>
+    /// Método responsavel por remover uma lista de claims na role.
+    /// </summary>
+    /// <param name="roleRequest"></param>
+    /// <returns></returns>
+    Task<ApiResponse<object>> RemoveClaimsToRoleAsync(RoleRequest roleRequest);
 }

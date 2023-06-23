@@ -7,18 +7,19 @@ using APPLICATION.DOMAIN.DTOS.CONFIGURATION;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.TOKEN;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION.SERVICEBUS.MESSAGE;
 using APPLICATION.DOMAIN.DTOS.REQUEST.USER;
-using APPLICATION.DOMAIN.DTOS.RESPONSE.FILE;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.USER;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.USER.ROLE;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
+using APPLICATION.DOMAIN.ENTITY.ROLE;
 using APPLICATION.DOMAIN.ENTITY.USER;
 using APPLICATION.DOMAIN.EXCEPTIONS.USER;
 using APPLICATION.DOMAIN.UTILS.Extensions;
 using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 using APPLICATION.DOMAIN.VALIDATORS;
 using APPLICATION.INFRAESTRUTURE.JOBS.QUEUED;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Serilog;
@@ -37,6 +38,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
+        private readonly RoleManager<RoleEntity> _roleManager;
         private readonly IOptions<AppSettings> _appsettings;
         private readonly ITokenService _tokenService;
         private readonly IUtilFacade _utilFacade;
@@ -48,9 +50,10 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         /// <param name="appsettings"></param>
         /// <param name="tokenService"></param>
         /// <param name="utilFacade"></param>
-        public UserService(IUserRepository userRepository, IOptions<AppSettings> appsettings, ITokenService tokenService, IUtilFacade utilFacade)
+        public UserService(IUserRepository userRepository, RoleManager<RoleEntity> roleManager, IOptions<AppSettings> appsettings, ITokenService tokenService, IUtilFacade utilFacade)
         {
             _userRepository = userRepository;
+            _roleManager = roleManager;
             _appsettings = appsettings;
             _tokenService = tokenService;
             _utilFacade = utilFacade;
@@ -70,38 +73,38 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
             {
                 await new AuthenticationValidator().ValidateAsync(
                     loginRequest).ContinueWith(async (validationTask) =>
-                {
-                    var validation = validationTask.Result;
+                    {
+                        var validation = validationTask.Result;
 
-                    if (validation.IsValid is false)
-                        await validation.GetValidationErrors();
-                });
+                        if (validation.IsValid is false)
+                            await validation.GetValidationErrors();
+                    });
 
                 return await _userRepository.GetWithUsernameAsync(
                     loginRequest.Username).ContinueWith(async (userEntityTask) =>
-                {
-                    var userEntity = 
-                        userEntityTask.Result 
-                        ?? throw new NotFoundUserException(loginRequest);
-
-                    await _userRepository.PasswordSignInAsync(
-                        userEntity, loginRequest.Password, true, true).ContinueWith((signInResultTask) =>
                     {
-                        var signInResult = signInResultTask.Result;
+                        var userEntity =
+                            userEntityTask.Result
+                            ?? throw new NotFoundUserException(loginRequest);
 
-                        if (signInResult.Succeeded is false) ThrownAuthorizationException(signInResult, loginRequest);
-                    });
+                        await _userRepository.PasswordSignInAsync(
+                            userEntity, loginRequest.Password, true, true).ContinueWith((signInResultTask) =>
+                        {
+                            var signInResult = signInResultTask.Result;
 
-                    var tokenJWT = await GenerateTokenJwtAsync(userEntity, loginRequest);
+                            if (signInResult.Succeeded is false) ThrownAuthorizationException(signInResult, loginRequest);
+                        });
 
-                    return new OkObjectResult(
-                        new ApiResponse<TokenJWT>(
-                            true, HttpStatusCode.Created, tokenJWT, new List<DadosNotificacao>  {
-                                new DadosNotificacao("Token criado com sucesso!")
-                            })
-                        );
+                        var tokenJWT = await GenerateTokenJwtAsync(userEntity, loginRequest);
 
-                }).Result;
+                        return new OkObjectResult(
+                            new ApiResponse<TokenJWT>(
+                                true, HttpStatusCode.Created, tokenJWT, new List<DadosNotificacao>  {
+                                    new DadosNotificacao("Token criado com sucesso!")
+                                })
+                            );
+
+                    }).Result;
             }
             catch (Exception exception)
             {
@@ -114,17 +117,18 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
-        public async Task<ObjectResult> GetAsync(Guid userId)
+        /// <exception cref="NotFoundUserException"></exception>
+        public async Task<ObjectResult> GetByIdAsync(Guid userId)
         {
-            Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(GetAsync)}\n");
+            Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(GetByIdAsync)}\n");
 
             try
             {
-                return await _userRepository.GetAsync(userId).ContinueWith(userEntityTask =>
+                return await _userRepository.GetByAsync(userId).ContinueWith(userEntityTask =>
                 {
                     var userEntity = userEntityTask.Result;
 
-                    if (userEntity is not null) throw new NotFoundUserException(userId);
+                    if (userEntity is null) throw new NotFoundUserException(userId);
 
                     var userResponse = userEntity.ToResponse();
 
@@ -141,38 +145,41 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         }
 
         /// <summary>
-        /// Método responsavel por criar um novo usuário.
+        ///  Método responsavel por criar um novo usuário.
         /// </summary>
         /// <param name="userCreateRequest"></param>
         /// <returns></returns>
+        /// <exception cref="CustomException"></exception>
         public async Task<ObjectResult> CreateAsync(UserCreateRequest userCreateRequest)
         {
             Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(CreateAsync)}\n");
 
             try
             {
-                await new CreateUserValidator().ValidateAsync(userCreateRequest).ContinueWith(async (validationTask) =>
-                {
-                    var validation = validationTask.Result;
+                await new CreateUserValidator().ValidateAsync(
+                    userCreateRequest).ContinueWith(async (validationTask) =>
+                    {
+                        var validation = validationTask.Result;
 
-                    if (validation.IsValid is false) await validation.GetValidationErrors();
-                });
+                        if (validation.IsValid is false) await validation.GetValidationErrors();
+                    });
 
                 var user = userCreateRequest.ToIdentityUser();
 
-                return await _userRepository.CreateUserAsync(user, userCreateRequest.Password).ContinueWith(identityResultTask =>
-                {
-                    var identityResult = identityResultTask.Result;
+                return await _userRepository.CreateUserAsync(
+                    user, userCreateRequest.Password).ContinueWith(identityResultTask =>
+                    {
+                        var identityResult = identityResultTask.Result;
 
-                    if(identityResult.Succeeded is false) throw new CustomException(
-                        HttpStatusCode.BadRequest, userCreateRequest, identityResult.Errors.Select((e) => new DadosNotificacao(e.Code.CustomExceptionMessage())).ToList());
+                        if (identityResult.Succeeded is false) throw new CustomException(
+                            HttpStatusCode.BadRequest, userCreateRequest, identityResult.Errors.Select((e) => new DadosNotificacao(e.Code.CustomExceptionMessage())).ToList());
 
-                    ConfirmeUserForEmailAsync(user).Wait();
+                        //EnviarEmail().Wait();
 
-                    return new OkObjectResult(
-                        new ApiResponse<object>(
-                            identityResult.Succeeded, HttpStatusCode.Created, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário criado com sucesso.") }));
-                });
+                        return new OkObjectResult(
+                            new ApiResponse<object>(
+                                identityResult.Succeeded, HttpStatusCode.Created, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário criado com sucesso.") }));
+                    });
             }
             catch (Exception exception)
             {
@@ -185,160 +192,97 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         /// </summary>
         /// <param name="userUpdateRequest"></param>
         /// <returns></returns>
+        /// <exception cref="NotFoundUserException"></exception>
+        /// <exception cref="CustomException"></exception>
         public async Task<ObjectResult> UpdateAsync(UserUpdateRequest userUpdateRequest)
         {
             Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(UpdateAsync)}\n");
 
             try
             {
-                Log.Information($"[LOG INFORMATION] - Validando request.\n");
+                await new UpdateUserValidator().ValidateAsync(
+                  userUpdateRequest).ContinueWith(async (validationTask) =>
+                  {
+                      var validation = validationTask.Result;
 
-                var validation = await new UpdateUserValidator().ValidateAsync(userUpdateRequest); if (validation.IsValid is false) await validation.GetValidationErrors(userUpdateRequest);
+                      if (validation.IsValid is false)
+                          await validation.GetValidationErrors();
+                  });
 
-                Log.Information($"[LOG INFORMATION] - Request validado com sucesso.\n");
-
-                Log.Information($"[LOG INFORMATION] - Atualizando dados do usuário {JsonConvert.SerializeObject(userUpdateRequest)}.\n");
-
-                var userEntity = await _userRepository.GetAsync(userUpdateRequest.Id);
-
-                if (userEntity is not null)
+                return await _userRepository.GetByAsync(userUpdateRequest.Id).ContinueWith(async (userEntityTask) =>
                 {
-                    if (!userUpdateRequest.UserName.Equals(userEntity.UserName))
+                    var userEntity =
+                        userEntityTask.Result
+                        ?? throw new NotFoundUserException(userUpdateRequest);
+
+                    if (userUpdateRequest.UserName.Equals(userEntity.UserName) is false)
                     {
-                        var setUsernameResponse = await _userRepository.SetUserNameAsync(userEntity, userUpdateRequest.UserName);
+                        await _userRepository.SetUserNameAsync(
+                           userEntity, userUpdateRequest.UserName).ContinueWith(identityResultTask =>
+                           {
+                               var identityResult = identityResultTask.Result;
 
-                        if (setUsernameResponse.Succeeded is false)
-                        {
-                            Log.Information($"[LOG INFORMATION] - Erro ao atualizar nome de usuário.\n");
-
-                            throw new CustomException(HttpStatusCode.BadRequest, userUpdateRequest,
-                                new List<DadosNotificacao> { new DadosNotificacao(setUsernameResponse.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) });
-                        }
+                               if (identityResult.Succeeded is false)
+                                   throw new CustomException(HttpStatusCode.BadRequest, userUpdateRequest,
+                                       new List<DadosNotificacao> { new DadosNotificacao(identityResult.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) });
+                           });
                     }
 
-                    if (!string.IsNullOrEmpty(userUpdateRequest.Password))
+                    if (string.IsNullOrEmpty(userUpdateRequest.Password) is false)
                     {
-                        var changePasswordResponse = await _userRepository.ChangePasswordAsync(userEntity, userUpdateRequest.CurrentPassword, userUpdateRequest.Password);
+                        await _userRepository.ChangePasswordAsync(
+                            userEntity, userUpdateRequest.CurrentPassword, userUpdateRequest.Password).ContinueWith(identityResultTask =>
+                            {
+                                var identityResult = identityResultTask.Result;
 
-                        if (changePasswordResponse.Succeeded is false)
-                        {
-                            Log.Information($"[LOG INFORMATION] - Erro ao trocar senha.\n");
-
-                            throw new CustomException(HttpStatusCode.BadRequest, userUpdateRequest,
-                                new List<DadosNotificacao> { new DadosNotificacao(changePasswordResponse.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) });
-                        }
+                                if (identityResult.Succeeded is false)
+                                    throw new CustomException(HttpStatusCode.BadRequest, userUpdateRequest,
+                                        new List<DadosNotificacao> { new DadosNotificacao(identityResult.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) });
+                            });
                     }
 
-                    if (!userUpdateRequest.Email.Equals(userEntity.Email))
+                    if (userUpdateRequest.Email.Equals(userEntity.Email) is false)
                     {
-                        var setEmailResponse = await _userRepository.SetEmailAsync(userEntity, userUpdateRequest.Email);
+                        await _userRepository.SetEmailAsync(
+                            userEntity, userUpdateRequest.Email).ContinueWith(identityResultTask =>
+                            {
+                                var identityResult = identityResultTask.Result;
 
-                        if (setEmailResponse.Succeeded is false)
-                        {
-                            Log.Information($"[LOG INFORMATION] - Erro ao atualizar e-mail de usuário.\n");
+                                if (identityResult.Succeeded is false)
+                                    throw new CustomException(HttpStatusCode.BadRequest, userUpdateRequest,
+                                        new List<DadosNotificacao> { new DadosNotificacao(identityResult.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) });
+                            });
 
-                            throw new CustomException(HttpStatusCode.BadRequest, userUpdateRequest,
-                                new List<DadosNotificacao> { new DadosNotificacao(setEmailResponse.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) });
-                        }
-
-                        await ConfirmeUserForEmailAsync(userEntity);
+                        //await ConfirmeUserForEmailAsync(userEntity);
                     }
 
-                    if (!userUpdateRequest.PhoneNumber.Equals(userEntity.PhoneNumber))
+                    if (userUpdateRequest.PhoneNumber.Equals(userEntity.PhoneNumber) is false)
                     {
-                        var setPhoneNumberResponse = await _userRepository.SetPhoneNumberAsync(userEntity, userUpdateRequest.PhoneNumber);
+                        await _userRepository.SetPhoneNumberAsync(
+                            userEntity, userUpdateRequest.PhoneNumber).ContinueWith(identityResultTask =>
+                            {
+                                var identityResult = identityResultTask.Result;
 
-                        if (setPhoneNumberResponse.Succeeded is false)
-                        {
-                            Log.Information($"[LOG INFORMATION] - Erro ao atualizar celular do usuário.\n");
-
-                            throw new CustomException(HttpStatusCode.BadRequest, userUpdateRequest,
-                                new List<DadosNotificacao> { new DadosNotificacao(setPhoneNumberResponse.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) });
-                        }
+                                if (identityResult.Succeeded is false)
+                                    throw new CustomException(HttpStatusCode.BadRequest, userUpdateRequest,
+                                        new List<DadosNotificacao> { new DadosNotificacao(identityResult.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) });
+                            });
                     }
 
-                    userEntity = userUpdateRequest.ToCompleteUserUpdateWithRequest(userEntity);
-
-                    await _userRepository.UpdateUserAsync(userEntity);
-
-                    Log.Information($"[LOG INFORMATION] - Usuário atualizado com sucesso.\n");
+                    await _userRepository.UpdateUserAsync(
+                            userEntity.TransformUserEntityFromUserUpdateRequest(
+                                userUpdateRequest));
 
                     return new OkObjectResult(
-                        new ApiResponse<object>(
-                            true, HttpStatusCode.OK, userEntity, new List<DadosNotificacao> { new DadosNotificacao("Usuário atualizado com sucesso.") }));
-                }
-                else
-                {
-                    Log.Information($"[LOG INFORMATION] - Usuário não encontrado.\n");
+                       new ApiResponse<object>(
+                           true, HttpStatusCode.OK, userEntity.ToResponse(),
+                           new List<DadosNotificacao> { new DadosNotificacao("Usuário atualizado com sucesso.") }));
 
-                    throw new NotFoundUserException(userUpdateRequest);
-                }
+                }).Result;
             }
             catch (Exception exception)
             {
-                Log.Error($"[LOG ERROR] - {exception.Message}\n");
-
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// Método responsável por atualizar a imagem de um usuário.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="formFile"></param>
-        /// <returns></returns>
-        public async Task<ObjectResult> UpdateUserIamgeAsync(Guid id, IFormFile formFile)
-        {
-            Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(UpdateUserIamgeAsync)}\n");
-
-            try
-            {
-                var userEntity = await _userRepository.GetAsync(id);
-
-                if (userEntity is not null)
-                {
-                    var response = await _utilFacade.SendAsync(formFile);
-
-                    if (response.Sucesso)
-                    {
-                        var fileResponse = (FileResponse)response.Dados;
-
-                        //userEntity.ImageUri = fileResponse.FileUri;
-
-                        await _userRepository.UpdateUserAsync(userEntity);
-
-                        Log.Information($"[LOG INFORMATION] - Imagem do usuário atualizado com sucesso.\n");
-
-                        return new OkObjectResult(
-                            new ApiResponse<object>(
-                                true, HttpStatusCode.OK, new FileResponse { FileUri = null }, new List<DadosNotificacao> { new DadosNotificacao("Imagem do usuário atualizado com sucesso.") }));
-                    }
-                    else
-                    {
-                        Log.Information($"[LOG INFORMATION] - Erro ao armazenar imagem no blob do azure.\n");
-
-                        return new ObjectResult(
-                            new ApiResponse<object>(
-                                false, HttpStatusCode.InternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao("Erro ao armazenar imagem no blob do azure.") }));
-                    }
-                }
-                else
-                {
-                    Log.Information($"[LOG INFORMATION] - Usuário não encontrado.\n");
-
-                    return new NotFoundObjectResult(
-                        new ApiResponse<object>(
-                            false, HttpStatusCode.NotFound, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário não encontrado.") }));
-                }
-            }
-            catch (Exception exception)
-            {
-                Log.Error($"[LOG ERROR] - {exception.Message}\n");
-
-                return new ObjectResult(
-                    new ApiResponse<object>(
-                        false, HttpStatusCode.InternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) }));
+                Log.Error($"[LOG ERROR] - Exception: {exception.Message}  -  {JsonConvert.SerializeObject(exception)}\n"); throw;
             }
         }
 
@@ -347,53 +291,39 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         /// </summary>
         /// <param name="activateUserRequest"></param>
         /// <returns></returns>
-        public async Task<ObjectResult> ActivateAsync(ActivateUserRequest activateUserRequest)
+        /// <exception cref="NotFoundUserException"></exception>
+        /// <exception cref="CustomException"></exception>
+        public async Task<ObjectResult> ActivateUserAsync(ActivateUserRequest activateUserRequest)
         {
-            Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(ActivateAsync)}\n");
+            Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(ActivateUserAsync)}\n");
 
             try
             {
-                Log.Information($"[LOG INFORMATION] - Recuperando usuário.\n");
-
-                var userEntity = await _userRepository.GetAsync(activateUserRequest.UserId);
-
-                if (userEntity is not null)
+                return await _userRepository.GetByAsync(activateUserRequest.UserId).ContinueWith(async (userEntityTask) =>
                 {
-                    Log.Information($"[LOG INFORMATION] - Confirmando e-mail do usuário {userEntity.UserName}.\n");
+                    var userEntity =
+                        userEntityTask.Result
+                        ?? throw new NotFoundUserException(activateUserRequest);
 
-                    var response = await _userRepository.ConfirmEmailAsync(userEntity, HttpUtility.UrlDecode(activateUserRequest.Code.Replace(";", "%")));
+                    await _userRepository.ConfirmEmailAsync(userEntity, HttpUtility.UrlDecode(
+                        activateUserRequest.Code.Replace(";", "%"))).ContinueWith(identityResultTask =>
+                        {
+                            var identityResult = identityResultTask.Result;
 
-                    if (response.Succeeded)
-                    {
-                        Log.Information($"[LOG INFORMATION] - Usuário ativado com sucesso.\n");
-
-                        return new OkObjectResult(
-                            new ApiResponse<object>(
-                                response.Succeeded, HttpStatusCode.OK, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário ativado com sucesso.") }));
-                    }
-
-                    Log.Information($"[LOG INFORMATION] - Falha na ativãção do usuário.\n");
+                            if (identityResult.Succeeded is false)
+                                throw new CustomException(HttpStatusCode.BadRequest, activateUserRequest,
+                                    new List<DadosNotificacao> { new DadosNotificacao(identityResult.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) });
+                        });
 
                     return new ObjectResult(
                         new ApiResponse<object>(
-                            false, HttpStatusCode.InternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao("Falha na ativãção do usuário!") }));
-                }
-                else
-                {
-                    Log.Information($"[LOG ERROR] - Usuário não encontrado.\n");
+                            true, HttpStatusCode.OK, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário ativado com sucesso!") }));
 
-                    return new NotFoundObjectResult(
-                        new ApiResponse<object>(
-                            false, HttpStatusCode.NotFound, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário não encontrado.") }));
-                }
+                }).Result;
             }
             catch (Exception exception)
             {
-                Log.Error($"[LOG ERROR] - {exception.Message}\n");
-
-                return new ObjectResult(
-                    new ApiResponse<object>(
-                        false, HttpStatusCode.InternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) }));
+                Log.Error($"[LOG ERROR] - Exception: {exception.Message}  -  {JsonConvert.SerializeObject(exception)}\n"); throw;
             }
         }
 
@@ -403,53 +333,65 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         /// <param name="username"></param>
         /// <param name="claimRequest"></param>
         /// <returns></returns>
-        public async Task<ObjectResult> AddClaimAsync(string username, ClaimRequest claimRequest)
+        /// <exception cref="CustomException"></exception>
+        /// <exception cref="NotFoundUserException"></exception>
+        public async Task<ObjectResult> AddUserClaimAsync(string username, ClaimRequest claimRequest)
         {
-            Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(AddClaimAsync)}\n");
+            Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(AddUserClaimAsync)}\n");
 
             try
             {
-                Log.Information($"[LOG INFORMATION] - Recuperando usuario {username}.\n");
+                await new AddClaimValidator().ValidateAsync(
+                  claimRequest).ContinueWith(async (validationTask) =>
+                  {
+                      var validation = validationTask.Result;
 
-                var userEntity = await _userRepository.GetWithUsernameAsync(username);
+                      if (string.IsNullOrEmpty(username))
+                          throw new CustomException(HttpStatusCode.BadRequest, null,
+                             new List<DadosNotificacao> { new DadosNotificacao("Campo username deve ter um valor!") });
 
-                if (userEntity is not null)
+                      if (validation.IsValid is false)
+                          await validation.GetValidationErrors();
+                  });
+
+                return await _userRepository.GetWithUsernameAsync(username).ContinueWith(async (userEntityTask) =>
                 {
-                    Log.Information($"[LOG INFORMATION] - Adicionando a claim ({claimRequest.Type}/{claimRequest.Value}) no usuário.\n");
+                    var userEntity =
+                       userEntityTask.Result
+                       ?? throw new NotFoundUserException(new
+                       {
+                           Username = username,
+                           ClaimRequest = claimRequest
+                       });
 
-                    var identityResult = await _userRepository.AddClaimUserAsync(userEntity, new Claim(claimRequest.Type, claimRequest.Value));
-
-                    if (identityResult.Succeeded)
+                    return await _userRepository.AddClaimUserAsync(userEntity, new Claim(claimRequest.Type, claimRequest.Value)).ContinueWith(identityResultTask =>
                     {
-                        Log.Information($"[LOG INFORMATION] - Claim adicionada com sucesso.\n");
+                        var identityResult = identityResultTask.Result;
+
+                        if (identityResult.Succeeded is false)
+                            throw new CustomException(HttpStatusCode.BadRequest, new
+                            {
+                                Username = username,
+                                ClaimRequest = claimRequest
+                            },
+                            new List<DadosNotificacao> {
+                                new DadosNotificacao(identityResult.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) });
 
                         return new OkObjectResult(
                             new ApiResponse<object>(
-                                identityResult.Succeeded, HttpStatusCode.OK, null, new List<DadosNotificacao> { new DadosNotificacao($"Claim {claimRequest.Type} / {claimRequest.Value}, adicionada com sucesso ao usuário {username}.") }));
-                    }
+                                identityResult.Succeeded, HttpStatusCode.OK, new
+                                {
+                                    Username = username,
+                                    ClaimRequest = claimRequest
 
-                    Log.Information($"[LOG ERROR] - Falha ao adicionar claim.\n");
+                                }, new List<DadosNotificacao> { new DadosNotificacao($"Claim {claimRequest.Type} / {claimRequest.Value}, adicionada com sucesso ao usuário {username}.") }));
+                    });
 
-                    return new ObjectResult(
-                        new ApiResponse<object>(
-                            identityResult.Succeeded, HttpStatusCode.InternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao("Falha ao adicionar claim!") }));
-                }
-                else
-                {
-                    Log.Information($"[LOG ERROR] - Usuário não encontrado.\n");
-
-                    return new NotFoundObjectResult(
-                        new ApiResponse<object>(
-                            false, HttpStatusCode.NotFound, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário não encontrado.") }));
-                }
+                }).Result;
             }
             catch (Exception exception)
             {
-                Log.Error($"[LOG ERROR] - {exception.Message}\n");
-
-                return new ObjectResult(
-                    new ApiResponse<object>(
-                        false, HttpStatusCode.InternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) }));
+                Log.Error($"[LOG ERROR] - Exception: {exception.Message}  -  {JsonConvert.SerializeObject(exception)}\n"); throw;
             }
         }
 
@@ -459,53 +401,65 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         /// <param name="username"></param>
         /// <param name="claimRequest"></param>
         /// <returns></returns>
-        public async Task<ObjectResult> RemoveClaimAsync(string username, ClaimRequest claimRequest)
+        /// <exception cref="CustomException"></exception>
+        /// <exception cref="NotFoundUserException"></exception>
+        public async Task<ObjectResult> RemoveUserClaimAsync(string username, ClaimRequest claimRequest)
         {
-            Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(RemoveClaimAsync)}\n");
+            Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(RemoveUserClaimAsync)}\n");
 
             try
             {
-                Log.Information($"[LOG INFORMATION] - Recuperando usuário {username}.\n");
-
-                var userIdentity = await _userRepository.GetWithUsernameAsync(username);
-
-                if (userIdentity is not null)
-                {
-                    Log.Information($"[LOG INFORMATION] - Removendo a claim ({claimRequest.Type}/{claimRequest.Value}) do usuário.\n");
-
-                    var identityResult = await _userRepository.RemoveClaimUserAsync(userIdentity, new Claim(claimRequest.Type, claimRequest.Value));
-
-                    if (identityResult.Succeeded)
+                await new RemoveClaimValidator().ValidateAsync(
+                    claimRequest).ContinueWith(async (validationTask) =>
                     {
-                        Log.Information($"[LOG INFORMATION] - Claim remvida com sucesso.\n");
+                        var validation = validationTask.Result;
+
+                        if (string.IsNullOrEmpty(username))
+                            throw new CustomException(HttpStatusCode.BadRequest, null,
+                               new List<DadosNotificacao> { new DadosNotificacao("Campo username deve ter um valor!") });
+
+                        if (validation.IsValid is false)
+                            await validation.GetValidationErrors();
+                    });
+
+                return await _userRepository.GetWithUsernameAsync(username).ContinueWith(async (userEntityTask) =>
+                {
+                    var userEntity =
+                       userEntityTask.Result
+                       ?? throw new NotFoundUserException(new
+                       {
+                           Username = username,
+                           ClaimRequest = claimRequest
+                       });
+
+                    return await _userRepository.RemoveClaimUserAsync(userEntity, new Claim(claimRequest.Type, claimRequest.Value)).ContinueWith(identityResultTask =>
+                    {
+                        var identityResult = identityResultTask.Result;
+
+                        if (identityResult.Succeeded is false)
+                            throw new CustomException(HttpStatusCode.BadRequest, new
+                            {
+                                Username = username,
+                                ClaimRequest = claimRequest
+                            },
+                            new List<DadosNotificacao> {
+                                new DadosNotificacao(identityResult.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) });
 
                         return new OkObjectResult(
                             new ApiResponse<object>(
-                                identityResult.Succeeded, HttpStatusCode.OK, null, new List<DadosNotificacao> { new DadosNotificacao($"Claim {claimRequest.Type} / {claimRequest.Value}, removida com sucesso do usuário {username}.") }));
-                    }
+                                identityResult.Succeeded, HttpStatusCode.OK, new
+                                {
+                                    Username = username,
+                                    ClaimRequest = claimRequest
 
-                    Log.Information($"[LOG ERROR] - Falha ao remover claim.\n");
+                                }, new List<DadosNotificacao> { new DadosNotificacao($"Claim {claimRequest.Type} / {claimRequest.Value}, removida com sucesso ao usuário {username}.") }));
+                    });
 
-                    return new ObjectResult(
-                        new ApiResponse<object>(
-                            identityResult.Succeeded, HttpStatusCode.InternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao("Falha ao remover claim!") }));
-                }
-                else
-                {
-                    Log.Information($"[LOG ERROR] - Usuário não encontrado.\n");
-
-                    return new NotFoundObjectResult(
-                        new ApiResponse<object>(
-                            false, HttpStatusCode.NotFound, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário não encontrado.") }));
-                }
+                }).Result;
             }
             catch (Exception exception)
             {
-                Log.Error($"[LOG ERROR] - {exception.Message}\n");
-
-                return new ObjectResult(
-                    new ApiResponse<object>(
-                        false, HttpStatusCode.InternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) }));
+                Log.Error($"[LOG ERROR] - Exception: {exception.Message}  -  {JsonConvert.SerializeObject(exception)}\n"); throw;
             }
         }
 
@@ -515,53 +469,77 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         /// <param name="username"></param>
         /// <param name="roleName"></param>
         /// <returns></returns>
-        public async Task<ObjectResult> AddRoleAsync(string username, string roleName)
+        /// <exception cref="CustomException"></exception>
+        /// <exception cref="NotFoundUserException"></exception>
+        public async Task<ObjectResult> AddUserRoleAsync(string username, string roleName)
         {
-            Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(AddRoleAsync)}\n");
+            Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(AddUserRoleAsync)}\n");
 
             try
             {
-                Log.Information($"[LOG INFORMATION] - Recuperando dados do usuário {username}.\n");
+                if (string.IsNullOrEmpty(username))
+                    throw new CustomException(HttpStatusCode.BadRequest, null,
+                       new List<DadosNotificacao> { new DadosNotificacao("O campo nome de usuário deve ter um valor!") });
 
-                var userEntity = await _userRepository.GetWithUsernameAsync(username);
+                if (string.IsNullOrEmpty(roleName))
+                    throw new CustomException(HttpStatusCode.BadRequest, null,
+                       new List<DadosNotificacao> { new DadosNotificacao("O campo nome da role deve ter um valor!") });
 
-                if (userEntity is not null)
+                return await _userRepository.GetWithUsernameAsync(username).ContinueWith(async (userEntityTask) =>
                 {
-                    Log.Information($"[LOG INFORMATION] - Adicionando a role ({roleName}) ao usuário.\n");
+                    var userEntity =
+                        userEntityTask.Result
+                        ?? throw new NotFoundUserException(new
+                        {
+                            Username = username,
+                            RoleName = roleName
 
-                    var response = await _userRepository.AddToUserRoleAsync(userEntity, roleName);
+                        });
 
-                    if (response is not null && response.Succeeded)
+                    return await _userRepository.GetRoleAsync(roleName).ContinueWith(async (roleEntityTask) =>
                     {
-                        Log.Information($"[LOG INFORMATION] - Role adicionada com sucesso.\n");
+                        var roleEntity =
+                            roleEntityTask.Result
+                            ?? throw new NotFoundUserException(new
+                            {
+                                Username = username,
+                                RoleName = roleName
 
-                        return new OkObjectResult(
-                            new ApiResponse<object>(
-                                response.Succeeded, HttpStatusCode.OK, null, new List<DadosNotificacao> { new DadosNotificacao($"Role {roleName}, adicionada com sucesso ao usuário {username}.") }));
-                    }
-                    else
-                    {
-                        Log.Information($"[LOG ERROR] - Falha ao adicionar role.\n");
+                            }, new List<DadosNotificacao>
+                            {
+                                new DadosNotificacao("Role não foi encontrada!")
+                            });
 
-                        return new BadRequestObjectResult(
-                            new ApiResponse<object>(
-                                false, HttpStatusCode.BadRequest, null, new List<DadosNotificacao> { new DadosNotificacao("Falha ao adicionar role!") }));
-                    }
-                }
+                        return await _userRepository.AddToUserRoleAsync(userEntity, roleName).ContinueWith(identityResultTask =>
+                        {
+                            var identityResult = identityResultTask.Result;
 
-                Log.Information($"[LOG ERROR] - Usuário não encontrado.\n");
+                            if (identityResult.Succeeded is false)
+                                throw new CustomException(HttpStatusCode.BadRequest, new
+                                {
+                                    Username = username,
+                                    RoleName = roleName
+                                },
+                                new List<DadosNotificacao> {
+                                new DadosNotificacao(identityResult.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) });
 
-                return new NotFoundObjectResult(
-                    new ApiResponse<object>(
-                        false, HttpStatusCode.NotFound, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário não encontrado!") }));
+                            return new OkObjectResult(
+                                new ApiResponse<object>(
+                                    identityResult.Succeeded, HttpStatusCode.OK, new
+                                    {
+                                        Username = username,
+                                        RoleName = roleName
+
+                                    }, new List<DadosNotificacao> { new DadosNotificacao($"Role {roleName}, adicionada com sucesso ao usuário {username}.") }));
+                        });
+
+                    }).Result;
+
+                }).Result;
             }
             catch (Exception exception)
             {
-                Log.Error($"[LOG ERROR] - {exception.Message}\n");
-
-                return new ObjectResult(
-                    new ApiResponse<object>(
-                        false, HttpStatusCode.InternalServerError, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) }));
+                Log.Error($"[LOG ERROR] - Exception: {exception.Message}  -  {JsonConvert.SerializeObject(exception)}\n"); throw;
             }
         }
 
@@ -572,13 +550,13 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         /// <returns></returns>
         public async Task<ObjectResult> GetUserRolesAsync(Guid userId)
         {
-            Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(RoleService)} - METHOD {nameof(GetUserRolesAsync)}\n");
+            Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(GetUserRolesAsync)}\n");
 
             try
             {
                 Log.Information($"[LOG INFORMATION] - Recuperando todas as roles do usuário.\n");
 
-                var userEntity = await _userRepository.GetAsync(userId);
+                var userEntity = await _userRepository.GetByAsync(userId);
 
                 if (userEntity is not null)
                 {
@@ -626,9 +604,9 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         /// <param name="username"></param>
         /// <param name="roleName"></param>
         /// <returns></returns>
-        public async Task<ObjectResult> RemoveRoleAsync(string username, string roleName)
+        public async Task<ObjectResult> RemoveUserRoleAsync(string username, string roleName)
         {
-            Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(RemoveRoleAsync)}\n");
+            Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(RemoveUserRoleAsync)}\n");
 
             try
             {
@@ -761,6 +739,168 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                 return tokenJwt;
 
             }).Result;
+        }
+
+        /// <summary>
+        /// Método responsavel por criar uma nova role.
+        /// </summary>
+        /// <param name="roleRequest"></param>
+        /// <returns></returns>
+        public async Task<ApiResponse<object>> CreateRoleAsync(RoleRequest roleRequest)
+        {
+            Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(CreateAsync)}\n");
+
+            try
+            {
+                // Mapper to entity.
+                var role = roleRequest.ToIdentityRole();
+
+                Log.Information($"[LOG INFORMATION] - Criando nova Role {roleRequest.Name}\n");
+
+                // Create a role in database.
+                var response = await _roleManager.CreateAsync(role);
+
+                // Is success enter.
+                if (response.Succeeded)
+                {
+                    Log.Information($"[LOG INFORMATION] - Adicionando claims na role {roleRequest.Name}\n");
+
+                    foreach (var claim in roleRequest.Claims)
+                    {
+                        await _roleManager.AddClaimAsync(role, new Claim(claim.Type, claim.Value));
+                    }
+
+                    // Response success.
+                    return new ApiResponse<object>(response.Succeeded, HttpStatusCode.Created, null, new List<DadosNotificacao> { new DadosNotificacao("Role criado com sucesso.") });
+                }
+
+                Log.Information($"[LOG INFORMATION] - Falha ao criar role.\n");
+
+                // Response error.
+                return new ApiResponse<object>(response.Succeeded, HttpStatusCode.BadRequest, null, response.Errors.Select(e => new DadosNotificacao(e.Description)).ToList());
+            }
+            catch (Exception exception)
+            {
+                Log.Error($"[LOG ERROR] - {exception.InnerException} - {exception.Message}\n");
+
+                // Error response.
+                return new ApiResponse<object>(false, HttpStatusCode.InternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) });
+            }
+        }
+
+        /// <summary>
+        /// Método responsavel por retornar todas as roles.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<ApiResponse<object>> GetRolesAsync()
+        {
+            Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(GetByIdAsync)}\n");
+
+            try
+            {
+                Log.Information($"[LOG INFORMATION] - Recuperando todas as roles\n");
+
+                // Get roles.
+                var roles = await _roleManager.Roles.ToListAsync();
+
+                // Response success.
+                return new ApiResponse<object>(true, HttpStatusCode.OK, roles, new List<DadosNotificacao> { new DadosNotificacao("Roles recuperadas com sucesso.") });
+            }
+            catch (Exception exception)
+            {
+                Log.Error($"[LOG ERROR] - {exception.InnerException} - {exception.Message}\n");
+
+                // Error response.
+                return new ApiResponse<object>(false, HttpStatusCode.InternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) });
+            }
+        }
+
+        /// <summary>
+        /// Método responsavel por adicionar uma claim na role.
+        /// </summary>
+        /// <param name="roleRequest"></param>
+        /// <returns></returns>
+        public async Task<ApiResponse<object>> AddClaimsToRoleAsync(RoleRequest roleRequest)
+        {
+            Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(AddClaimsToRoleAsync)}\n");
+
+            try
+            {
+                Log.Information($"[LOG INFORMATION] - Adicionando uma novas claims na role {roleRequest.Name}\n");
+
+                // Get the role for Id.
+                var role = await _roleManager.Roles.FirstOrDefaultAsync(role => roleRequest.Name.Equals(role.Name));
+
+                // Verify is nor null role.
+                if (role is not null)
+                {
+                    // foreach claims.
+                    foreach (var claim in roleRequest.Claims)
+                    {
+                        // Add claims in role.
+                        await _roleManager.AddClaimAsync(role, new Claim(claim.Type, claim.Value));
+
+                        Log.Information($"[LOG INFORMATION] - Claim {claim.Type}/{claim.Value} adicionada.\n");
+                    }
+
+                    // Response success.
+                    return new ApiResponse<object>(true, HttpStatusCode.OK, null, new List<DadosNotificacao> { new DadosNotificacao($"Claim adicionada a role {roleRequest.Name} com sucesso.") });
+                }
+
+                // Response error.
+                return new ApiResponse<object>(false, HttpStatusCode.NotFound, null, new List<DadosNotificacao> { new DadosNotificacao($"Role com o nome {roleRequest.Name} não existe.") });
+            }
+            catch (Exception exception)
+            {
+                Log.Error($"[LOG ERROR] - {exception.InnerException} - {exception.Message}\n");
+
+                // Error response.
+                return new ApiResponse<object>(false, HttpStatusCode.InternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) });
+            }
+        }
+
+        /// <summary>
+        /// Método responsável por remover uma claim na role.
+        /// </summary>
+        /// <param name="roleRequest"></param>
+        /// <returns></returns>
+        public async Task<ApiResponse<object>> RemoveClaimsToRoleAsync(RoleRequest roleRequest)
+        {
+            Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(RemoveClaimsToRoleAsync)}\n");
+
+            try
+            {
+                Log.Information($"[LOG INFORMATION] - Removendo as claims da Role {roleRequest.Name}\n");
+
+                // Get role for Id.
+                var role = await _roleManager.Roles.FirstOrDefaultAsync(role => roleRequest.Name.Equals(role.Name));
+
+                // Verify is not null role.
+                if (role is not null)
+                {
+                    // Remove remove claim.
+                    foreach (var claim in roleRequest.Claims)
+                    {
+                        await _roleManager.RemoveClaimAsync(role, new Claim(claim.Type, claim.Value));
+
+                        Log.Information($"[LOG INFORMATION] - Claim {claim.Type} / {claim.Value} removida com sucesso.\n");
+                    }
+
+                    // Response success.
+                    return new ApiResponse<object>(true, HttpStatusCode.OK, null, new List<DadosNotificacao> { new DadosNotificacao($"Claim removida da role {roleRequest.Name} com sucesso.") });
+                }
+
+                Log.Information($"[LOG INFORMATION] - Role não existe.\n");
+
+                return new ApiResponse<object>(false, HttpStatusCode.NotFound, null, new List<DadosNotificacao> { new DadosNotificacao($"Role com o nome {roleRequest.Name} não existe.") });
+            }
+            catch (Exception exception)
+            {
+                Log.Error($"[LOG ERROR] - {exception.Message}\n");
+
+                // Error response.
+                return new ApiResponse<object>(false, HttpStatusCode.InternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) });
+            }
         }
     }
 }

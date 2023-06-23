@@ -1,4 +1,5 @@
-﻿using APPLICATION.DOMAIN.ENTITY.USER;
+﻿using APPLICATION.DOMAIN.DTOS.REQUEST.USER;
+using APPLICATION.DOMAIN.ENTITY.USER;
 using APPLICATION.ENUMS;
 
 namespace APPLICATION.DOMAIN.BUILDERS.USER;
@@ -29,8 +30,7 @@ public sealed class UserBuilder
     /// <param name="passwordHash"></param>
     /// <returns></returns>
     public static UserEntity BuildCreateUserEntity(string firstName, string lastName, string userName,
-       string email, string cpf, string rg, Gender gender, string phoneNumber, string passwordHash
-       ) =>
+       string email, string cpf, string rg, Gender gender, string phoneNumber, string passwordHash) =>
        new()
        {
            FirstName = firstName,
@@ -73,8 +73,7 @@ public sealed class UserBuilder
         string email, string cpf, string rg, Gender gender, string phoneNumber, Status status, string normalizedEmail, string normalizedUserName,
         int accessFailedCount, string concurrencyStamp, bool emailConfirmed, bool lockoutEnabled, 
         DateTimeOffset? lockoutEnd, string passwordHash, bool phoneNumberConfirmed, string securityStamp,
-        bool twoFactorEnabled
-        ) =>
+        bool twoFactorEnabled) =>
         new()
         {
             FirstName = firstName,
@@ -99,4 +98,25 @@ public sealed class UserBuilder
             SecurityStamp = securityStamp,
             TwoFactorEnabled = twoFactorEnabled
         };
+
+    /// <summary>
+    /// Converte os dados de user update request para userEntity.
+    /// </summary>
+    /// <param name="userEntity"></param>
+    /// <param name="userUpdateRequest"></param>
+    /// <returns></returns>
+    public static UserEntity BuilderUserEntityFromUserUpdateRequest(
+        UserEntity userEntity, UserUpdateRequest userUpdateRequest)
+    {
+        userEntity.RG = userUpdateRequest.RG;
+        userEntity.CPF = userUpdateRequest.CPF;
+        userEntity.FirstName = userUpdateRequest.FirstName;
+        userEntity.LastName = userUpdateRequest.LastName;
+        userEntity.Status = userEntity.Status;
+        userEntity.Created = userEntity.Created;
+        userEntity.Updated = DateTime.Now;
+        userEntity.Gender = userEntity.Gender;
+
+        return userEntity;
+    }
 }
