@@ -2,6 +2,9 @@
 
 namespace APPLICATION.DOMAIN.DTOS.RESPONSE.USER;
 
+/// <summary>
+/// Classe de response para usuário.
+/// </summary>
 public class UserResponse
 {
     /// <summary>
@@ -30,24 +33,9 @@ public class UserResponse
     public string PhoneNumber { get; set; }
 
     /// <summary>
-    /// Idade.
-    /// </summary>
-    public int Age { get; set; }
-
-    /// <summary>
-    /// Data de aniversário.
-    /// </summary>
-    public string BirthDay { get; set; }
-
-    /// <summary>
     /// Gênero.
     /// </summary>
     public Gender Gender { get; set; }
-
-    /// <summary>
-    /// Imagem de perfil.
-    /// </summary>
-    public string ImageUri { get; set; }
 
     /// <summary>
     /// RG.
@@ -68,16 +56,6 @@ public class UserResponse
     /// Data de atualização
     /// </summary>
     public DateTime? Updated { get; set; }
-
-    /// <summary>
-    /// Usuário de cadastro.
-    /// </summary>
-    public Guid CreatedUserId { get; set; }
-
-    /// <summary>
-    /// Usuário que atualizou.
-    /// </summary>
-    public Guid? UpdatedUserId { get; set; }
 
     /// <summary>
     /// Status

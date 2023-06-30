@@ -39,7 +39,7 @@ try
         .ConfigureLanguage()
         .ConfigureContexto(configurations)
         .ConfigureIdentityServer(configurations)
-        .ConfigureAuthorization(configurations)
+        .ConfigureAuthorization()
         .ConfigureAuthentication(configurations)
         .ConfigureApllicationCookie()
         .ConfigureSwagger(configurations)

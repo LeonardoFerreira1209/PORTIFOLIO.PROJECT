@@ -4,6 +4,9 @@ using static APPLICATION.DOMAIN.EXCEPTIONS.USER.CustomUserException;
 
 namespace APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.CUSTOMAUTHORIZE.FILTER;
 
+/// <summary>
+/// Classe custom de autenticação de usuários.
+/// </summary>
 public class CustomAuthorizeFilter : IAuthorizationFilter
 {
     private readonly List<Claim> _claims;
@@ -20,14 +23,25 @@ public class CustomAuthorizeFilter : IAuthorizationFilter
     /// <param name="context"></param>
     public void OnAuthorization(AuthorizationFilterContext context)
     {
-        var hasClaim = 
-            context.HttpContext.User.Claims.Any(
-                userClaim => _claims.Any(
-                    claim => userClaim.Type.Equals(claim.Type) && userClaim.Value.Equals(claim.Value)));
+        var isAuthenticated = 
+            context.HttpContext.User.Identity.IsAuthenticated;
 
-        if (hasClaim is false) throw new UnauthorizedUserException(new {
-            hasClaims = hasClaim,
-            claims = _claims
-        });
+        var claimsPrincipal =
+            context.HttpContext.User;
+
+        if ((isAuthenticated && HasClaims(claimsPrincipal)) is false) throw new TokenJwtException(null);
+    }
+
+    /// <summary>
+    /// Verifica se o usuário têm as claims necessárias.
+    /// </summary>
+    /// <param name="claimsPrincipal"></param>
+    /// <returns></returns>
+    private bool HasClaims(ClaimsPrincipal claimsPrincipal)
+    {
+        var hasClaim = _claims.Any(claim
+            => claimsPrincipal.HasClaim(claim.Type, claim.Value));
+
+        return hasClaim;
     }
 }

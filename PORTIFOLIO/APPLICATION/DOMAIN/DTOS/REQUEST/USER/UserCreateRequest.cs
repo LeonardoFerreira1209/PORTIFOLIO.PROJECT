@@ -21,20 +21,10 @@ namespace APPLICATION.DOMAIN.DTOS.REQUEST.USER
         public string LastName { get; set; }
 
         /// <summary>
-        /// Data de aniversário.
-        /// </summary>
-        public string BirthDay { get; set; }
-
-        /// <summary>
         /// Gênero.
         /// </summary>
         [JsonConverter(typeof(StringEnumConverter))]
         public Gender Gender { get; set; }
-
-        /// <summary>
-        /// Imagem de perfil.
-        /// </summary>
-        public string ImageUri { get; set; }
 
         /// <summary>
         /// RG.

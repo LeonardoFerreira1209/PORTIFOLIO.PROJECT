@@ -1,121 +1,164 @@
-﻿using APPLICATION.DOMAIN.DTOS.REQUEST.USER;
-using APPLICATION.DOMAIN.ENTITY.USER;
+﻿using APPLICATION.DOMAIN.ENTITY.USER;
 using APPLICATION.ENUMS;
 
 namespace APPLICATION.DOMAIN.BUILDERS.USER;
 
 /// <summary>
-/// Criador de usuários.
+/// UserEntityBuilder
 /// </summary>
-public sealed class UserBuilder
+public sealed class UserEntityBuilder
 {
-    /// <summary>
-    /// Ctor
-    /// </summary>
-    private UserBuilder() {
+    private string firstName, lastName, rg, cpf, email, phoneNumber, username, passwordHash;
 
+    private bool emailConfirmed, phoneConfirmed;
+
+    private Gender gender;
+
+    private DateTime created, updated;
+
+    private Status status;
+
+    /// <summary>
+    /// Adicionar nome completo do usuário.
+    /// </summary>
+    /// <param name="firstName"></param>
+    /// <param name="lastName"></param>
+    /// <returns></returns>
+    public UserEntityBuilder AddCompleteName(string firstName, string lastName)
+    {
+        this.firstName = firstName;
+        this.lastName = lastName;
+
+        return this;
     }
 
     /// <summary>
-    /// Criar usuário somente com valores básicos
+    /// Adicionar documentos.
     /// </summary>
-    /// <param name="firstName"></param>
-    /// <param name="lastName"></param>
-    /// <param name="userName"></param>
-    /// <param name="email"></param>
-    /// <param name="cpf"></param>
     /// <param name="rg"></param>
-    /// <param name="gender"></param>
-    /// <param name="phoneNumber"></param>
-    /// <param name="passwordHash"></param>
+    /// <param name="cpf"></param>
     /// <returns></returns>
-    public static UserEntity BuildCreateUserEntity(string firstName, string lastName, string userName,
-       string email, string cpf, string rg, Gender gender, string phoneNumber, string passwordHash) =>
-       new()
-       {
-           FirstName = firstName,
-           LastName = lastName,
-           UserName = userName,
-           Email = email,
-           CPF = cpf,
-           RG = rg,
-           Gender = gender,
-           Created = DateTime.Now,
-           PhoneNumber = phoneNumber,
-           Status = Status.Active,
-           PasswordHash = passwordHash
-       };
+    public UserEntityBuilder AddDocuments(string rg, string cpf)
+    {
+        this.rg = rg;
+        this.cpf = cpf;
+
+        return this;
+    }
 
     /// <summary>
-    /// Criar usuário com todos os valores possiveis.
+    /// Adicionar status.
     /// </summary>
-    /// <param name="firstName"></param>
-    /// <param name="lastName"></param>
-    /// <param name="userName"></param>
+    /// <param name="status"></param>
+    /// <returns></returns>
+    public UserEntityBuilder AddStatus(Status status)
+    {
+        this.status = status;
+
+        return this;
+    }
+
+    /// <summary>
+    /// Adicionar dados de email.
+    /// </summary>
     /// <param name="email"></param>
-    /// <param name="cpf"></param>
-    /// <param name="rg"></param>
-    /// <param name="gender"></param>
-    /// <param name="phoneNumber"></param>
-    /// <param name="normalizedEmail"></param>
-    /// <param name="normalizedUserName"></param>
-    /// <param name="accessFailedCount"></param>
-    /// <param name="concurrencyStamp"></param>
     /// <param name="emailConfirmed"></param>
-    /// <param name="lockoutEnabled"></param>
-    /// <param name="lockoutEnd"></param>
-    /// <param name="passwordHash"></param>
-    /// <param name="phoneNumberConfirmed"></param>
-    /// <param name="securityStamp"></param>
-    /// <param name="twoFactorEnabled"></param>
     /// <returns></returns>
-    public static UserEntity BuildCompleteUserEntity(string firstName, string lastName, string userName,
-        string email, string cpf, string rg, Gender gender, string phoneNumber, Status status, string normalizedEmail, string normalizedUserName,
-        int accessFailedCount, string concurrencyStamp, bool emailConfirmed, bool lockoutEnabled, 
-        DateTimeOffset? lockoutEnd, string passwordHash, bool phoneNumberConfirmed, string securityStamp,
-        bool twoFactorEnabled) =>
-        new()
-        {
-            FirstName = firstName,
-            LastName = lastName,
-            UserName = userName,
-            Email = email,
-            CPF = cpf,
-            RG = rg,
-            Gender = gender,
-            Created = DateTime.Now,
-            PhoneNumber = phoneNumber,
-            Status = status,
-            NormalizedEmail = normalizedEmail,
-            NormalizedUserName = normalizedUserName,
-            AccessFailedCount = accessFailedCount,
-            ConcurrencyStamp = concurrencyStamp,
-            EmailConfirmed = emailConfirmed,
-            LockoutEnabled = lockoutEnabled,
-            LockoutEnd = lockoutEnd,
-            PasswordHash = passwordHash,
-            PhoneNumberConfirmed = phoneNumberConfirmed,
-            SecurityStamp = securityStamp,
-            TwoFactorEnabled = twoFactorEnabled
-        };
+    public UserEntityBuilder AddEmail(string email, bool emailConfirmed = false)
+    {
+        this.email = email;
+        this.emailConfirmed = emailConfirmed;
+
+        return this;
+    }
 
     /// <summary>
-    /// Converte os dados de user update request para userEntity.
+    /// Adiconar nome de usuário & senha.
+    /// </summary>
+    /// <param name="username"></param>
+    /// <param name="passwordHash"></param>
+    /// <returns></returns>
+    public UserEntityBuilder AddCredentials(string username, string passwordHash)
+    {
+        this.username = username;
+        this.passwordHash = passwordHash;
+
+        return this;
+    }
+
+    /// <summary>
+    /// Adicionar número de celular.
+    /// </summary>
+    /// <param name="phoneNumber"></param>
+    /// <param name="phoneConfirmed"></param>
+    /// <returns></returns>
+    public UserEntityBuilder AddPhoneNumber(string phoneNumber, bool phoneConfirmed = false)
+    {
+        this.phoneNumber = phoneNumber;
+        this.phoneConfirmed = phoneConfirmed;
+
+        return this;
+    }
+
+    /// <summary>
+    /// Adicionar o sexo do usuário.
+    /// </summary>
+    /// <param name="gender"></param>
+    /// <returns></returns>
+    public UserEntityBuilder AddGender(Gender gender)
+    {
+        this.gender = gender;
+
+        return this;
+    }
+
+    /// <summary>
+    /// Adicionar data de criação.
+    /// </summary>
+    /// <param name="createdDate"></param>
+    /// <returns></returns>
+    public UserEntityBuilder AddCreatedDate(DateTime created)
+    {
+        this.created = created;
+
+        return this;
+    }
+
+    /// <summary>
+    /// Adicionar data de atualização.
+    /// </summary>
+    /// <param name="createdDate"></param>
+    /// <returns></returns>
+    public UserEntityBuilder AddUpdatedDate(DateTime updated)
+    {
+        this.updated = updated;
+
+        return this;
+    }
+
+    /// <summary>
+    /// Builder.
     /// </summary>
     /// <param name="userEntity"></param>
-    /// <param name="userUpdateRequest"></param>
     /// <returns></returns>
-    public static UserEntity BuilderUserEntityFromUserUpdateRequest(
-        UserEntity userEntity, UserUpdateRequest userUpdateRequest)
+    public UserEntity Builder(UserEntity userEntity = null)
     {
-        userEntity.RG = userUpdateRequest.RG;
-        userEntity.CPF = userUpdateRequest.CPF;
-        userEntity.FirstName = userUpdateRequest.FirstName;
-        userEntity.LastName = userUpdateRequest.LastName;
-        userEntity.Status = userEntity.Status;
-        userEntity.Created = userEntity.Created;
-        userEntity.Updated = DateTime.Now;
-        userEntity.Gender = userEntity.Gender;
+        userEntity ??= new UserEntity();
+
+        userEntity.FirstName = firstName;
+        userEntity.LastName = lastName;
+        userEntity.UserName = username;
+        userEntity.PasswordHash = passwordHash;
+        userEntity.Email = email;
+        userEntity.PhoneNumber = phoneNumber;
+        userEntity.Gender = gender;
+        userEntity.CPF = cpf;
+        userEntity.RG = rg;
+        userEntity.EmailConfirmed = emailConfirmed;
+        userEntity.PhoneNumberConfirmed = phoneConfirmed;
+        userEntity.Created = created;
+        userEntity.Updated = updated;
+        userEntity.Status = status;
 
         return userEntity;
     }

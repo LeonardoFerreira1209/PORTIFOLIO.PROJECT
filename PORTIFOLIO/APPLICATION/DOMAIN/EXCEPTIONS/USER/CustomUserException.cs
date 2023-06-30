@@ -3,6 +3,9 @@ using System.Net;
 
 namespace APPLICATION.DOMAIN.EXCEPTIONS.USER;
 
+/// <summary>
+/// Exceptions
+/// </summary>
 public class CustomUserException
 {
     /// <summary>
@@ -131,6 +134,28 @@ public class CustomUserException
             object dados, List<DadosNotificacao> notificacoes) {
             Response = new ErrorResponse
                (HttpStatusCode.Unauthorized, dados, notificacoes);
+        }
+    }
+
+    /// <summary>
+    /// Exception para falha na geração de tokenJwt.
+    /// </summary>
+    public class TokenJwtException : BaseException
+    {
+        public TokenJwtException(
+            object dados)
+        {
+            Response = new ErrorResponse
+               (HttpStatusCode.BadRequest, dados, new List<DadosNotificacao>() {
+                   new DadosNotificacao("Erro na geração do token JWT!")
+               });
+        }
+
+        public TokenJwtException(
+            object dados, List<DadosNotificacao> notificacoes)
+        {
+            Response = new ErrorResponse
+               (HttpStatusCode.BadRequest, dados, notificacoes);
         }
     }
 }

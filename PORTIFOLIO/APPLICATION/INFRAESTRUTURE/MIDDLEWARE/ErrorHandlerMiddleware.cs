@@ -1,4 +1,6 @@
-﻿using APPLICATION.DOMAIN.EXCEPTIONS;
+﻿using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
+using APPLICATION.DOMAIN.EXCEPTIONS;
+using APPLICATION.ENUMS;
 using Microsoft.AspNetCore.Http;
 using System.Net;
 using System.Text.Json;
@@ -47,6 +49,18 @@ public class ErrorHandlerMiddleware
             BaseException customEx => (customEx.Response.StatusCode,
                                                            JsonSerializer.Serialize(customEx.Response)),
 
-            _ => (HttpStatusCode.InternalServerError, JsonSerializer.Serialize(new { error = exception.Message }))
+            _ => (HttpStatusCode.InternalServerError, JsonSerializer.Serialize(new 
+            {
+                StatusCode = HttpStatusCode.InternalServerError,
+                Sucesso = false,
+                Dados = new
+                {
+                    exception.StackTrace,
+                    exception.Message,
+                    InnerException = exception.InnerException?.ToString(),
+                    exception.Data
+                },
+                Notificacoes = new DadosNotificacao(exception.Message),
+            }))
         };
 }

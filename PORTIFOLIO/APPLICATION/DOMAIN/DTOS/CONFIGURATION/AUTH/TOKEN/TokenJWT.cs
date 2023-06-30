@@ -13,10 +13,19 @@ public class TokenJWT
     private readonly JwtSecurityToken token;
 
     /// <summary>
+    /// Token de refresh.
+    /// </summary>
+    private readonly JwtSecurityToken refreshToken;
+
+    /// <summary>
     /// Ctor
     /// </summary>
     /// <param name="token"></param>
-    internal TokenJWT(JwtSecurityToken token) => this.token = token;
+    internal TokenJWT(JwtSecurityToken token, JwtSecurityToken refreshToken)
+    {
+        this.token = token;
+        this.refreshToken = refreshToken;
+    }
 
     /// <summary>
     /// Validade do token
@@ -26,6 +35,11 @@ public class TokenJWT
     /// <summary>
     /// Valor do token.
     /// </summary>
-    public string Value => new JwtSecurityTokenHandler().WriteToken(this.token);
+    public string Token => new JwtSecurityTokenHandler().WriteToken(this.token);
+
+    /// <summary>
+    /// Token de refresh.
+    /// </summary>
+    public string RefreshToken => new JwtSecurityTokenHandler().WriteToken(this.refreshToken);
 }
 

@@ -12,7 +12,6 @@ using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.USER;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.FILE;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.TOKEN;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.USER;
-using APPLICATION.DOMAIN.ENTITY.ENTITY;
 using APPLICATION.DOMAIN.ENTITY.ROLE;
 using APPLICATION.DOMAIN.ENTITY.USER;
 using APPLICATION.DOMAIN.UTILS.GLOBAL;
@@ -51,15 +50,17 @@ using Newtonsoft.Json;
 using Refit;
 using Serilog;
 using Serilog.Events;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Net.Mime;
 using System.Security.Claims;
 using System.Text;
+using static APPLICATION.DOMAIN.EXCEPTIONS.USER.CustomUserException;
 
 namespace APPLICATION.APPLICATION.CONFIGURATIONS;
 
-[ExcludeFromCodeCoverage]
+/// <summary>
+/// Extensions
+/// </summary>
 public static class ExtensionsConfigurations
 {
     public static readonly string HealthCheckEndpoint = "/application/healthcheck";
@@ -190,6 +191,8 @@ public static class ExtensionsConfigurations
 
             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 
+            options.DefaultScheme = IdentityConstants.ApplicationScheme;
+
         }).AddJwtBearer(options =>
         {
             options.SaveToken = true;
@@ -212,17 +215,20 @@ public static class ExtensionsConfigurations
                 {
                     Log.Information($"[LOG ERROR] {nameof(JwtBearerEvents)} - METHOD OnAuthenticationFailed - {context.Exception.Message}\n");
 
-                    return Task.CompletedTask;
+                    throw new UnauthorizedUserException(null);
                 },
 
                 OnTokenValidated = context =>
                 {
                     Log.Information($"[LOG INFORMATION] {nameof(JwtBearerEvents)} - OnTokenValidated - {context.SecurityToken}\n");
 
-                    GlobalData.GlobalUser = new DOMAIN.DTOS.USER.UserData
+                    if (!context.Principal.Claims.Any(claim => claim.Type.Equals("id")))
                     {
-                        Id = Guid.Parse(context.Principal.Claims?.FirstOrDefault().Value)
-                    };
+                        GlobalData.GlobalUser = new DOMAIN.DTOS.USER.UserData
+                        {
+                            Id = Guid.Parse(context.Principal.Claims?.FirstOrDefault().Value)
+                        };
+                    }
 
                     return Task.CompletedTask;
                 }
@@ -238,17 +244,9 @@ public static class ExtensionsConfigurations
     /// <param name="services"></param>
     /// <param name="configurations"></param>
     /// <returns></returns>
-    public static IServiceCollection ConfigureAuthorization(this IServiceCollection services, IConfiguration configurations)
+    public static IServiceCollection ConfigureAuthorization(this IServiceCollection services)
     {
-        services
-            .AddAuthorization(options =>
-            {
-                options.AddPolicy("accessPerson", policy => policy.RequireClaim("accessPerson", "get", "post", "put", "patch", "delete"));
-
-                options.AddPolicy("accessClaim", policy => policy.RequireClaim("accessClaim", "get", "post", "put", "patch", "delete"));
-
-                options.AddPolicy("accessRole", policy => policy.RequireClaim("accessRole", "get", "post", "put", "patch", "delete"));
-            });
+        services.AddAuthorization();
 
         return services;
     }

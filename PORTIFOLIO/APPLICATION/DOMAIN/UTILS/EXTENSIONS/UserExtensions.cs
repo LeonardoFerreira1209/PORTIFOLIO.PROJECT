@@ -2,6 +2,7 @@
 using APPLICATION.DOMAIN.DTOS.REQUEST.USER;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.USER;
 using APPLICATION.DOMAIN.ENTITY.USER;
+using APPLICATION.ENUMS;
 
 namespace APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 
@@ -16,10 +17,17 @@ public static class UserExtensions
     /// <param name="userRequest"></param>
     /// <returns></returns>
     public static UserEntity ToIdentityUser(this UserCreateRequest userRequest)
-        => UserBuilder.BuildCreateUserEntity(
-            userRequest.FirstName, userRequest.LastName, userRequest.UserName, userRequest.Email,
-            userRequest.CPF, userRequest.RG, userRequest.Gender, userRequest.PhoneNumber, userRequest.Password
-            );
+        => new UserEntityBuilder()
+                .AddCredentials(userRequest.UserName, userRequest.Password)
+                    .AddEmail(userRequest.Email)
+                       .AddPhoneNumber(userRequest.PhoneNumber)
+                          .AddDocuments(userRequest.RG, userRequest.CPF)
+                             .AddCompleteName(userRequest.FirstName, userRequest.LastName)
+                                .AddEmail(userRequest.Email)
+                                   .AddGender(userRequest.Gender)
+                                      .AddCreatedDate(DateTime.Now)
+                                          .AddStatus(Status.Active)
+                                              .Builder();
 
     /// <summary>
     /// Convert um user update para um userEntity.
@@ -27,8 +35,18 @@ public static class UserExtensions
     /// <param name="userUpdateRequest"></param>
     /// <returns></returns>
     public static UserEntity TransformUserEntityFromUserUpdateRequest(this UserEntity userEntity, UserUpdateRequest userUpdateRequest)
-        => UserBuilder.BuilderUserEntityFromUserUpdateRequest(
-            userEntity, userUpdateRequest);
+        => new UserEntityBuilder()
+                .AddCredentials(userEntity.UserName, userEntity.PasswordHash)
+                    .AddEmail(userEntity.Email)
+                        .AddPhoneNumber(userEntity.PhoneNumber)
+                            .AddDocuments(userUpdateRequest.RG, userUpdateRequest.CPF)
+                               .AddCompleteName(userUpdateRequest.FirstName, userUpdateRequest.LastName)
+                                  .AddEmail(userEntity.Email)
+                                     .AddGender(userUpdateRequest.Gender)
+                                        .AddCreatedDate(userEntity.Created)
+                                           .AddUpdatedDate(DateTime.Now)
+                                              .AddStatus(Status.Active)
+                                                 .Builder(userEntity);
 
     /// <summary>
     /// Convert um userEntity para um user response.

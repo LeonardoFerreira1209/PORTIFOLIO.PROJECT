@@ -1,6 +1,7 @@
 ﻿using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.USER;
 using APPLICATION.DOMAIN.ENTITY.ROLE;
 using APPLICATION.DOMAIN.ENTITY.USER;
+using APPLICATION.DOMAIN.UTILS;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -31,7 +32,8 @@ public class UserRepository : IUserRepository
     /// <param name="lockoutOnFailure"></param>
     /// <returns></returns>
     public async Task<SignInResult> PasswordSignInAsync(UserEntity userEntity, string password, bool isPersistent, bool lockoutOnFailure)
-        => await _signInManager.PasswordSignInAsync(userEntity, password, isPersistent, lockoutOnFailure);
+        => await RetryPolicy.ExecuteAsync(
+            () => _signInManager.PasswordSignInAsync(userEntity, password, isPersistent, lockoutOnFailure), 3);
 
     /// <summary>
     /// Método responsavel por criar um novo usuário.
@@ -40,7 +42,8 @@ public class UserRepository : IUserRepository
     /// <param name="password"></param>
     /// <returns></returns>
     public async Task<IdentityResult> CreateUserAsync(UserEntity userEntity, string password)
-        => await _userManager.CreateAsync(userEntity, password);
+        => await RetryPolicy.ExecuteAsync(
+            () => _userManager.CreateAsync(userEntity, password), 3);
 
     /// <summary>
     /// Método responsavel por atualizar um usuário.
@@ -48,7 +51,8 @@ public class UserRepository : IUserRepository
     /// <param name="userEntity"></param>
     /// <returns></returns>
     public async Task<IdentityResult> UpdateUserAsync(UserEntity userEntity)
-        => await _userManager.UpdateAsync(userEntity);
+        => await RetryPolicy.ExecuteAsync(
+            () => _userManager.UpdateAsync(userEntity), 3);
 
     /// <summary>
     /// Método responsável por recuperar um usuário.
@@ -56,7 +60,8 @@ public class UserRepository : IUserRepository
     /// <param name="userId"></param>
     /// <returns></returns>
     public async Task<UserEntity> GetByAsync(Guid userId)
-        => await _userManager.FindByIdAsync(userId.ToString());
+        => await RetryPolicy.ExecuteAsync(
+            () => _userManager.FindByIdAsync(userId.ToString()), 3);
 
     /// <summary>
     /// Método responsável por recuperar vários usuários por id.
@@ -64,7 +69,8 @@ public class UserRepository : IUserRepository
     /// <param name="userId"></param>
     /// <returns></returns>
     public async Task<IEnumerable<UserEntity>> GetByIdsAsync(List<Guid> userIds)
-        => await _userManager.Users.Where(user => userIds.Contains(user.Id)).ToListAsync();
+        => await RetryPolicy.ExecuteAsync(
+            () => _userManager.Users.Where(user => userIds.Contains(user.Id)).ToListAsync(), 3);
 
     /// <summary>
     /// Método responsável por recuperar vários usuários por nome.
@@ -72,10 +78,11 @@ public class UserRepository : IUserRepository
     /// <param name="names"></param>
     /// <returns></returns>
     public async Task<IEnumerable<UserEntity>> GetByNamesAsync(List<string> names)
-        => await _userManager.Users.Where(user => 
-               names.Contains(user.FirstName) 
+        => await RetryPolicy.ExecuteAsync(
+            () => _userManager.Users.Where(user =>
+               names.Contains(user.FirstName)
             || names.Contains(user.LastName)
-        ).ToListAsync();
+        ).ToListAsync(), 3);
 
     /// <summary>
     /// Método responsável por recuperar um usuário pelo username.
@@ -83,7 +90,8 @@ public class UserRepository : IUserRepository
     /// <param name="username"></param>
     /// <returns></returns>
     public async Task<UserEntity> GetWithUsernameAsync(string username)
-        => await _userManager.FindByNameAsync(username);
+        => await RetryPolicy.ExecuteAsync(
+            () => _userManager.FindByNameAsync(username), 3);
 
     /// <summary>
     /// Método responsável por setar o nome de usuário.
@@ -92,7 +100,8 @@ public class UserRepository : IUserRepository
     /// <param name="username"></param>
     /// <returns></returns>
     public async Task<IdentityResult> SetUserNameAsync(UserEntity userEntity, string username)
-        => await _userManager.SetUserNameAsync(userEntity, username);
+        => await RetryPolicy.ExecuteAsync(
+            () => _userManager.SetUserNameAsync(userEntity, username), 3);
 
     /// <summary>
     /// Método responsável por mudar a senha do usuário.
@@ -102,7 +111,8 @@ public class UserRepository : IUserRepository
     /// <param name="password"></param>
     /// <returns></returns>
     public async Task<IdentityResult> ChangePasswordAsync(UserEntity userEntity, string currentPassword, string password)
-        => await _userManager.ChangePasswordAsync(userEntity, currentPassword, password);
+        => await RetryPolicy.ExecuteAsync(
+            () => _userManager.ChangePasswordAsync(userEntity, currentPassword, password), 3);
 
     /// <summary>
     /// Método responsável por setar o e-mail do usuário.
@@ -111,7 +121,8 @@ public class UserRepository : IUserRepository
     /// <param name="email"></param>
     /// <returns></returns>
     public async Task<IdentityResult> SetEmailAsync(UserEntity userEntity, string email)
-        => await _userManager.SetEmailAsync(userEntity, email);
+        => await RetryPolicy.ExecuteAsync(
+            () => _userManager.SetEmailAsync(userEntity, email), 3);
 
     /// <summary>
     ///  Método responsável por setar o celular do usuário.
@@ -120,7 +131,8 @@ public class UserRepository : IUserRepository
     /// <param name="phoneNumber"></param>
     /// <returns></returns>
     public async Task<IdentityResult> SetPhoneNumberAsync(UserEntity userEntity, string phoneNumber)
-        => await _userManager.SetPhoneNumberAsync(userEntity, phoneNumber);
+        => await RetryPolicy.ExecuteAsync(
+            () => _userManager.SetPhoneNumberAsync(userEntity, phoneNumber), 3);
 
     /// <summary>
     /// Método responsável por confirmar um usuário.
@@ -129,7 +141,8 @@ public class UserRepository : IUserRepository
     /// <param name="code"></param>
     /// <returns></returns>
     public async Task<IdentityResult> ConfirmEmailAsync(UserEntity userEntity, string code)
-        => await _userManager.ConfirmEmailAsync(userEntity, code);
+        => await RetryPolicy.ExecuteAsync(
+            () => _userManager.ConfirmEmailAsync(userEntity, code), 3);
 
     /// <summary>
     /// Método responsável por confirmar um usuário.
@@ -137,7 +150,8 @@ public class UserRepository : IUserRepository
     /// <param name="userEntity"></param>
     /// <returns></returns>
     public async Task<string> GenerateEmailConfirmationTokenAsync(UserEntity userEntity)
-        => await _userManager.GenerateEmailConfirmationTokenAsync(userEntity);
+        => await RetryPolicy.ExecuteAsync(
+            () => _userManager.GenerateEmailConfirmationTokenAsync(userEntity), 3);
 
     /// <summary>
     /// Método responsável por adicionar uma claim em um usuário.
@@ -146,7 +160,8 @@ public class UserRepository : IUserRepository
     /// <param name="claim"></param>
     /// <returns></returns>
     public async Task<IdentityResult> AddClaimUserAsync(UserEntity userEntity, Claim claim)
-        => await _userManager.AddClaimAsync(userEntity, claim);
+        => await RetryPolicy.ExecuteAsync(
+            () => _userManager.AddClaimAsync(userEntity, claim), 3);
 
     /// <summary>
     /// Método responsável por remover uma claim em um usuário.
@@ -155,7 +170,8 @@ public class UserRepository : IUserRepository
     /// <param name="claim"></param>
     /// <returns></returns>
     public async Task<IdentityResult> RemoveClaimUserAsync(UserEntity userEntity, Claim claim)
-        => await _userManager.RemoveClaimAsync(userEntity, claim);
+        => await RetryPolicy.ExecuteAsync(
+            () => _userManager.RemoveClaimAsync(userEntity, claim), 3);
 
     /// <summary>
     /// Método responsável por adicionar uma role em um usuário.
@@ -164,7 +180,8 @@ public class UserRepository : IUserRepository
     /// <param name="roleName"></param>
     /// <returns></returns>
     public async Task<IdentityResult> AddToUserRoleAsync(UserEntity userEntity, string roleName)
-        => await _userManager.AddToRoleAsync(userEntity, roleName);
+        => await RetryPolicy.ExecuteAsync(
+            () => _userManager.AddToRoleAsync(userEntity, roleName), 3);
 
     /// <summary>
     /// Método responsável por remover uma role em um usuário.
@@ -173,7 +190,8 @@ public class UserRepository : IUserRepository
     /// <param name="roleName"></param>
     /// <returns></returns>
     public async Task<IdentityResult> RemoveToUserRoleAsync(UserEntity userEntity, string roleName)
-        => await _userManager.RemoveFromRoleAsync(userEntity, roleName);
+        => await RetryPolicy.ExecuteAsync(
+            () => _userManager.RemoveFromRoleAsync(userEntity, roleName), 3);
 
     /// <summary>
     /// Método responsável por recuperar as roles de usuário.
@@ -181,7 +199,8 @@ public class UserRepository : IUserRepository
     /// <param name="userEntity"></param>
     /// <returns></returns>
     public async Task<IList<string>> GetUserRolesAsync(UserEntity userEntity)
-        => await _userManager.GetRolesAsync(userEntity);
+        => await RetryPolicy.ExecuteAsync(
+            () => _userManager.GetRolesAsync(userEntity), 3);
 
     /// <summary>
     /// Método responsável por recuperar uma role.
@@ -189,7 +208,8 @@ public class UserRepository : IUserRepository
     /// <param name="roleName"></param>
     /// <returns></returns>
     public async Task<RoleEntity> GetRoleAsync(string roleName)
-        => await _roleManager.Roles.FirstOrDefaultAsync(role => role.Name.Equals(roleName));
+        => await RetryPolicy.ExecuteAsync(
+            () => _roleManager.Roles.FirstOrDefaultAsync(role => role.Name.Equals(roleName)), 3);
 
     /// <summary>
     /// Método responsável por recuperar as claims de uma role.
@@ -197,7 +217,8 @@ public class UserRepository : IUserRepository
     /// <param name="roleEntity"></param>
     /// <returns></returns>
     public async Task<IList<Claim>> GetRoleClaimsAsync(RoleEntity roleEntity)
-        => await _roleManager.GetClaimsAsync(roleEntity);
+        => await RetryPolicy.ExecuteAsync(
+            () => _roleManager.GetClaimsAsync(roleEntity), 3);
 
     /// <summary>
     /// Método responsável por atualizar o token do usuário.
@@ -211,6 +232,7 @@ public class UserRepository : IUserRepository
     {
         await _userManager
             .RemoveAuthenticationTokenAsync(userEntity, providerName, tokenName);
+
         await _userManager
             .SetAuthenticationTokenAsync(userEntity, providerName, tokenName, token);
     }

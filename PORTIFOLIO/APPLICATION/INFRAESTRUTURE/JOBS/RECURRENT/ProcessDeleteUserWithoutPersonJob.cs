@@ -3,11 +3,9 @@ using APPLICATION.INFRAESTRUTURE.JOBS.INTERFACES.RECURRENT;
 using Microsoft.Extensions.Options;
 using Serilog;
 using Serilog.Context;
-using System.Diagnostics.CodeAnalysis;
 
 namespace APPLICATION.INFRAESTRUTURE.JOBS.RECURRENT;
 
-[ExcludeFromCodeCoverage]
 public class ProcessDeleteUserWithoutPersonJob : IProcessDeleteUserWithoutPersonJob
 {
     private readonly bool _execute = false;

@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace APPLICATION.DOMAIN.CONTRACTS.SERVICES.USER;
 
+/// <summary>
+/// Interface de UserService
+/// </summary>
 public interface IUserService
 {
     /// <summary>
@@ -12,6 +15,13 @@ public interface IUserService
     /// <param name="loginRequest"></param>
     /// <returns></returns>
     Task<ObjectResult> AuthenticationAsync(LoginRequest loginRequest);
+
+    /// <summary>
+    /// Método responsável por gerar um novo tokenJwt.
+    /// </summary>
+    /// <param name="refreshToken"></param>
+    /// <returns></returns>
+    Task<ObjectResult> RefreshTokenAsync(string refreshToken);
 
     /// <summary>
     /// Recuperar usuário através do Id.
@@ -63,7 +73,7 @@ public interface IUserService
     /// <param name="username"></param>
     /// <param name="roleName"></param>
     /// <returns></returns>
-    Task<ObjectResult> AddUserRoleAsync(string username, string roleName);
+    Task<ObjectResult> AddUserRoleAsync(UserRoleRequest userRoleRequest);
 
     /// <summary>
     /// Método responsavel por recuperar roles do usuário.

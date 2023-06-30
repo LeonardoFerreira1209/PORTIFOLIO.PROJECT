@@ -18,6 +18,9 @@ using StatusCodes = Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace PORTIFOLIO.API.CONTROLLER;
 
+/// <summary>
+/// UserManagerController
+/// </summary>
 [ApiController]
 [Route("api/usermanager")]
 [EnableCors("CorsPolicy")]
@@ -25,6 +28,10 @@ public class UserManagerController : ControllerBase
 {
     private readonly IUserService _userService;
 
+    /// <summary>
+    /// ctor
+    /// </summary>
+    /// <param name="userService"></param>
     public UserManagerController(
         IUserService userService)
     {
@@ -52,6 +59,29 @@ public class UserManagerController : ControllerBase
         {
             return await Tracker.Time(()
                 => _userService.AuthenticationAsync(new LoginRequest(username, password)), "Autenticar usuário");
+        }
+    }
+
+    /// <summary>
+    /// Método responsável por gerar um novo tokenJwt.
+    /// </summary>
+    /// <param name="refreshToken"></param>
+    /// <returns></returns>
+    [HttpGet("refreshtoken")]
+    [SwaggerOperation(Summary = "Gerar token do usuário através de um refresh token", Description = "Método responsável por gerar um token de usuário através de um refresh token")]
+    [ProducesResponseType(typeof(ApiResponse<TokenJWT>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status423Locked)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> RefreshTokenAsync([FromHeader][Required] string refreshToken)
+    {
+        using (LogContext.PushProperty("Controller", "UserController"))
+        using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(refreshToken)))
+        using (LogContext.PushProperty("Metodo", "RefreshToken"))
+        {
+            return await Tracker.Time(()
+                => _userService.RefreshTokenAsync(refreshToken), "Autenticar usuário");
         }
     }
 
@@ -313,11 +343,11 @@ public class UserManagerController : ControllerBase
     public async Task<IActionResult> AddRoleToUser(string username, string roleName)
     {
         using (LogContext.PushProperty("Controller", "RoleController"))
-        using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(roleName)))
+        using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(new { username, roleName })))
         using (LogContext.PushProperty("Metodo", "AddRoleToUser"))
         {
             return await Tracker.Time(()
-                => _userService.AddUserRoleAsync(username, roleName), "Adicionar role no usuário.");
+                => _userService.AddUserRoleAsync(new UserRoleRequest(username, roleName)), "Adicionar role no usuário.");
         }
     }
 
