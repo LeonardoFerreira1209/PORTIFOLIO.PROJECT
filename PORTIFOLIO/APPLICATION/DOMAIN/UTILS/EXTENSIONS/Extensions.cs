@@ -1,5 +1,5 @@
 ﻿using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
-using APPLICATION.ENUMS;
+using APPLICATION.DOMAIN.ENUMS;
 using FluentValidation.Results;
 using Newtonsoft.Json;
 using System.ComponentModel;

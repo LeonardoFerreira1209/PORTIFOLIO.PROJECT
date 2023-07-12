@@ -4,17 +4,19 @@ using APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.TOKEN;
 using APPLICATION.DOMAIN.DTOS.REQUEST.USER;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.USER;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
-using APPLICATION.DOMAIN.UTILS;
-using APPLICATION.ENUMS;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using SendGrid.Helpers.Mail;
+using SendGrid;
 using Serilog.Context;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using StatusCodes = Microsoft.AspNetCore.Http.StatusCodes;
+using APPLICATION.DOMAIN.ENUMS;
+using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 
 namespace PORTIFOLIO.API.CONTROLLER;
 

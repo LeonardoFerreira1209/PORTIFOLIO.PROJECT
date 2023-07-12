@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Serilog;
 using System.Net;
-using StatusCodes = APPLICATION.ENUMS.StatusCodes;
+using StatusCodes = APPLICATION.DOMAIN.ENUMS.StatusCodes;
 
 namespace APPLICATION.INFRAESTRUTURE.FACADES;
 

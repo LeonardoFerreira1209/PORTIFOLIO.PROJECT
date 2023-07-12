@@ -1,5 +1,5 @@
-﻿using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
-using APPLICATION.ENUMS;
+﻿using APPLICATION.DOMAIN.ENUMS;
+using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 

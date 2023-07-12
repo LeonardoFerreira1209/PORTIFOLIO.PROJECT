@@ -1,4 +1,4 @@
-﻿using APPLICATION.ENUMS;
+﻿using APPLICATION.DOMAIN.ENUMS;
 using System.ComponentModel.DataAnnotations;
 
 namespace APPLICATION.DOMAIN.DTOS.REQUEST.USER

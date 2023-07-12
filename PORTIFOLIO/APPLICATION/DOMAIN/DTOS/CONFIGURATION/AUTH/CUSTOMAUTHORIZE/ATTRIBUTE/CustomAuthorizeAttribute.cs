@@ -1,12 +1,10 @@
 ﻿using APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.CUSTOMAUTHORIZE.FILTER;
-using APPLICATION.ENUMS;
+using APPLICATION.DOMAIN.ENUMS;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 
 namespace APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.CUSTOMAUTHORIZE.ATTRIBUTE;
 
-[ExcludeFromCodeCoverage]
 public class CustomAuthorizeAttribute : TypeFilterAttribute
 {
     /// <summary>

@@ -1,6 +1,6 @@
 ﻿using Polly;
 
-namespace APPLICATION.DOMAIN.UTILS;
+namespace APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 
 /// <summary>
 /// Classe de retentativas.
@@ -22,7 +22,7 @@ public static class RetryPolicy
         await retryPolicy.ExecuteAsync(async ()
             => await method());
     }
-    
+
     /// <summary>
     /// Executa retentativas parta métodos Task com retorno.
     /// </summary>
@@ -32,7 +32,7 @@ public static class RetryPolicy
     /// <returns></returns>
     public static async Task<T> ExecuteAsync<T>(this Func<Task<T>> method, int retryCount)
     {
-        var retryPolicy = 
+        var retryPolicy =
             Policy.Handle<Exception>()
                 .RetryAsync(retryCount);
 

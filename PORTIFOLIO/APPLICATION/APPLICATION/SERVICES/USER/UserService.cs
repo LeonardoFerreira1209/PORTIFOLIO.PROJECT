@@ -1,11 +1,14 @@
 ﻿using APPLICATION.APPLICATION.CONFIGURATIONS;
 using APPLICATION.DOMAIN.CONTRACTS.FACADE;
 using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.USER;
+using APPLICATION.DOMAIN.CONTRACTS.SERVICES.MAIL;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.TOKEN;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.USER;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.TOKEN;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION.SERVICEBUS.MESSAGE;
+using APPLICATION.DOMAIN.DTOS.MAIL;
+using APPLICATION.DOMAIN.DTOS.MAIL.BASE;
 using APPLICATION.DOMAIN.DTOS.REQUEST.USER;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.USER;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.USER.ROLE;
@@ -16,6 +19,7 @@ using APPLICATION.DOMAIN.EXCEPTIONS.USER;
 using APPLICATION.DOMAIN.UTILS.Extensions;
 using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 using APPLICATION.DOMAIN.VALIDATORS;
+using APPLICATION.INFRAESTRUTURE.FACTORY;
 using APPLICATION.INFRAESTRUTURE.JOBS.QUEUED;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -43,6 +47,9 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         private readonly ITokenService _tokenService;
         private readonly IUtilFacade _utilFacade;
 
+        private readonly SendGridMailFactory _sendGridMailFactory;
+        private readonly IMailService<SendGridMailRequest, MailResponseBase> _mailService;
+
         /// <summary>
         /// Construtor.
         /// </summary>
@@ -57,6 +64,11 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
             _appsettings = appsettings;
             _tokenService = tokenService;
             _utilFacade = utilFacade;
+
+            _sendGridMailFactory = new(appsettings);
+
+            _mailService =
+                _sendGridMailFactory.CreateMailService<SendGridMailRequest, MailResponseBase>();
         }
 
         /// <summary>
@@ -68,6 +80,8 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         public async Task<ObjectResult> AuthenticationAsync(LoginRequest loginRequest)
         {
             Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(AuthenticationAsync)}\n");
+
+            _mailService.SendSingleMailWithTemplateAsync(new EmailAddress("Leo", "Leo.Ferreira30@outlook.com"), new EmailAddress("Hyper", "Hyper.io@outlook.com"), "d-a5a2d227be3a491ea863112e28b2ae84", new { link  = "https://docs.sendgrid.com/ui/sending-email/editor#preview-substitution-tags-with-test-data" });
 
             try
             {
@@ -206,7 +220,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                         if (identityResult.Succeeded is false) throw new CustomException(
                             HttpStatusCode.BadRequest, userCreateRequest, identityResult.Errors.Select((e) => new DadosNotificacao(e.Code.CustomExceptionMessage())).ToList());
 
-                        //EnviarEmail().Wait();
+                        //_mailService.SendSingleMailAsync(new SendGridMailRequest());
 
                         return new OkObjectResult(
                             new ApiResponse<object>(
@@ -568,13 +582,13 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                         userEntityTask.Result
                         ?? throw new NotFoundUserException(userId);
 
-                    return await _userRepository.GetUserRolesAsync(userEntity).ContinueWith(async (userRolesTask) =>
+                    return await _userRepository.GetUserRolesAsync(userEntity).ContinueWith(userRolesTask =>
                     {
-                        var userRoles = userRolesTask.Result;
+                        List<string> userRoles = userRolesTask.Result.ToList();
 
                         var roles = new List<RolesResponse>();
 
-                        foreach (var roleName in userRoles)
+                        userRoles.ForEach(async (roleName) =>
                         {
                             await _userRepository.GetRoleAsync(roleName).ContinueWith(async (roleEntityTask) =>
                             {
@@ -587,14 +601,13 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                                     roles.Add(new RolesResponse { Name = roleName, Claims = claims });
                                 });
                             });
-                        }
+                        });
 
                         return new OkObjectResult(
                             new ApiResponse<object>(
                                 true, HttpStatusCode.OK, roles,
                                     new List<DadosNotificacao> { new DadosNotificacao("Roles recuperadas com sucesso!") }));
-
-                    }).Result;
+                    });
 
                 }).Result;
             }
@@ -616,47 +629,33 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
 
             try
             {
-                Log.Information($"[LOG INFORMATION] - Recuperando dados do usuário {username}.\n");
-
-                var userEntity = await _userRepository.GetWithUsernameAsync(username);
-
-                if (userEntity is not null)
+                return await _userRepository.GetWithUsernameAsync(username).ContinueWith(async (userEntityTask) =>
                 {
-                    Log.Information($"[LOG INFORMATION] - Removendo role ({roleName}) do usuário.\n");
+                    var userEntity =
+                       userEntityTask.Result
+                       ?? throw new NotFoundUserException(username);
 
-                    var response = await _userRepository.RemoveToUserRoleAsync(userEntity, roleName);
-
-                    if (response.Succeeded)
+                    return await _userRepository.RemoveToUserRoleAsync(userEntity, roleName).ContinueWith(identityResultTask =>
                     {
-                        Log.Information($"[LOG INFORMATION] - Role removida com sucesso.\n");
+                        var identityResult
+                                = identityResultTask.Result;
+
+                        if (identityResult.Succeeded is false)
+                            throw new CustomException(HttpStatusCode.BadRequest, new { username, roleName }, new List<DadosNotificacao> {
+                                    new DadosNotificacao(identityResult.Errors.FirstOrDefault()?.Code.CustomExceptionMessage())
+                            });
 
                         return new OkObjectResult(
-                            new ApiResponse<object>(
-                                response.Succeeded, HttpStatusCode.OK, null, new List<DadosNotificacao> { new DadosNotificacao($"Role {roleName}, removida com sucesso do usuário {username}.") }));
-                    }
+                              new ApiResponse<object>(
+                                  identityResult.Succeeded, HttpStatusCode.OK, new { username, roleName },
+                                  new List<DadosNotificacao> { new DadosNotificacao($"Role {roleName}, removida com sucesso do usuário {username}.") }));
+                    });
 
-                    Log.Information($"[LOG INFORMATION] - Falha ao remover role.\n");
-
-                    return new ObjectResult(
-                        new ApiResponse<object>(
-                            response.Succeeded, HttpStatusCode.InternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao("Falha ao remover role.!") }));
-                }
-                else
-                {
-                    Log.Information($"[LOG ERROR] - Usuário não encontrado.\n");
-
-                    return new NotFoundObjectResult(
-                        new ApiResponse<object>(
-                            false, HttpStatusCode.NotFound, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário não encontrado.") }));
-                }
+                }).Result;
             }
             catch (Exception exception)
             {
-                Log.Error($"[LOG ERROR] - {exception.Message}\n");
-
-                return new ObjectResult(
-                    new ApiResponse<object>(
-                        false, HttpStatusCode.InternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) }));
+                Log.Error($"[LOG ERROR] - Exception: {exception.Message}  -  {JsonConvert.SerializeObject(exception)}\n"); throw;
             }
         }
 

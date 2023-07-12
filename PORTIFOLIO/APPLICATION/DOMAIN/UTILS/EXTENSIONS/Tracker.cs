@@ -1,7 +1,7 @@
 ﻿using Serilog;
 using System.Diagnostics;
 
-namespace APPLICATION.DOMAIN.UTILS;
+namespace APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 
 /// <summary>
 /// Tracker para chamadas de funções.

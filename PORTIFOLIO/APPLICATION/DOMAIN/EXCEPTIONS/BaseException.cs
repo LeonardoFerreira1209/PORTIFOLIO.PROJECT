@@ -4,9 +4,7 @@ namespace APPLICATION.DOMAIN.EXCEPTIONS;
 
 public abstract class BaseException : Exception
 {
-    public BaseException() {
-
-    }
+    public BaseException() { }
 
     public ErrorResponse Response { get; set; }
 }

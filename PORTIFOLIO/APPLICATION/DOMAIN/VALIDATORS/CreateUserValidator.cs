@@ -1,6 +1,6 @@
 ﻿using APPLICATION.DOMAIN.DTOS.REQUEST.USER;
+using APPLICATION.DOMAIN.ENUMS;
 using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
-using APPLICATION.ENUMS;
 using DocumentValidator;
 using FluentValidation;
 

@@ -14,8 +14,8 @@ using APPLICATION.DOMAIN.CONTRACTS.SERVICES.TOKEN;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.USER;
 using APPLICATION.DOMAIN.ENTITY.ROLE;
 using APPLICATION.DOMAIN.ENTITY.USER;
+using APPLICATION.DOMAIN.ENUMS;
 using APPLICATION.DOMAIN.UTILS.GLOBAL;
-using APPLICATION.ENUMS;
 using APPLICATION.INFRAESTRUTURE.CONTEXTO;
 using APPLICATION.INFRAESTRUTURE.FACADES;
 using APPLICATION.INFRAESTRUTURE.JOBS.FACTORY.FLUENTSCHEDULER;
@@ -27,7 +27,6 @@ using APPLICATION.INFRAESTRUTURE.REPOSITORY;
 using APPLICATION.INFRAESTRUTURE.REPOSITORY.USER;
 using APPLICATION.INFRAESTRUTURE.SERVICEBUS.PROVIDER.USER;
 using APPLICATION.INFRAESTRUTURE.SERVICEBUS.SUBSCRIBER.USER;
-using APPLICATION.INFRAESTRUTURE.SIGNALR.HUBS;
 using Hangfire;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;
@@ -558,15 +557,15 @@ public static class ExtensionsConfigurations
     /// </summary>
     /// <param name="application"></param>
     /// <returns></returns>
-    public static IApplicationBuilder UseEndpoints(this IApplicationBuilder application)
-    {
-        application.UseEndpoints(endpoints =>
-        {
-            endpoints.MapHub<HubPerson>("/person");
-        });
+    //public static IApplicationBuilder UseEndpoints(this IApplicationBuilder application)
+    //{
+    //    application.UseEndpoints(endpoints =>
+    //    {
+    //        endpoints.MapHub<HubPerson>("/person");
+    //    });
 
-        return application;
-    }
+    //    return application;
+    //}
 
     /// <summary>
     /// Configuração de uso do swagger do sistema.

@@ -61,6 +61,7 @@
     <PackageReference Include="Refit" Version="6.3.2" />
     <PackageReference Include="Refit.HttpClientFactory" Version="6.3.2" />
     <PackageReference Include="Refit.Newtonsoft.Json" Version="6.3.2" />
+    <PackageReference Include="SendGrid" Version="9.28.1" />
     <PackageReference Include="Serilog" Version="3.0.1" />
     <PackageReference Include="Serilog.Enrichers.Environment" Version="2.2.0" />
     <PackageReference Include="Serilog.Enrichers.Process" Version="2.0.2" />
@@ -73,7 +74,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="DOMAIN\CONTRACTS\FACTORY\" />
     <Folder Include="DOMAIN\GRAPHQL\QUERYTYPE\" />
     <Folder Include="DOMAIN\HANDLERS\" />
     <Folder Include="MIGRATIONS\" />

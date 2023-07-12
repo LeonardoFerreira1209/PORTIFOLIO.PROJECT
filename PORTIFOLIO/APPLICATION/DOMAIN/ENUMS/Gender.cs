@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace APPLICATION.ENUMS
+namespace APPLICATION.DOMAIN.ENUMS
 {
     public enum Gender
     {

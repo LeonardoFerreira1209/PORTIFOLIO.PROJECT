@@ -1,4 +1,4 @@
-﻿namespace APPLICATION.ENUMS;
+﻿namespace APPLICATION.DOMAIN.ENUMS;
 
 public enum Metric
 {

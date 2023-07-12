@@ -1,0 +1,38 @@
+﻿
+using APPLICATION.DOMAIN.DTOS.MAIL.BASE;
+
+namespace APPLICATION.DOMAIN.CONTRACTS.SERVICES.MAIL
+{
+    /// <summary>
+    /// Serviço de envio de e-mails usando o SendGrid.
+    /// </summary>
+    /// <typeparam name="TRequest"></typeparam>
+    /// <typeparam name="TResponse"></typeparam>
+    public interface IMailService<TRequest, TResponse> 
+        where TRequest : MailRequestBase where TResponse : MailResponseBase
+    {
+        /// <summary>
+        /// Envie um único e-mail simples.
+        /// </summary>
+        /// <param name="from"></param>
+        /// <param name="to"></param>
+        /// <param name="subject"></param>
+        /// <param name="plainTextContent"></param>
+        /// <param name="htmlContent"></param>
+        /// <returns></returns>
+        Task SendSingleMailAsync(
+            EmailAddress from, EmailAddress to, string subject, string plainTextContent, string htmlContent);
+
+        /// <summary>
+        /// Envie um único e-mail de template dinâmico.
+        /// </summary>
+        /// <param name="from"></param>
+        /// <param name="to"></param>
+        /// <param name="subject"></param>
+        /// <param name="templateId"></param>
+        /// <param name="dynamicTemplateData"></param>
+        /// <returns></returns>
+        Task SendSingleMailWithTemplateAsync(
+            EmailAddress from, EmailAddress to, string templateId, object dynamicTemplateData);
+    }
+}

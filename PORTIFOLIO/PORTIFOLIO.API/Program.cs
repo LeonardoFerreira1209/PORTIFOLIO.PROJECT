@@ -97,7 +97,7 @@ try
         .UseAuthentication()
         .UseHealthChecks()
         .UseSwaggerConfigurations(configurations)
-        .UseEndpoints()
+        //.UseEndpoints()
         .UseHangfireDashboard("/hangfire", new DashboardOptions
         {
             Authorization = new[] { new CustomAuthorizeHangfireFilter() }

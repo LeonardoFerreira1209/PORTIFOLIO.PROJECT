@@ -5,7 +5,6 @@ namespace APPLICATION.DOMAIN.DTOS.CONFIGURATION;
 /// <summary>
 /// Classe responsavel por receber os dados do Appsettings.
 /// </summary>
-[ExcludeFromCodeCoverage]
 public class AppSettings
 {
     public ConnectionStrings ConnectionStrings { get; set; }
@@ -16,12 +15,12 @@ public class AppSettings
     public AzureStorage AzureStorage { get; set; }
     public ServiceBus ServiceBus { get; set; }
     public UrlBase UrlBase { get; set; }
+    public Mail Mail { get; set; }
 }
 
 /// <summary>
 /// Classe responsável por receber dados de retry policy.
 /// </summary>
-[ExcludeFromCodeCoverage]
 public class RetryPolicy
 {
     public string RetryOn { get; set; }
@@ -32,7 +31,6 @@ public class RetryPolicy
 /// <summary>
 /// Classe de conexões.
 /// </summary>
-[ExcludeFromCodeCoverage]
 public class ConnectionStrings
 {
     public string BaseDados { get; set; }
@@ -42,7 +40,6 @@ public class ConnectionStrings
 /// <summary>
 /// Classe de config do swagger.
 /// </summary>
-[ExcludeFromCodeCoverage]
 public class SwaggerInfo
 {
     public string ApiDescription { get; set; }
@@ -53,7 +50,6 @@ public class SwaggerInfo
 /// <summary>
 /// Classe de config diversas.
 /// </summary>
-[ExcludeFromCodeCoverage]
 public class Configuracoes
 {
     public int TimeOutDefault { get; set; }
@@ -62,7 +58,6 @@ public class Configuracoes
 /// <summary>
 /// Classe de config de autenticação.
 /// </summary>
-[ExcludeFromCodeCoverage]
 public class Auth
 {
     public string ValidIssuer { get; set; }
@@ -75,7 +70,6 @@ public class Auth
 /// <summary>
 /// Classe de config do blob storage.
 /// </summary>
-[ExcludeFromCodeCoverage]
 public class AzureStorage
 {
     public string ConnectionStringAzureStorageKey { get; set; }
@@ -85,7 +79,6 @@ public class AzureStorage
 /// <summary>
 /// Classe de dados do serviceBus
 /// </summary>
-[ExcludeFromCodeCoverage]
 public class ServiceBus
 {
     public int NumeroThreadsConsumer { get; set; }
@@ -98,7 +91,6 @@ public class ServiceBus
 /// <summary>
 /// Classe de config de senha.
 /// </summary>
-[ExcludeFromCodeCoverage]
 public class Password
 {
     public int RequiredLength { get; set; }
@@ -107,10 +99,14 @@ public class Password
 /// <summary>
 /// Classe de url externas.
 /// </summary>
-[ExcludeFromCodeCoverage]
 public class UrlBase
 {
     public string TOOLS_UTIL_API { get; set; }
     public string BASE_URL { get; set; }
     public string TOOLS_WEB_APP { get; set; }
+}
+
+public class Mail
+{
+    public string ApiKey { get; set; }
 }

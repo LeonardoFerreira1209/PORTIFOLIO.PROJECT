@@ -1,4 +1,4 @@
-﻿using APPLICATION.ENUMS;
+﻿using APPLICATION.DOMAIN.ENUMS;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System.ComponentModel.DataAnnotations;

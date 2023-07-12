@@ -1,4 +1,4 @@
-﻿using APPLICATION.ENUMS;
+﻿using APPLICATION.DOMAIN.ENUMS;
 using System.Security.Claims;
 
 namespace APPLICATION.DOMAIN.DTOS.RESPONSE.USER.ROLE;

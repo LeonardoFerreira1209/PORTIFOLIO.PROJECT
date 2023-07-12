@@ -3,11 +3,9 @@ using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
 using System.Data;
-using System.Diagnostics.CodeAnalysis;
 
 namespace APPLICATION.INFRAESTRUTURE.REPOSITORY.BASE;
 
-[ExcludeFromCodeCoverage]
 public class BaseRepository
 {
     public int _commandTimeout { get; set; }

@@ -1,4 +1,4 @@
-﻿using APPLICATION.ENUMS;
+﻿using APPLICATION.DOMAIN.ENUMS;
 using Microsoft.AspNetCore.Identity;
 
 namespace APPLICATION.DOMAIN.ENTITY.USER;
