@@ -2,16 +2,22 @@
 using APPLICATION.INFRAESTRUTURE.JOBS.INTERFACES.RECURRENT;
 using Hangfire;
 using Serilog;
-using System.Diagnostics.CodeAnalysis;
 
 namespace APPLICATION.INFRAESTRUTURE.JOBS.FACTORY.HANGFIRE;
 
-[ExcludeFromCodeCoverage]
+/// <summary>
+/// Classe de Jobs Hangfire.
+/// </summary>
 public class HangfireJobs : IHangfireJobs
 {
     private readonly IRecurringJobManager _recurringJobManager;
 
-    public HangfireJobs(IRecurringJobManager recurringJobManager)
+    /// <summary>
+    /// ctor.
+    /// </summary>
+    /// <param name="recurringJobManager"></param>
+    public HangfireJobs(
+        IRecurringJobManager recurringJobManager)
     {
         _recurringJobManager = recurringJobManager;
     }
@@ -21,11 +27,12 @@ public class HangfireJobs : IHangfireJobs
     /// </summary>
     public void RegistrarJobs()
     {
+        Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(HangfireJobs)} - METHOD {nameof(RegistrarJobs)}\n");
+
         try
         {
-            Log.Information($"[LOG INFORMATION] - Inicializando os Job do Hangfire.\n");
-
-            _recurringJobManager.AddOrUpdate<IProcessDeleteUserWithoutPersonJob>("processa-delete-user-without-person", job => job.Execute(), Cron.Daily, TimeZoneInfo.Local);
+            _recurringJobManager.AddOrUpdate<IResendFailedMailsJob>(
+                "processa-resend-failed-mails", job => job.Execute(), "*/15 * * * *");
         }
         catch (Exception exception)
         {

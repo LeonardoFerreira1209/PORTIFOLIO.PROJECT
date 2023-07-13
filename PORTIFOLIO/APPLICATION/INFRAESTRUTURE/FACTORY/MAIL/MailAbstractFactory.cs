@@ -1,5 +1,5 @@
 ﻿using APPLICATION.DOMAIN.CONTRACTS.SERVICES.MAIL;
-using APPLICATION.DOMAIN.DTOS.MAIL.BASE;
+using APPLICATION.DOMAIN.DTOS.MAIL.REQUEST;
 
 namespace APPLICATION.INFRAESTRUTURE.FACTORY;
 
@@ -15,5 +15,5 @@ public abstract class MailAbstractFactory
     /// <typeparam name="TResponse"></typeparam>
     /// <returns></returns>
     public abstract IMailService<TRequest, TResponse> CreateMailService<TRequest, TResponse>()
-        where TRequest : MailRequestBase where TResponse : MailResponseBase;
+        where TRequest : MailRequestBase where TResponse : class;
 }

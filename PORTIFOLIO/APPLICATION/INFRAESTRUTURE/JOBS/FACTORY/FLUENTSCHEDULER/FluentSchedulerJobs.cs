@@ -15,7 +15,7 @@ public class FluentSchedulerJobs : Registry, IFluentSchedulerJobs
         {
             Log.Information($"[LOG INFORMATION] - Inicializando os Job do Fluent Scheduler.\n");
 
-            NonReentrantAsDefault(); Schedule<IProcessDeleteUserWithoutPersonJob>().ToRunEvery(24).Hours();
+            NonReentrantAsDefault(); Schedule<IResendFailedMailsJob>().ToRunEvery(24).Hours();
         }
         catch (Exception exception)
         {

@@ -8,10 +8,12 @@ using APPLICATION.DOMAIN.CONTRACTS.CONFIGURATIONS;
 using APPLICATION.DOMAIN.CONTRACTS.CONFIGURATIONS.APPLICATIONINSIGHTS;
 using APPLICATION.DOMAIN.CONTRACTS.FACADE;
 using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY;
+using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.EVENTS;
 using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.USER;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.FILE;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.TOKEN;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.USER;
+using APPLICATION.DOMAIN.ENTITY;
 using APPLICATION.DOMAIN.ENTITY.ROLE;
 using APPLICATION.DOMAIN.ENTITY.USER;
 using APPLICATION.DOMAIN.ENUMS;
@@ -19,11 +21,11 @@ using APPLICATION.DOMAIN.UTILS.GLOBAL;
 using APPLICATION.INFRAESTRUTURE.CONTEXTO;
 using APPLICATION.INFRAESTRUTURE.FACADES;
 using APPLICATION.INFRAESTRUTURE.JOBS.FACTORY.FLUENTSCHEDULER;
-using APPLICATION.INFRAESTRUTURE.JOBS.FACTORY.HANGFIRE;
 using APPLICATION.INFRAESTRUTURE.JOBS.INTERFACES.BASE;
 using APPLICATION.INFRAESTRUTURE.JOBS.INTERFACES.RECURRENT;
 using APPLICATION.INFRAESTRUTURE.JOBS.RECURRENT;
 using APPLICATION.INFRAESTRUTURE.REPOSITORY;
+using APPLICATION.INFRAESTRUTURE.REPOSITORY.EVENTS;
 using APPLICATION.INFRAESTRUTURE.REPOSITORY.USER;
 using APPLICATION.INFRAESTRUTURE.SERVICEBUS.PROVIDER.USER;
 using APPLICATION.INFRAESTRUTURE.SERVICEBUS.SUBSCRIBER.USER;
@@ -49,6 +51,7 @@ using Newtonsoft.Json;
 using Refit;
 using Serilog;
 using Serilog.Events;
+using Serilog.Sinks.MSSqlServer;
 using System.Globalization;
 using System.Net.Mime;
 using System.Security.Claims;
@@ -75,7 +78,7 @@ public static class ExtensionsConfigurations
     /// </summary>
     /// <param name="services"></param>
     /// <returns></returns>
-    public static IServiceCollection ConfigureSerilog(this IServiceCollection services)
+    public static IServiceCollection ConfigureSerilog(this IServiceCollection services, IConfiguration configurations)
     {
         Log.Logger = new LoggerConfiguration()
                                  .MinimumLevel.Debug()
@@ -90,6 +93,11 @@ public static class ExtensionsConfigurations
                                  .Enrich.WithThreadName()
                                  .WriteTo.Console()
                                  .WriteTo.ApplicationInsights(_telemetryConfig, TelemetryConverter.Traces, LogEventLevel.Information)
+                                 .WriteTo.MSSqlServer(configurations.GetValue<string>("ConnectionStrings:BaseDados"), new MSSqlServerSinkOptions
+                                 {
+                                     AutoCreateSqlDatabase = true,
+                                     TableName = "Logs"
+                                 })
                                  .CreateLogger();
         services
             .AddTransient<ILogWithMetric, LogWithMetric>();
@@ -408,6 +416,7 @@ public static class ExtensionsConfigurations
             .AddSingleton<IUtilFacade, UtilFacade>()
             // Repository
             .AddScoped(typeof(IGenerictEntityCoreRepository<>), typeof(GenericEntityCoreRepository<>))
+            .AddScoped<IEventRepository, EventRepository>()
             .AddScoped<IUserRepository, UserRepository>()
             // Infra
             .AddSingleton<IUserEmailServiceBusSenderProvider, UserEmailServiceBusSenderProvider>()
@@ -471,7 +480,7 @@ public static class ExtensionsConfigurations
     {
         services.AddTransient<IFluentSchedulerJobs, FluentSchedulerJobs>();
 
-        services.AddTransient<IProcessDeleteUserWithoutPersonJob, ProcessDeleteUserWithoutPersonJob>();
+        services.AddTransient<IResendFailedMailsJob, ProcessResendFailedMailsJob>();
 
         services.ConfigureStartJobs();
 
@@ -485,14 +494,15 @@ public static class ExtensionsConfigurations
     /// <returns></returns>
     public static IServiceCollection ConfigureHangFire(this IServiceCollection services, IConfiguration configurations)
     {
-        services.AddHangfire(configuration => configuration.SetDataCompatibilityLevel(CompatibilityLevel.Version_170).UseSimpleAssemblyNameTypeSerializer().UseRecommendedSerializerSettings().UseSqlServerStorage(configurations.GetConnectionString("BaseDados")));
+        services.AddHangfire(configuration
+            => configuration.SetDataCompatibilityLevel(CompatibilityLevel.Version_170).UseSimpleAssemblyNameTypeSerializer().UseRecommendedSerializerSettings().UseSqlServerStorage(configurations.GetConnectionString("BaseDados")));
 
-        services.AddTransient<IHangfireJobs, HangfireJobs>();
+        //services.AddTransient<IHangfireJobs, HangfireJobs>();
 
         // Add the processing server as IHostedService
         services.AddHangfireServer();
 
-        services.GetProvider().GetService<IHangfireJobs>().RegistrarJobs();
+        //services.GetProvider().GetService<IHangfireJobs>().RegistrarJobs();
 
         return services;
     }

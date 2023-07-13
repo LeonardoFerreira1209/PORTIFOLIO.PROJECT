@@ -4,7 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace APPLICATION.INFRAESTRUTURE.JOBS.FACTORY.FLUENTSCHEDULER;
 
-[ExcludeFromCodeCoverage]
 public sealed class FluentSchedulerJobFactory : IJobFactory
 {
     private readonly IServiceProvider _serviceProvider;

@@ -1,7 +1,4 @@
-﻿using APPLICATION.DOMAIN.DTOS.MAIL.BASE;
-using APPLICATION.DOMAIN.DTOS.MAIL.SENDGRID;
-
-namespace APPLICATION.DOMAIN.DTOS.MAIL;
+﻿namespace APPLICATION.DOMAIN.DTOS.MAIL.REQUEST.SENDGRID;
 
 /// <summary>
 /// Classe de transporte de request de e-mails do SendGrid.

@@ -1,5 +1,4 @@
-﻿
-using APPLICATION.DOMAIN.DTOS.MAIL.BASE;
+﻿using APPLICATION.DOMAIN.DTOS.MAIL.REQUEST;
 
 namespace APPLICATION.DOMAIN.CONTRACTS.SERVICES.MAIL
 {
@@ -9,7 +8,7 @@ namespace APPLICATION.DOMAIN.CONTRACTS.SERVICES.MAIL
     /// <typeparam name="TRequest"></typeparam>
     /// <typeparam name="TResponse"></typeparam>
     public interface IMailService<TRequest, TResponse> 
-        where TRequest : MailRequestBase where TResponse : MailResponseBase
+        where TRequest : MailRequestBase where TResponse : class
     {
         /// <summary>
         /// Envie um único e-mail simples.
@@ -20,7 +19,7 @@ namespace APPLICATION.DOMAIN.CONTRACTS.SERVICES.MAIL
         /// <param name="plainTextContent"></param>
         /// <param name="htmlContent"></param>
         /// <returns></returns>
-        Task SendSingleMailAsync(
+        Task<TResponse> SendSingleMailAsync(
             EmailAddress from, EmailAddress to, string subject, string plainTextContent, string htmlContent);
 
         /// <summary>
@@ -32,7 +31,7 @@ namespace APPLICATION.DOMAIN.CONTRACTS.SERVICES.MAIL
         /// <param name="templateId"></param>
         /// <param name="dynamicTemplateData"></param>
         /// <returns></returns>
-        Task SendSingleMailWithTemplateAsync(
+        Task<TResponse> SendSingleMailWithTemplateAsync(
             EmailAddress from, EmailAddress to, string templateId, object dynamicTemplateData);
     }
 }

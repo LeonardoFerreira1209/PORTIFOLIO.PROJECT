@@ -1,4 +1,4 @@
-﻿using APPLICATION.DOMAIN.DTOS.MAIL;
+﻿using APPLICATION.DOMAIN.DTOS.MAIL.REQUEST.SENDGRID;
 using SendGrid.Helpers.Mail;
 using ASM = SendGrid.Helpers.Mail.ASM;
 using ClickTracking = SendGrid.Helpers.Mail.ClickTracking;
@@ -15,7 +15,7 @@ namespace APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 /// </summary>
 public static class MailExtensions
 {
-    public static EmailAddress ToSendGridEmailAddress(this DTOS.MAIL.BASE.EmailAddress emailAddress)
+    public static EmailAddress ToSendGridEmailAddress(this DTOS.MAIL.REQUEST.EmailAddress emailAddress)
         => new(emailAddress.Email, emailAddress.Name);
 
     /// <summary>

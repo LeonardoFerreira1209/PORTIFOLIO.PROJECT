@@ -1,13 +1,11 @@
-﻿using APPLICATION.DOMAIN.DTOS.MAIL.BASE;
-
-namespace APPLICATION.DOMAIN.DTOS.MAIL.SENDGRID
+﻿namespace APPLICATION.DOMAIN.DTOS.MAIL.REQUEST.SENDGRID
 {
     /// <summary>
     /// Classe de transporte de dados de reuquest base do SendGrid.
     /// </summary>
     public class SendGridMailRequestBase : MailRequestBase
     {
-        
+
     }
 
     /// <summary>

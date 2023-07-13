@@ -26,8 +26,6 @@ try
     configurations
          .SetBasePath(builder.Environment.ContentRootPath).AddJsonFile("appsettings.json", false, true).AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", true, true).AddEnvironmentVariables();
 
-    builder.Services.AddSignalR();
-
     /// <summary>
     /// Chamada das configurações do projeto.
     /// </summary>
@@ -64,7 +62,7 @@ try
 
     // Continuação do pipeline...
     builder.Services
-        .ConfigureSerilog()
+        //.ConfigureSerilog(configurations)
         .ConfigureSubscribers()
         .ConfigureHealthChecks(configurations)
         .ConfigureCors()

@@ -28,5 +28,5 @@ public abstract class Entity
     /// <summary>
     /// Status
     /// </summary>
-    public Status Status { get; protected set; }
+    public virtual Status Status { get; protected set; }
 }

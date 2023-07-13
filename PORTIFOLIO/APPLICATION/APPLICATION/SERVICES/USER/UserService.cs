@@ -6,9 +6,8 @@ using APPLICATION.DOMAIN.CONTRACTS.SERVICES.TOKEN;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.USER;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.TOKEN;
-using APPLICATION.DOMAIN.DTOS.CONFIGURATION.SERVICEBUS.MESSAGE;
-using APPLICATION.DOMAIN.DTOS.MAIL;
-using APPLICATION.DOMAIN.DTOS.MAIL.BASE;
+using APPLICATION.DOMAIN.DTOS.MAIL.REQUEST;
+using APPLICATION.DOMAIN.DTOS.MAIL.REQUEST.SENDGRID;
 using APPLICATION.DOMAIN.DTOS.REQUEST.USER;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.USER;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.USER.ROLE;
@@ -19,8 +18,7 @@ using APPLICATION.DOMAIN.EXCEPTIONS.USER;
 using APPLICATION.DOMAIN.UTILS.Extensions;
 using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 using APPLICATION.DOMAIN.VALIDATORS;
-using APPLICATION.INFRAESTRUTURE.FACTORY;
-using APPLICATION.INFRAESTRUTURE.JOBS.QUEUED;
+using APPLICATION.INFRAESTRUTURE.FACTORY.MAIL;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -48,7 +46,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         private readonly IUtilFacade _utilFacade;
 
         private readonly SendGridMailFactory _sendGridMailFactory;
-        private readonly IMailService<SendGridMailRequest, MailResponseBase> _mailService;
+        private readonly IMailService<SendGridMailRequest, ApiResponse<object>> _mailService;
 
         /// <summary>
         /// Construtor.
@@ -68,7 +66,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
             _sendGridMailFactory = new(appsettings);
 
             _mailService =
-                _sendGridMailFactory.CreateMailService<SendGridMailRequest, MailResponseBase>();
+                _sendGridMailFactory.CreateMailService<SendGridMailRequest, ApiResponse<object>>();
         }
 
         /// <summary>
@@ -81,7 +79,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         {
             Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(AuthenticationAsync)}\n");
 
-            _mailService.SendSingleMailWithTemplateAsync(new EmailAddress("Leo", "Leo.Ferreira30@outlook.com"), new EmailAddress("Hyper", "Hyper.io@outlook.com"), "d-a5a2d227be3a491ea863112e28b2ae84", new { link  = "https://docs.sendgrid.com/ui/sending-email/editor#preview-substitution-tags-with-test-data" });
+            _mailService.SendSingleMailWithTemplateAsync(new EmailAddress("Leo", "Leo.Ferreira30@"), new EmailAddress("Hyper", "Hyper.io@outlook.com"), "d-a5a2d227be3a491ea863112e28b2ae84", new { link  = "https://docs.sendgrid.com/ui/sending-email/editor#preview-substitution-tags-with-test-data" });
 
             try
             {
@@ -676,15 +674,15 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
 
             Log.Information($"[LOG INFORMATION] - Código gerado - {codifyEmailCode}.\n");
 
-            SendUserEmailToServiceBusJob.Execute(new UserEmailMessageDto
-            {
-                Receivers = new List<string> { user.Email },
-                Link = $"{_appsettings.Value.UrlBase.TOOLS_WEB_APP}/confirmEmail/{codifyEmailCode}/{user.Id}",
-                Subject = "Ativação de e-mail",
-                Content = $"{user.UserName}, estamos muito felizes com o seu cadastro em nosso sistema. Clique no botão para liberarmos o seu acesso.",
-                ButtonText = "Liberar acesso",
-                TemplateName = "Activate.Template"
-            });
+            //SendUserEmailToServiceBusJob.Execute(new UserEmailMessageDto
+            //{
+            //    Receivers = new List<string> { user.Email },
+            //    Link = $"{_appsettings.Value.UrlBase.TOOLS_WEB_APP}/confirmEmail/{codifyEmailCode}/{user.Id}",
+            //    Subject = "Ativação de e-mail",
+            //    Content = $"{user.UserName}, estamos muito felizes com o seu cadastro em nosso sistema. Clique no botão para liberarmos o seu acesso.",
+            //    ButtonText = "Liberar acesso",
+            //    TemplateName = "Activate.Template"
+            //});
         }
 
         /// <summary>

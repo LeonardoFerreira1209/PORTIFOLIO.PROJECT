@@ -1,4 +1,5 @@
-﻿using APPLICATION.DOMAIN.ENTITY.ROLE;
+﻿using APPLICATION.DOMAIN.ENTITY;
+using APPLICATION.DOMAIN.ENTITY.ROLE;
 using APPLICATION.DOMAIN.ENTITY.USER;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +16,8 @@ public class Context : IdentityDbContext<UserEntity, RoleEntity, Guid>
     {
         Database.EnsureCreated();
     }
+
+    public DbSet<Events> Events { get; set; }
 
     /// <summary>
     /// Configrações fos datatypes.

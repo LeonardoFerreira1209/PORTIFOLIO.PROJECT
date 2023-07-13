@@ -3,7 +3,7 @@ using APPLICATION.DOMAIN.CONTRACTS.SERVICES.MAIL;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION;
 using Microsoft.Extensions.Options;
 
-namespace APPLICATION.INFRAESTRUTURE.FACTORY;
+namespace APPLICATION.INFRAESTRUTURE.FACTORY.MAIL;
 
 /// <summary>
 /// Factory de SendGrid.
@@ -28,6 +28,6 @@ public class SendGridMailFactory : MailAbstractFactory
     /// <typeparam name="TRequest"></typeparam>
     /// <typeparam name="TResponse"></typeparam>
     /// <returns></returns>
-    public override IMailService<TRequest, TResponse> CreateMailService<TRequest, TResponse>() 
+    public override IMailService<TRequest, TResponse> CreateMailService<TRequest, TResponse>()
         => new SendGridMailService(_appsettings) as IMailService<TRequest, TResponse>;
 }
