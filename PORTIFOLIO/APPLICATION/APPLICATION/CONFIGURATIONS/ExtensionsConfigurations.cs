@@ -1,6 +1,7 @@
 ﻿using APPLICATION.APPLICATION.CONFIGURATIONS.APPLICATIONINSIGHTS;
 using APPLICATION.APPLICATION.CONFIGURATIONS.SWAGGER;
 using APPLICATION.APPLICATION.SERVICES.FILE;
+using APPLICATION.APPLICATION.SERVICES.JOBS;
 using APPLICATION.APPLICATION.SERVICES.TOKEN;
 using APPLICATION.APPLICATION.SERVICES.USER;
 using APPLICATION.DOMAIN.CONTRACTS.API;
@@ -11,19 +12,18 @@ using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY;
 using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.EVENTS;
 using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.USER;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.FILE;
+using APPLICATION.DOMAIN.CONTRACTS.SERVICES.JOBS;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.TOKEN;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.USER;
-using APPLICATION.DOMAIN.ENTITY;
 using APPLICATION.DOMAIN.ENTITY.ROLE;
 using APPLICATION.DOMAIN.ENTITY.USER;
 using APPLICATION.DOMAIN.ENUMS;
 using APPLICATION.DOMAIN.UTILS.GLOBAL;
+using APPLICATION.DOMAIN.UTILS.JOBMETHODS;
 using APPLICATION.INFRAESTRUTURE.CONTEXTO;
 using APPLICATION.INFRAESTRUTURE.FACADES;
 using APPLICATION.INFRAESTRUTURE.JOBS.FACTORY.FLUENTSCHEDULER;
 using APPLICATION.INFRAESTRUTURE.JOBS.INTERFACES.BASE;
-using APPLICATION.INFRAESTRUTURE.JOBS.INTERFACES.RECURRENT;
-using APPLICATION.INFRAESTRUTURE.JOBS.RECURRENT;
 using APPLICATION.INFRAESTRUTURE.REPOSITORY;
 using APPLICATION.INFRAESTRUTURE.REPOSITORY.EVENTS;
 using APPLICATION.INFRAESTRUTURE.REPOSITORY.USER;
@@ -480,7 +480,7 @@ public static class ExtensionsConfigurations
     {
         services.AddTransient<IFluentSchedulerJobs, FluentSchedulerJobs>();
 
-        services.AddTransient<IResendFailedMailsJob, ProcessResendFailedMailsJob>();
+        //services.AddTransient<IResendFailedMailsJob, ProcessResendFailedMailsJob>();
 
         services.ConfigureStartJobs();
 
@@ -495,14 +495,15 @@ public static class ExtensionsConfigurations
     public static IServiceCollection ConfigureHangFire(this IServiceCollection services, IConfiguration configurations)
     {
         services.AddHangfire(configuration
-            => configuration.SetDataCompatibilityLevel(CompatibilityLevel.Version_170).UseSimpleAssemblyNameTypeSerializer().UseRecommendedSerializerSettings().UseSqlServerStorage(configurations.GetConnectionString("BaseDados")));
+            => configuration
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UseSqlServerStorage(configurations.GetConnectionString("BaseDados")));
 
-        //services.AddTransient<IHangfireJobs, HangfireJobs>();
+        services.AddTransient<IJobsService, HangFireJobService>();
 
-        // Add the processing server as IHostedService
         services.AddHangfireServer();
-
-        //services.GetProvider().GetService<IHangfireJobs>().RegistrarJobs();
 
         return services;
     }
@@ -687,6 +688,29 @@ public static class ExtensionsConfigurations
                 // Commit de transaction.
                 await context.SaveChangesAsync();
             }
+        }
+
+        return application;
+    }
+
+    /// <summary>
+    /// Inicializar Jobs recorrentes.
+    /// </summary>
+    /// <param name="application"></param>
+    /// <returns></returns>
+    public static IApplicationBuilder StartRecurrentJobs(this IApplicationBuilder application)
+    {
+        try
+        {
+            string EveryThreeMinutes = "0 */3 * ? * *";
+
+            RecurringJob.AddOrUpdate<JobMethods>(
+                        "resend-failed-mail-recurrent-job", jobMethods
+                            => jobMethods.ResendFailedMailsAsync(), EveryThreeMinutes);
+        }
+        catch (Exception exception)
+        {
+            Log.Error($"[LOG ERROR] - Exception:{exception.Message} - {JsonConvert.SerializeObject(exception)}\n"); throw;
         }
 
         return application;

@@ -1,4 +1,5 @@
-﻿using APPLICATION.DOMAIN.CONTRACTS.SERVICES.JOBS;
+﻿using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.EVENTS;
+using APPLICATION.DOMAIN.CONTRACTS.SERVICES.JOBS;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.MAIL;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION;
 using APPLICATION.DOMAIN.DTOS.MAIL.REQUEST.SENDGRID;
@@ -6,7 +7,6 @@ using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
 using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 using APPLICATION.DOMAIN.UTILS.JOBMETHODS;
 using APPLICATION.INFRAESTRUTURE.FACTORY.JOBS;
-using Hangfire;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using SendGrid;
@@ -26,16 +26,18 @@ public class SendGridMailService : IMailService<SendGridMailRequest, ApiResponse
     private readonly HangfireJobFactory _hangfireJobFactory = new();
     private readonly IJobsService _jobsService;
     private readonly JobMethods _jobMethods = new(null);
+    private readonly IEventRepository _eventRepository;
 
     /// <summary>
     /// ctor.
     /// </summary>
     /// <param name="appsettings"></param>
     public SendGridMailService(
-        IOptions<AppSettings> appsettings)
+        IOptions<AppSettings> appsettings, IEventRepository eventRepository)
     {
         _sendGridClient = new SendGridClient(apiKey: appsettings.Value.Mail.ApiKey);
         _jobsService = _hangfireJobFactory.CreateJobService();
+        _eventRepository = eventRepository;
     }
 
     /// <summary>
@@ -89,13 +91,27 @@ public class SendGridMailService : IMailService<SendGridMailRequest, ApiResponse
                 {
                     var response = responseTask.Result;
 
-                    _jobsService.CreateRecurrentJob(
-                        "resend_failed_mails", 
-                        () => _jobMethods.ResendFailedMailsAsync(), cronExpression: Cron.Hourly());
+                    if (response.IsSuccessStatusCode is false)
+                        _eventRepository.CreateAsync(EventExtensions.CreateMailEvent(
+                            "ResendMail", "Re-envio de e-mail com falha!", new
+                            {
+                                from,
+                                to,
+                                templateId,
+                                dynamicTemplateData
+
+                            })).ContinueWith(
+                                async (eventTask) =>
+                                {
+                                    await _eventRepository.SaveChangesAsync();
+
+                                    Log.Warning(
+                                        $"Envio de e-mail falhou, evento de re-envio criado com sucesso: {JsonConvert.SerializeObject(eventTask.Result)}!\n");
+                                });
 
                     return new ApiResponse<object>(
                        response.IsSuccessStatusCode, response.StatusCode,
-                       JsonConvert.DeserializeObject(await response.Body.ReadAsStringAsync()));
+                            JsonConvert.DeserializeObject(await response.Body.ReadAsStringAsync()));
 
                 }).Result;
         }

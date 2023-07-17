@@ -17,7 +17,10 @@ public class Context : IdentityDbContext<UserEntity, RoleEntity, Guid>
         Database.EnsureCreated();
     }
 
-    public DbSet<Events> Events { get; set; }
+    /// <summary>
+    /// Tabela de Eventos.
+    /// </summary>
+    public DbSet<Event> Events { get; set; }
 
     /// <summary>
     /// Configrações fos datatypes.

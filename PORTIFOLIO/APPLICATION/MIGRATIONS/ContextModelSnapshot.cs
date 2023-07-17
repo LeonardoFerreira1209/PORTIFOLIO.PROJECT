@@ -25,7 +25,7 @@ namespace APPLICATION.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.Events", b =>
+            modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.Event", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -33,6 +33,9 @@ namespace APPLICATION.Migrations
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Data")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
@@ -47,6 +50,9 @@ namespace APPLICATION.Migrations
                         .HasColumnType("bit");
 
                     b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Type")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("Updated")

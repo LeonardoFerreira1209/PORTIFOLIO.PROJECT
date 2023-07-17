@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace APPLICATION.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20230713055652_Events_new_table")]
-    partial class Events_new_table
+    [Migration("20230717033221_Events")]
+    partial class Events
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -28,7 +28,7 @@ namespace APPLICATION.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.Events", b =>
+            modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.Event", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -36,6 +36,9 @@ namespace APPLICATION.Migrations
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Data")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
@@ -50,6 +53,9 @@ namespace APPLICATION.Migrations
                         .HasColumnType("bit");
 
                     b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Type")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("Updated")

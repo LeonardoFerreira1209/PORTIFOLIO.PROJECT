@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace APPLICATION.DOMAIN.DTOS.CONFIGURATION;
 
-[ExcludeFromCodeCoverage]
 public sealed class CustomMetricDto
 {
     public Metric TipoMetrica { get; set; }

@@ -62,12 +62,12 @@ try
 
     // Continuação do pipeline...
     builder.Services
-        //.ConfigureSerilog(configurations)
+        .ConfigureSerilog(configurations)
+        .ConfigureHangFire(configurations)
+        //.ConfigureFluentSchedulerJobs()
         .ConfigureSubscribers()
         .ConfigureHealthChecks(configurations)
         .ConfigureCors()
-        .ConfigureFluentSchedulerJobs()
-        .ConfigureHangFire(configurations)
         .AddControllers(options =>
         {
             options.EnableEndpointRouting = false;
@@ -99,14 +99,15 @@ try
         .UseHangfireDashboard("/hangfire", new DashboardOptions
         {
             Authorization = new[] { new CustomAuthorizeHangfireFilter() }
-        });
+        })
+        .StartRecurrentJobs();
 
     applicationbuilder.MapGraphQL();
 
     Log.Information($"[LOG INFORMATION] - Inicializando aplicação [TOOLS.USER.API]\n");
 
-    // Iniciando a aplicação com todas as configurações já carregadas.
     applicationbuilder.Run();
+
 }
 catch (Exception exception)
 {

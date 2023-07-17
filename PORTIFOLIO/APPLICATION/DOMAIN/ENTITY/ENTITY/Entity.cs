@@ -2,31 +2,41 @@
 
 namespace APPLICATION.DOMAIN.ENTITY.ENTITY;
 
+/// <summary>
+/// Classe abstrata de entidades.
+/// </summary>
 public abstract class Entity
 {
+    /// <summary>
+    /// ctor com id.
+    /// </summary>
+    /// <param name="id"></param>
     protected Entity(Guid id) => Id = id;
 
-    protected Entity() {
+    /// <summary>
+    /// ctor
+    /// </summary>
+    public Entity() {
 
     }
 
     /// <summary>
     /// Id
     /// </summary>
-    public Guid Id { get; protected set; }
+    public Guid Id { get; set; }
 
     /// <summary>
     /// Data de criação
     /// </summary>
-    public DateTime Created { get; protected set; }
+    public DateTime Created { get; set; }
 
     /// <summary>
     /// Data de atualização
     /// </summary>
-    public DateTime? Updated { get; protected set; }
+    public DateTime? Updated { get; set; }
 
     /// <summary>
     /// Status
     /// </summary>
-    public virtual Status Status { get; protected set; }
+    public virtual Status Status { get; set; }
 }

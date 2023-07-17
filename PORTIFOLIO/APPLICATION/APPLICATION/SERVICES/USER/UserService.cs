@@ -1,5 +1,6 @@
 ﻿using APPLICATION.APPLICATION.CONFIGURATIONS;
 using APPLICATION.DOMAIN.CONTRACTS.FACADE;
+using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.EVENTS;
 using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.USER;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.MAIL;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.TOKEN;
@@ -30,6 +31,7 @@ using System.Net;
 using System.Security.Claims;
 using System.Web;
 using static APPLICATION.DOMAIN.EXCEPTIONS.USER.CustomUserException;
+using RetryPolicy = APPLICATION.DOMAIN.UTILS.EXTENSIONS.RetryPolicy;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
 namespace APPLICATION.APPLICATION.SERVICES.USER
@@ -47,6 +49,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
 
         private readonly SendGridMailFactory _sendGridMailFactory;
         private readonly IMailService<SendGridMailRequest, ApiResponse<object>> _mailService;
+        private readonly IEventRepository _eventRepository;
 
         /// <summary>
         /// Construtor.
@@ -55,15 +58,16 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         /// <param name="appsettings"></param>
         /// <param name="tokenService"></param>
         /// <param name="utilFacade"></param>
-        public UserService(IUserRepository userRepository, RoleManager<RoleEntity> roleManager, IOptions<AppSettings> appsettings, ITokenService tokenService, IUtilFacade utilFacade)
+        public UserService(IUserRepository userRepository, RoleManager<RoleEntity> roleManager, IOptions<AppSettings> appsettings, ITokenService tokenService, IUtilFacade utilFacade, IEventRepository eventRepository)
         {
             _userRepository = userRepository;
             _roleManager = roleManager;
             _appsettings = appsettings;
             _tokenService = tokenService;
             _utilFacade = utilFacade;
+            _eventRepository = eventRepository;
 
-            _sendGridMailFactory = new(appsettings);
+            _sendGridMailFactory = new(appsettings, _eventRepository);
 
             _mailService =
                 _sendGridMailFactory.CreateMailService<SendGridMailRequest, ApiResponse<object>>();
@@ -79,7 +83,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         {
             Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(AuthenticationAsync)}\n");
 
-            _mailService.SendSingleMailWithTemplateAsync(new EmailAddress("Leo", "Leo.Ferreira30@"), new EmailAddress("Hyper", "Hyper.io@outlook.com"), "d-a5a2d227be3a491ea863112e28b2ae84", new { link  = "https://docs.sendgrid.com/ui/sending-email/editor#preview-substitution-tags-with-test-data" });
+            await _mailService.SendSingleMailWithTemplateAsync(new EmailAddress("Leo", "Leo.Ferreira30@"), new EmailAddress("Hyper", "Hyper.io@outlook.com"), "d-a5a2d227be3a491ea863112e28b2ae84", new { link = "https://docs.sendgrid.com/ui/sending-email/editor#preview-substitution-tags-with-test-data" });
 
             try
             {
