@@ -1,7 +1,12 @@
 ﻿using APPLICATION.DOMAIN.ENTITY.ENTITY;
+using System.Linq.Expressions;
 
 namespace APPLICATION.DOMAIN.CONTRACTS.REPOSITORY;
 
+/// <summary>
+/// Repositório genérico.
+/// </summary>
+/// <typeparam name="T"></typeparam>
 public interface IGenericRepository<T> where T : Entity 
 {
     /// <summary>
@@ -50,11 +55,5 @@ public interface IGenericRepository<T> where T : Entity
     /// Recuperar todos.
     /// </summary>
     /// <returns></returns>
-    public Task<IList<T>> GetAllAsync();
-
-    /// <summary>
-    /// Salvar mudanças.
-    /// </summary>
-    /// <returns></returns>
-    Task SaveChangesAsync();
+    public Task<IList<T>> GetAllAsync(Expression<Func<T, bool>> predicate);
 }

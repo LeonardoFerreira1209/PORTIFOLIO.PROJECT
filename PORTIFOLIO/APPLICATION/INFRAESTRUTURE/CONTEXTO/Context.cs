@@ -20,7 +20,13 @@ public class Context : IdentityDbContext<UserEntity, RoleEntity, Guid>
     /// <summary>
     /// Tabela de Eventos.
     /// </summary>
-    public DbSet<Event> Events { get; set; }
+    public DbSet<EventEntity> Events { get; set; }
+
+    /// <summary>
+    /// Tabela de códigos de confirmação de usuários.
+    /// 
+    /// </summary>
+    public DbSet<UserCodeEntity> AspNetUserCodes { get; set; }
 
     /// <summary>
     /// Configrações fos datatypes.

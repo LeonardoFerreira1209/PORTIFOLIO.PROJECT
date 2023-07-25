@@ -1,5 +1,6 @@
 ﻿using APPLICATION.APPLICATION.CONFIGURATIONS;
 using APPLICATION.DOMAIN.CONTRACTS.FACADE;
+using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY;
 using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.EVENTS;
 using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.USER;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.MAIL;
@@ -15,6 +16,7 @@ using APPLICATION.DOMAIN.DTOS.RESPONSE.USER.ROLE;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
 using APPLICATION.DOMAIN.ENTITY.ROLE;
 using APPLICATION.DOMAIN.ENTITY.USER;
+using APPLICATION.DOMAIN.ENUMS;
 using APPLICATION.DOMAIN.EXCEPTIONS.USER;
 using APPLICATION.DOMAIN.UTILS.Extensions;
 using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
@@ -31,7 +33,6 @@ using System.Net;
 using System.Security.Claims;
 using System.Web;
 using static APPLICATION.DOMAIN.EXCEPTIONS.USER.CustomUserException;
-using RetryPolicy = APPLICATION.DOMAIN.UTILS.EXTENSIONS.RetryPolicy;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
 namespace APPLICATION.APPLICATION.SERVICES.USER
@@ -41,7 +42,9 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
     /// </summary>
     public class UserService : IUserService
     {
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IUserRepository _userRepository;
+        private readonly IEventRepository _eventRepository;
         private readonly RoleManager<RoleEntity> _roleManager;
         private readonly IOptions<AppSettings> _appsettings;
         private readonly ITokenService _tokenService;
@@ -49,7 +52,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
 
         private readonly SendGridMailFactory _sendGridMailFactory;
         private readonly IMailService<SendGridMailRequest, ApiResponse<object>> _mailService;
-        private readonly IEventRepository _eventRepository;
 
         /// <summary>
         /// Construtor.
@@ -58,16 +60,17 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         /// <param name="appsettings"></param>
         /// <param name="tokenService"></param>
         /// <param name="utilFacade"></param>
-        public UserService(IUserRepository userRepository, RoleManager<RoleEntity> roleManager, IOptions<AppSettings> appsettings, ITokenService tokenService, IUtilFacade utilFacade, IEventRepository eventRepository)
+        public UserService(IUnitOfWork unitOfWork, IUserRepository userRepository, IEventRepository eventRepository, RoleManager<RoleEntity> roleManager, IOptions<AppSettings> appsettings, ITokenService tokenService, IUtilFacade utilFacade)
         {
+            _unitOfWork = unitOfWork;
             _userRepository = userRepository;
+            _eventRepository = eventRepository;
             _roleManager = roleManager;
             _appsettings = appsettings;
             _tokenService = tokenService;
             _utilFacade = utilFacade;
-            _eventRepository = eventRepository;
 
-            _sendGridMailFactory = new(appsettings, _eventRepository);
+            _sendGridMailFactory = new(appsettings);
 
             _mailService =
                 _sendGridMailFactory.CreateMailService<SendGridMailRequest, ApiResponse<object>>();
@@ -82,8 +85,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         public async Task<ObjectResult> AuthenticationAsync(LoginRequest loginRequest)
         {
             Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(AuthenticationAsync)}\n");
-
-            await _mailService.SendSingleMailWithTemplateAsync(new EmailAddress("Leo", "Leo.Ferreira30@"), new EmailAddress("Hyper", "Hyper.io@outlook.com"), "d-a5a2d227be3a491ea863112e28b2ae84", new { link = "https://docs.sendgrid.com/ui/sending-email/editor#preview-substitution-tags-with-test-data" });
 
             try
             {
@@ -111,7 +112,10 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                                 if (signInResult.Succeeded is false) ThrownAuthorizationException(signInResult, loginRequest);
                             });
 
-                        var tokenJWT = await GenerateTokenJwtAsync(userEntity, loginRequest);
+                        var tokenJWT =
+                            await GenerateTokenJwtAsync(userEntity, loginRequest);
+
+                        await _unitOfWork.CommitAsync();
 
                         return new OkObjectResult(
                             new ApiResponse<TokenJWT>(
@@ -215,19 +219,56 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                     userCreateRequest.ToIdentityUser();
 
                 return await _userRepository.CreateUserAsync(
-                    user, userCreateRequest.Password).ContinueWith(identityResultTask =>
+                    user, userCreateRequest.Password).ContinueWith(async (identityResultTask) =>
                     {
                         var identityResult = identityResultTask.Result;
 
                         if (identityResult.Succeeded is false) throw new CustomException(
                             HttpStatusCode.BadRequest, userCreateRequest, identityResult.Errors.Select((e) => new DadosNotificacao(e.Code.CustomExceptionMessage())).ToList());
 
-                        //_mailService.SendSingleMailAsync(new SendGridMailRequest());
+                        var confirmationCodeIdentity = await _userRepository.GenerateEmailConfirmationTokenAsync(user);
+
+                        var userCodeEntity = await _userRepository.AddUserConfirmationCode(
+                                   new UserCodeEntity
+                                   {
+                                       Created = DateTime.Now,
+                                       NumberCode = confirmationCodeIdentity.HashCode(),
+                                       HashCode = confirmationCodeIdentity,
+                                       Status = Status.Active,
+                                       UserId = user.Id
+
+                                   });
+
+                        await _mailService.SendSingleMailWithTemplateAsync(
+                            new EmailAddress(),
+                            new EmailAddress(
+                        user.FirstName, user.Email), "d-a5a2d227be3a491ea863112e28b2ae84", new { name = user.FirstName, code = userCodeEntity.NumberCode }).ContinueWith(async (mailResultTask) =>
+                        {
+                            if (mailResultTask.Result.Sucesso is false)
+                            {
+                                await _eventRepository.CreateAsync(EventExtensions.CreateMailEvent(
+                                    "FailedToSendConfirmationMail", "Reenvio de e-mail de confirmação de usuário.", new
+                                    {
+                                        From = new EmailAddress(),
+                                        To = new EmailAddress(user.FirstName, user.Email),
+                                        TemplateId = "d-a5a2d227be3a491ea863112e28b2ae84",
+                                        DynamicTemplateData = new
+                                        {
+                                            Name = user.FirstName,
+                                            Code = userCodeEntity.NumberCode
+                                        }
+                                    }));
+                            }
+
+                            await _unitOfWork.CommitAsync();
+
+                        });
 
                         return new OkObjectResult(
                             new ApiResponse<object>(
                                 identityResult.Succeeded, HttpStatusCode.Created, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário criado com sucesso.") }));
-                    });
+
+                    }).Result;
             }
             catch (Exception exception)
             {
@@ -337,38 +378,57 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         /// <summary>
         /// Método responsavel por ativar um novo usuário.
         /// </summary>
-        /// <param name="activateUserRequest"></param>
+        /// <param name="code"></param>
         /// <returns></returns>
         /// <exception cref="NotFoundUserException"></exception>
         /// <exception cref="CustomException"></exception>
-        public async Task<ObjectResult> ActivateUserAsync(ActivateUserRequest activateUserRequest)
+        public async Task<ObjectResult> ActivateUserAsync(Guid userId, string code)
         {
             Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(ActivateUserAsync)}\n");
 
             try
             {
-                return await _userRepository.GetByAsync(activateUserRequest.UserId).ContinueWith(async (userEntityTask) =>
-                {
-                    var userEntity =
-                        userEntityTask.Result
-                        ?? throw new NotFoundUserException(activateUserRequest);
+                return await _userRepository.GetUserConfirmationCode(userId, code).ContinueWith(
+                    async (codeTask) =>
+                    {
+                        var userCode =
+                            codeTask.Result ?? throw new IncorrectConfirmationCodeAuthenticationException(new { userId, code });
 
-                    await _userRepository.ConfirmEmailAsync(userEntity, HttpUtility.UrlDecode(
-                        activateUserRequest.Code.Replace(";", "%"))).ContinueWith(identityResultTask =>
-                        {
-                            var identityResult
-                                = identityResultTask.Result;
+                        if (userCode.Status is Status.Inactive)
+                            throw new IncorrectConfirmationCodeAuthenticationException(new { userId, code });
 
-                            if (identityResult.Succeeded is false)
-                                throw new CustomException(HttpStatusCode.BadRequest, activateUserRequest,
-                                    new List<DadosNotificacao> { new DadosNotificacao(identityResult.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) });
-                        });
+                        await _userRepository.GetByAsync(userCode.UserId).ContinueWith(
+                            async (userEntityTask) =>
+                            {
+                                var userEntity =
+                                    userEntityTask.Result
+                                    ?? throw new NotFoundUserException(userId);
 
-                    return new ObjectResult(
-                        new ApiResponse<object>(
-                            true, HttpStatusCode.OK, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário ativado com sucesso!") }));
+                                await _userRepository.ConfirmEmailAsync(userEntity, userCode.HashCode).ContinueWith(
+                                    identityResultTask =>
+                                    {
+                                        var identityResult
+                                            = identityResultTask.Result;
 
-                }).Result;
+                                        if (identityResult.Succeeded)
+                                        {
+                                            userCode.Updated = DateTime.Now;
+                                            userCode.Status = Status.Inactive;
+
+                                            _userRepository.UpdateUserConfirmationCode(userCode);
+                                        }
+                                        else
+                                            throw new CustomException(HttpStatusCode.BadRequest, code,
+                                                new List<DadosNotificacao> { new DadosNotificacao(identityResult.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) });
+                                    });
+
+                            }).Result;
+
+                        return new ObjectResult(
+                            new ApiResponse<object>(
+                                true, HttpStatusCode.OK, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário ativado com sucesso!") }));
+
+                    }).Result;
             }
             catch (Exception exception)
             {

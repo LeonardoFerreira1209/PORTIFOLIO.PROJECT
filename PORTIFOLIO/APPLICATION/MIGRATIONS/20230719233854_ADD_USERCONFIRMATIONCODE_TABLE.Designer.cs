@@ -4,6 +4,7 @@ using APPLICATION.INFRAESTRUTURE.CONTEXTO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace APPLICATION.Migrations
 {
     [DbContext(typeof(Context))]
-    partial class ContextModelSnapshot : ModelSnapshot
+    [Migration("20230719233854_ADD_USERCONFIRMATIONCODE_TABLE")]
+    partial class ADD_USERCONFIRMATIONCODE_TABLE
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -126,7 +129,7 @@ namespace APPLICATION.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AspNetUserCodes");
+                    b.ToTable("UserConfirmationCodes");
                 });
 
             modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.USER.UserEntity", b =>

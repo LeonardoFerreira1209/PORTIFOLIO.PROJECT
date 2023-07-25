@@ -3,6 +3,8 @@ using APPLICATION.DOMAIN.ENUMS;
 using FluentValidation.Results;
 using Newtonsoft.Json;
 using System.ComponentModel;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 
@@ -132,6 +134,59 @@ public static class Extensions
         var typesAllowed = new List<string> { "image/jpeg", "image/jpg", "image/png", "image/gif" };
 
         return typesAllowed.Select(types => types.Equals(fileType)).Any(verify => verify is true);
+    }
+
+    /// <summary>
+    /// Transforma código em números
+    /// </summary>
+    /// <param name="code"></param>
+    /// <returns></returns>
+    public static string HashCode(this string code)
+    {
+        byte[] bytes = SHA256.HashData(Encoding.UTF8.GetBytes(code));
+
+        StringBuilder builder = new();
+
+        for (int i = 0; i < bytes.Length; i++)
+        {
+            builder.Append(bytes[i].ToString("X2"));
+        }
+
+        return builder.ToString().ConvertToNumeric().TruncateNumericCode();
+    }
+
+    /// <summary>
+    /// Converte um hashCode para string numérica.
+    /// </summary>
+    /// <param name="hashedCode"></param>
+    /// <returns></returns>
+    private static long ConvertToNumeric(this string hashedCode)
+    {
+        long numericCode = 0;
+
+        foreach (char c in hashedCode)
+        {
+            numericCode += (long)c;
+        }
+
+        return numericCode;
+    }
+
+    /// <summary>
+    /// Trunca um código numérico
+    /// </summary>
+    /// <param name="numericCode"></param>
+    /// <returns></returns>
+    private static string TruncateNumericCode(this long numericCode)
+    {
+        string limitedCode = numericCode.ToString();
+
+        if (limitedCode.Length > 6)
+        {
+            limitedCode = limitedCode.Substring(0, 6);
+        }
+
+        return limitedCode;
     }
 }
 

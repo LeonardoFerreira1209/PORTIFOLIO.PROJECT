@@ -137,6 +137,25 @@ public class CustomUserException
         }
     }
 
+    public class IncorrectConfirmationCodeAuthenticationException : BaseException
+    {
+        public IncorrectConfirmationCodeAuthenticationException(
+            object dados)
+        {
+            Response = new ErrorResponse
+               (HttpStatusCode.BadRequest, dados, new List<DadosNotificacao>() {
+                   new DadosNotificacao("Códgo de confirmação inserido incorreto ou expirado!")
+               });
+        }
+
+        public IncorrectConfirmationCodeAuthenticationException(
+            object dados, List<DadosNotificacao> notificacoes)
+        {
+            Response = new ErrorResponse
+               (HttpStatusCode.Unauthorized, dados, notificacoes);
+        }
+    }
+
     /// <summary>
     /// Exception para falha na geração de tokenJwt.
     /// </summary>

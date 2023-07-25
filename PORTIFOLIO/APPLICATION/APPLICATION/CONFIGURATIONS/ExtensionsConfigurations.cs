@@ -136,7 +136,8 @@ public static class ExtensionsConfigurations
                 options.UseLazyLoadingProxies().UseSqlServer(configurations.GetValue<string>("ConnectionStrings:BaseDados")).LogTo(Console.WriteLine, LogLevel.None);
 
                 options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
-            });
+
+            }, ServiceLifetime.Scoped);
 
         return services;
     }
@@ -415,6 +416,7 @@ public static class ExtensionsConfigurations
             // Facades
             .AddSingleton<IUtilFacade, UtilFacade>()
             // Repository
+            .AddScoped<IUnitOfWork, UnitOfWork>()
             .AddScoped(typeof(IGenerictEntityCoreRepository<>), typeof(GenericEntityCoreRepository<>))
             .AddScoped<IEventRepository, EventRepository>()
             .AddScoped<IUserRepository, UserRepository>()
@@ -609,9 +611,9 @@ public static class ExtensionsConfigurations
     /// Execute Seeds in database
     /// </summary>
     /// <param name="serviceProvider"></param>
-    public static async Task<WebApplication> Seeds(this WebApplication application)
+    public static async Task<IApplicationBuilder> Seeds(this IApplicationBuilder application, WebApplication webApplication)
     {
-        using (var scope = application.Services.CreateScope())
+        using (var scope = webApplication.Services.CreateScope())
         {
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<UserEntity>>();
 
@@ -619,11 +621,9 @@ public static class ExtensionsConfigurations
 
             var context = scope.ServiceProvider.GetRequiredService<Context>();
 
-            Log.Debug($"[LOG DEBUG] - Verificando se usuário inicial já existe na base.\n");
-
             if (await userManager.Users.AnyAsync() is false)
             {
-                Log.Debug($"[LOG DEBUG] - Não existe, iniciando Seeds.\n");
+                Log.Debug($"[LOG DEBUG] - Iniciando seeds da aplicação.\n");
 
                 // Set data in user.
                 var user = new UserEntity

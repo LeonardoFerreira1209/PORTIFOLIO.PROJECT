@@ -16,35 +16,39 @@ using System;
 
 try
 {
-    // Preparando builder.
     var builder = WebApplication.CreateBuilder(args);
 
-    // Pegando configurações do appsettings.json.
     var configurations = builder.Configuration;
 
-    // Pega o appsettings baseado no ambiente em execução.
+    /// <sumary>
+    /// Pega o appsettings baseado no ambiente em execução.
+    /// </sumary>
     configurations
-         .SetBasePath(builder.Environment.ContentRootPath).AddJsonFile("appsettings.json", false, true).AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", true, true).AddEnvironmentVariables();
+         .SetBasePath(builder.Environment.ContentRootPath)
+            .AddJsonFile("appsettings.json", false, true)
+                .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", true, true)
+                    .AddEnvironmentVariables();
 
     /// <summary>
     /// Chamada das configurações do projeto.
     /// </summary>
     builder.Services
         .AddHttpContextAccessor()
-        .Configure<AppSettings>(configurations).AddSingleton<AppSettings>()
-        .AddEndpointsApiExplorer()
-        .AddOptions()
-        .ConfigureLanguage()
-        .ConfigureContexto(configurations)
-        .ConfigureIdentityServer(configurations)
-        .ConfigureAuthorization()
-        .ConfigureAuthentication(configurations)
-        .ConfigureApllicationCookie()
-        .ConfigureSwagger(configurations)
-        .ConfigureDependencies(configurations, builder.Environment)
-        .ConfigureRefit(configurations);
-
-    builder.Services.AddGraphQLServer().AddQueryType<UserQuery>()
+            .Configure<AppSettings>(configurations)
+                .AddSingleton<AppSettings>()
+                    .AddEndpointsApiExplorer()
+                        .AddOptions()
+                            .ConfigureLanguage()
+                                .ConfigureContexto(configurations)
+                                    .ConfigureIdentityServer(configurations)
+                                         .ConfigureAuthorization()
+                                    .ConfigureAuthentication(configurations)
+                                .ConfigureApllicationCookie()
+                            .ConfigureSwagger(configurations)
+                        .ConfigureDependencies(configurations, builder.Environment)
+                    .ConfigureRefit(configurations)
+                .AddGraphQLServer()
+            .AddQueryType<UserQuery>()
         .SetPagingOptions(new PagingOptions
         {
             MaxPageSize = 10,
@@ -52,64 +56,64 @@ try
             DefaultPageSize = 10,
         });
 
-    // Se for em produção executa.
-    if (builder.Environment.IsProduction())
-    {
+    if (
+        builder.Environment.IsProduction()) {
         builder.Services
             .ConfigureTelemetry(configurations)
-            .ConfigureApplicationInsights(configurations);
+                .ConfigureApplicationInsights(configurations);
     }
 
-    // Continuação do pipeline...
     builder.Services
         .ConfigureSerilog(configurations)
-        .ConfigureHangFire(configurations)
-        //.ConfigureFluentSchedulerJobs()
-        .ConfigureSubscribers()
-        .ConfigureHealthChecks(configurations)
-        .ConfigureCors()
+            .ConfigureHangFire(configurations)
+                .ConfigureFluentSchedulerJobs()
+                    .ConfigureSubscribers()
+                .ConfigureHealthChecks(configurations)
+             .ConfigureCors()
         .AddControllers(options =>
         {
             options.EnableEndpointRouting = false;
 
             options.Filters.Add(new ProducesAttribute("application/json"));
 
-        }).AddNewtonsoftJson(options => options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
-
-    // Preparando WebApplication Build.
-    var applicationbuilder = builder.Build();
-
-    applicationbuilder.UseMiddleware<ErrorHandlerMiddleware>();
-
-    // Chamada das connfigurações do WebApplication Build.
-    applicationbuilder
-        .Seeds().Result
-        .UseHttpsRedirection()
-        .UseDefaultFiles()
-        .UseStaticFiles()
-        .UseCookiePolicy()
-        .UseRouting()
-        .UseCors("CorsPolicy")
-        .UseResponseCaching()
-        .UseAuthorization()
-        .UseAuthentication()
-        .UseHealthChecks()
-        .UseSwaggerConfigurations(configurations)
-        //.UseEndpoints()
-        .UseHangfireDashboard("/hangfire", new DashboardOptions
-        {
-            Authorization = new[] { new CustomAuthorizeHangfireFilter() }
         })
-        .StartRecurrentJobs();
+        .AddNewtonsoftJson(
+            options 
+            => options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
+
+    var applicationbuilder = builder.Build();
 
     applicationbuilder.MapGraphQL();
 
-    Log.Information($"[LOG INFORMATION] - Inicializando aplicação [TOOLS.USER.API]\n");
+    applicationbuilder
+        .UseMiddleware<ErrorHandlerMiddleware>()
+            .UseHttpsRedirection()
+                .UseDefaultFiles()
+                    .UseStaticFiles()
+                        .UseCookiePolicy()
+                             .UseRouting()
+                                .UseCors("CorsPolicy")
+                                    .UseResponseCaching()
+                                .UseAuthorization()
+                            .UseAuthentication()
+                        .UseHealthChecks()
+                    .UseSwaggerConfigurations(configurations)
+                .UseHangfireDashboard("/hangfire", new DashboardOptions
+                {
+                    Authorization =
+                        new[] { new CustomAuthorizeHangfireFilter() }
+                })
+            .Seeds(applicationbuilder).Result
+            .StartRecurrentJobs();
+
+    applicationbuilder
+        .Lifetime.ApplicationStarted
+            .Register(() => Log.Debug(
+                                $"[LOG DEBUG] - Aplicação inicializada com sucesso: [PORTIFOLIO.API]\n"));
 
     applicationbuilder.Run();
-
 }
 catch (Exception exception)
 {
-    Log.Error($"[LOG ERROR] - Ocorreu um erro ao inicializar a aplicacao [TOOLS.USER.API] - {exception.Message}\n");
+    Log.Error($"[LOG ERROR] - Ocorreu um erro ao inicializar a aplicacao [PORTIFOLIO.API] - {exception.Message}\n"); throw;
 }

@@ -12,8 +12,6 @@ public class FluentSchedulerJobs : Registry, IFluentSchedulerJobs
     {
         try
         {
-            Log.Information($"[LOG INFORMATION] - Inicializando os Job do Fluent Scheduler.\n");
-
            // NonReentrantAsDefault(); Schedule<IResendFailedMailsJob>().ToRunEvery(24).Hours();
         }
         catch (Exception exception)

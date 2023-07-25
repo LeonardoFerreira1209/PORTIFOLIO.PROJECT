@@ -8,5 +8,8 @@ public enum EventStatus
     Processed = 1,
 
     [Description("Unprocessed")]
-    Unprocessed = 2
+    Unprocessed = 2,
+
+    [Description("Failed")]
+    Failed = 2
 }

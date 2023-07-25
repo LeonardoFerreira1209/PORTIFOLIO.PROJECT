@@ -47,9 +47,10 @@ public interface IUserService
     /// <summary>
     /// Método responsavel por ativar um usuário.
     /// </summary>
-    /// <param name="activateUserRequest"></param>
+    /// <param name="userId"></param>
+    /// <param name="code"></param>
     /// <returns></returns>
-    Task<ObjectResult> ActivateUserAsync(ActivateUserRequest activateUserRequest);
+    Task<ObjectResult> ActivateUserAsync(Guid userId, string code);
 
     /// <summary>
     /// Método responsavel por adicionar uma claim ao usuário.

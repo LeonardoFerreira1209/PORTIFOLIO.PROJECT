@@ -28,7 +28,7 @@ public interface IUserRepository
     /// <summary>
     /// Método responsavel por atualizar um usuário.
     /// </summary>
-    /// <param name="user"></param>
+    /// <param name="userEntity"></param>
     /// <returns></returns>
     Task<IdentityResult> UpdateUserAsync(UserEntity userEntity);
 
@@ -170,4 +170,26 @@ public interface IUserRepository
     /// <param name="token"></param>
     /// <returns></returns>
     Task SetUserAuthenticationTokenAsync(UserEntity userEntity, string providerName, string tokenName, string token);
+
+    /// <summary>
+    /// Método responsavel por gravar um código de confirmação de usuário.
+    /// </summary>
+    /// <param name="userCodeEntity"></param>
+    /// <returns></returns>
+    Task<UserCodeEntity> AddUserConfirmationCode(UserCodeEntity userCodeEntity);
+
+    /// <summary>
+    /// Método responsavel por atualizar um código de confirmação de usuário.
+    /// </summary>
+    /// <param name="userCodeEntity"></param>
+    /// <returns></returns>
+    UserCodeEntity UpdateUserConfirmationCode(UserCodeEntity userCodeEntity);
+
+    /// <summary>
+    ///  Método responsavel por obter os dados de confirmação de usuário.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="code"></param>
+    /// <returns></returns>
+    Task<UserCodeEntity> GetUserConfirmationCode(Guid userId, string code);
 }

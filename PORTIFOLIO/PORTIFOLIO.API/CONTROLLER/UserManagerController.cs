@@ -4,19 +4,17 @@ using APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.TOKEN;
 using APPLICATION.DOMAIN.DTOS.REQUEST.USER;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.USER;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
+using APPLICATION.DOMAIN.ENUMS;
+using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using SendGrid.Helpers.Mail;
-using SendGrid;
 using Serilog.Context;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using StatusCodes = Microsoft.AspNetCore.Http.StatusCodes;
-using APPLICATION.DOMAIN.ENUMS;
-using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 
 namespace PORTIFOLIO.API.CONTROLLER;
 
@@ -165,14 +163,12 @@ public class UserManagerController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> ActivateAsync(string code, Guid userId)
     {
-        var request = new ActivateUserRequest(code, userId);
-
         using (LogContext.PushProperty("Controller", "UserController"))
-        using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(request)))
+        using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(new { userId, code })))
         using (LogContext.PushProperty("Metodo", "activate"))
         {
             return await Tracker.Time(()
-                => _userService.ActivateUserAsync(request), "Ativar usuário");
+                => _userService.ActivateUserAsync(userId, code), "Ativar usuário");
         }
     }
 

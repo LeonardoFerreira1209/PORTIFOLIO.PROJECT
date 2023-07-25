@@ -1,20 +1,25 @@
-﻿using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.EVENTS;
-using Serilog;
+﻿namespace APPLICATION.DOMAIN.UTILS.JOBMETHODS;
 
-namespace APPLICATION.DOMAIN.UTILS.JOBMETHODS;
-
+/// <summary>
+/// 
+/// </summary>
 public class JobMethods : IJobMethods
 {
-    private readonly IEventRepository _eventRepository;
 
-    public JobMethods(
-        IEventRepository eventRepository)
+    /// <summary>
+    /// 
+    /// </summary>
+    public JobMethods()
     {
-        _eventRepository = eventRepository;
+       
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
     public async Task ResendFailedMailsAsync()
     {
-        Log.Information("Recurrent job started");
+
     }
 }

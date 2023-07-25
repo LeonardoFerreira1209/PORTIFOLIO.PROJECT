@@ -5,7 +5,10 @@
     /// </summary>
     public class SendGridMailRequestBase : MailRequestBase
     {
-
+        /// <summary>
+        /// Templates data.
+        /// </summary>
+        public object DynamicTemplateData { get; set; }
     }
 
     /// <summary>

@@ -15,7 +15,7 @@ public static class EventExtensions
     /// <param name="eventName"></param>
     /// <param name="description"></param>
     /// <returns></returns>
-    public static Event CreateMailEvent(
+    public static EventEntity CreateMailEvent(
         string eventName, string description, object data) => new()
         {
             Name = eventName,
@@ -24,6 +24,6 @@ public static class EventExtensions
             Data = JsonConvert.SerializeObject(data),
             Status = EventStatus.Unprocessed,
             Type = EventType.Mail,
-            Created = DateTime.UtcNow,
+            Created = DateTime.Now,
         };
 }

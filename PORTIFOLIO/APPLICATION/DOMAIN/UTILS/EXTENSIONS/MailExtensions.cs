@@ -31,7 +31,9 @@ public static class MailExtensions
             {
                 GroupId = sendGridMailRequest.Asm.GroupId,
                 GroupsToDisplay = sendGridMailRequest.Asm.GroupToDisplay
+
             } : null,
+
             Attachments = sendGridMailRequest?.Attachments?.Select(attach =>
             {
                 return new Attachment
@@ -43,8 +45,10 @@ public static class MailExtensions
                 };
 
             }).ToList(),
+
             From = sendGridMailRequest.From.ToSendGridEmailAddress(),
             Categories = sendGridMailRequest?.Categories,
+
             Contents = sendGridMailRequest?.Contents?.Select(content =>
             {
                 return new Content
@@ -54,6 +58,7 @@ public static class MailExtensions
                 };
 
             }).ToList(),
+
             Subject = sendGridMailRequest?.Subject,
             Personalizations = sendGridMailRequest?.Personalizations?.Select(personalization =>
             {
@@ -64,11 +69,13 @@ public static class MailExtensions
                         return bcc.ToSendGridEmailAddress();
 
                     }).ToList(),
+
                     Ccs = personalization?.Ccs?.Select(ccs =>
                     {
                         return ccs.ToSendGridEmailAddress();
 
                     }).ToList(),
+
                     Tos = personalization?.Tos?.Select(tos =>
                     {
                         return tos.ToSendGridEmailAddress();
@@ -77,13 +84,17 @@ public static class MailExtensions
                 };
 
             }).ToList(),
+
             BatchId = sendGridMailRequest?.BatchId,
             IpPoolName = sendGridMailRequest?.IpPoolName,
+
             ReplyTo = sendGridMailRequest.ReplyTo is not null ? new EmailAddress
             {
                 Email = sendGridMailRequest.ReplyTo?.Email,
                 Name = sendGridMailRequest.ReplyTo?.Name
+
             } : null,
+
             SendAt = sendGridMailRequest?.SendAt,
             TrackingSettings = sendGridMailRequest.TrackingSettings is not null ? new TrackingSettings
             {
@@ -91,15 +102,20 @@ public static class MailExtensions
                 {
                     Enable = sendGridMailRequest.TrackingSettings.ClickTracking.Enable,
                     EnableText = sendGridMailRequest.TrackingSettings.ClickTracking.EnableText,
+
                 } : null,
+
                 OpenTracking = sendGridMailRequest.TrackingSettings?.OpenTracking is not null ? new OpenTracking
                 {
                     Enable = sendGridMailRequest.TrackingSettings.OpenTracking.Enable,
                     SubstitutionTag = sendGridMailRequest.TrackingSettings.OpenTracking.SubstitutionTag
+
                 } : null,
+
                 SubscriptionTracking = sendGridMailRequest.TrackingSettings?.SubscriptionTracking is not null ? new SubscriptionTracking
                 {
                     Enable = sendGridMailRequest.TrackingSettings.SubscriptionTracking.Enable
+
                 } : null,
 
             } : null,
