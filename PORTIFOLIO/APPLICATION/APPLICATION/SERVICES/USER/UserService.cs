@@ -962,7 +962,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                        });
 
             await _mailService.SendSingleMailWithTemplateAsync(
-            new EmailAddress(),
+                new EmailAddress(),
                 new EmailAddress(
             user.FirstName, user.Email), "d-a5a2d227be3a491ea863112e28b2ae84", new
             {
