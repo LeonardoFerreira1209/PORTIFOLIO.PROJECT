@@ -33,6 +33,7 @@ using System.Net;
 using System.Security.Claims;
 using System.Web;
 using static APPLICATION.DOMAIN.EXCEPTIONS.USER.CustomUserException;
+using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
 namespace APPLICATION.APPLICATION.SERVICES.USER
@@ -97,7 +98,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                             await validation.GetValidationErrors();
                     });
 
-                return await _userRepository.GetWithUsernameAsync(
+                var tokenJWT = await _userRepository.GetWithUsernameAsync(
                     loginRequest.Username).ContinueWith(async (userEntityTask) =>
                     {
                         var userEntity =
@@ -112,19 +113,23 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                                 if (signInResult.Succeeded is false) ThrownAuthorizationException(signInResult, loginRequest);
                             });
 
-                        var tokenJWT =
-                            await GenerateTokenJwtAsync(userEntity, loginRequest);
+                        return await GenerateTokenJwtAsync(userEntity, loginRequest).ContinueWith(
+                            (tokenJwtTask) =>
+                            {
+                                var tokenJWT =
+                                tokenJwtTask.Result
+                                ?? throw new TokenJwtException(null);
 
-                        await _unitOfWork.CommitAsync();
-
-                        return new OkObjectResult(
-                            new ApiResponse<TokenJWT>(
-                                true, HttpStatusCode.Created, tokenJWT, new List<DadosNotificacao>  {
-                                    new DadosNotificacao("Token criado com sucesso!")
-                                })
-                            );
+                                return tokenJWT;
+                            });
 
                     }).Result;
+
+                return new OkObjectResult(
+                    new ApiResponse<TokenJWT>(
+                        true, HttpStatusCode.Created, tokenJWT, new List<DadosNotificacao>  {
+                            new DadosNotificacao("Token criado com sucesso!")
+                        }));
             }
             catch (Exception exception)
             {
@@ -226,43 +231,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                         if (identityResult.Succeeded is false) throw new CustomException(
                             HttpStatusCode.BadRequest, userCreateRequest, identityResult.Errors.Select((e) => new DadosNotificacao(e.Code.CustomExceptionMessage())).ToList());
 
-                        var confirmationCodeIdentity = await _userRepository.GenerateEmailConfirmationTokenAsync(user);
-
-                        var userCodeEntity = await _userRepository.AddUserConfirmationCode(
-                                   new UserCodeEntity
-                                   {
-                                       Created = DateTime.Now,
-                                       NumberCode = confirmationCodeIdentity.HashCode(),
-                                       HashCode = confirmationCodeIdentity,
-                                       Status = Status.Active,
-                                       UserId = user.Id
-
-                                   });
-
-                        await _mailService.SendSingleMailWithTemplateAsync(
-                            new EmailAddress(),
-                            new EmailAddress(
-                        user.FirstName, user.Email), "d-a5a2d227be3a491ea863112e28b2ae84", new { name = user.FirstName, code = userCodeEntity.NumberCode }).ContinueWith(async (mailResultTask) =>
-                        {
-                            if (mailResultTask.Result.Sucesso is false)
-                            {
-                                await _eventRepository.CreateAsync(EventExtensions.CreateMailEvent(
-                                    "FailedToSendConfirmationMail", "Reenvio de e-mail de confirmação de usuário.", new
-                                    {
-                                        From = new EmailAddress(),
-                                        To = new EmailAddress(user.FirstName, user.Email),
-                                        TemplateId = "d-a5a2d227be3a491ea863112e28b2ae84",
-                                        DynamicTemplateData = new
-                                        {
-                                            Name = user.FirstName,
-                                            Code = userCodeEntity.NumberCode
-                                        }
-                                    }));
-                            }
-
-                            await _unitOfWork.CommitAsync();
-
-                        });
+                        await SendConfirmationEmailCode(user);
 
                         return new OkObjectResult(
                             new ApiResponse<object>(
@@ -342,7 +311,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                                         new List<DadosNotificacao> { new DadosNotificacao(identityResult.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) });
                             });
 
-                        //await ConfirmeUserForEmailAsync(userEntity);
+                        await SendConfirmationEmailCode(userEntity);
                     }
 
                     if (userUpdateRequest.PhoneNumber.Equals(userEntity.PhoneNumber) is false)
@@ -800,10 +769,15 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
             {
                 var tokenJwt =
                     tokenTask.Result
-                    ?? throw new TokenJwtException(loginRequest); ;
+                    ?? throw new TokenJwtException(loginRequest);
 
                 await _userRepository
-                    .SetUserAuthenticationTokenAsync(userEntity, "LOCAL-TOKEN", "AUTHENTICATION-TOKEN", tokenJwt.Token);
+                    .SetUserAuthenticationTokenAsync(userEntity, "LOCAL-TOKEN", "AUTHENTICATION-TOKEN", tokenJwt.Token).ContinueWith(
+                        async (task) =>
+                        {
+                            await _unitOfWork.CommitAsync();
+
+                        }).Result;
 
                 return tokenJwt;
 
@@ -970,6 +944,51 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                 // Error response.
                 return new ApiResponse<object>(false, HttpStatusCode.InternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) });
             }
+        }
+
+        private async Task SendConfirmationEmailCode(UserEntity user)
+        {
+            var confirmationCodeIdentity = await _userRepository.GenerateEmailConfirmationTokenAsync(user);
+
+            var userCodeEntity = await _userRepository.AddUserConfirmationCode(
+                       new UserCodeEntity
+                       {
+                           Created = DateTime.Now,
+                           NumberCode = confirmationCodeIdentity.HashCode(),
+                           HashCode = confirmationCodeIdentity,
+                           Status = Status.Active,
+                           UserId = user.Id
+
+                       });
+
+            await _mailService.SendSingleMailWithTemplateAsync(
+            new EmailAddress(),
+                new EmailAddress(
+            user.FirstName, user.Email), "d-a5a2d227be3a491ea863112e28b2ae84", new
+            {
+                name = user.FirstName,
+                code = userCodeEntity.NumberCode
+
+            }).ContinueWith(async (mailResultTask) =>
+            {
+                if (mailResultTask.Result.Sucesso is false)
+                {
+                    await _eventRepository.CreateAsync(EventExtensions.CreateMailEvent(
+                        "FailedToSendConfirmationMail", "Reenvio de e-mail de confirmação de usuário.", new
+                        {
+                            From = new EmailAddress(),
+                            To = new EmailAddress(user.FirstName, user.Email),
+                            TemplateId = "d-a5a2d227be3a491ea863112e28b2ae84",
+                            DynamicTemplateData = new
+                            {
+                                Name = user.FirstName,
+                                Code = userCodeEntity.NumberCode
+                            }
+                        }));
+                }
+
+                await _unitOfWork.CommitAsync();
+            });
         }
     }
 }

@@ -6,16 +6,28 @@ using System.Text.Json;
 
 namespace APPLICATION.INFRAESTRUTURE.MIDDLEWARE;
 
+/// <summary>
+/// Middleware de erros.
+/// </summary>
 public class ErrorHandlerMiddleware
 {
     private readonly RequestDelegate _requestDelegate;
 
+    /// <summary>
+    /// ctor
+    /// </summary>
+    /// <param name="requestDelegate"></param>
     public ErrorHandlerMiddleware(
         RequestDelegate requestDelegate)
     {
         _requestDelegate = requestDelegate;
     }
 
+    /// <summary>
+    /// Método de invocação de Handler.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
     public async Task InvokeAsync(
         HttpContext context)
     {
@@ -29,6 +41,12 @@ public class ErrorHandlerMiddleware
         }
     }
 
+    /// <summary>
+    /// Método de tratamento de response.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="exception"></param>
+    /// <returns></returns>
     protected static Task HandleExceptionAsync(
         HttpContext context, Exception exception)
     {
@@ -42,6 +60,11 @@ public class ErrorHandlerMiddleware
         return context.Response.WriteAsync(json);
     }
 
+    /// <summary>
+    /// Método que gera o response baseado no tipo.
+    /// </summary>
+    /// <param name="exception"></param>
+    /// <returns></returns>
     private static (HttpStatusCode statusCode, string json) GenerateResponse(Exception exception)
         => exception switch
         {

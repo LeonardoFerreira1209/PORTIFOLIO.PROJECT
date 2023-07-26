@@ -1,4 +1,4 @@
-﻿{
+{
   "profiles": {
     "PORTIFOLIO.API (RELEASE)": {
       "commandName": "Project",
@@ -17,6 +17,13 @@
       },
       "dotnetRunMessages": true,
       "applicationUrl": "https://localhost:7125;http://localhost:5125"
+    },
+    "Docker": {
+      "commandName": "Docker",
+      "launchBrowser": true,
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "publishAllPorts": true,
+      "useSSL": true
     }
   }
 }

@@ -26,26 +26,7 @@ public class HangFireJobService : IJobsService
         try
         {
             RecurringJob.AddOrUpdate(
-                 jobId, expression, cronExpression);
-        }
-        catch (Exception exception)
-        {
-            Log.Error($"[LOG ERROR] - Exception:{exception.Message} - {JsonConvert.SerializeObject(exception)}\n"); throw;
-        }
-    }
-
-    /// <summary>
-    /// Remover job recorrente.
-    /// </summary>
-    /// <param name="jobId"></param>
-    public void RemoveRecurrentJob(string jobId)
-    {
-        Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(HangFireJobService)} - METHOD {nameof(RemoveRecurrentJob)}\n");
-
-        try
-        {
-            RecurringJob
-                .RemoveIfExists(jobId);
+                jobId, expression, cronExpression);
         }
         catch (Exception exception)
         {
@@ -65,8 +46,25 @@ public class HangFireJobService : IJobsService
 
         try
         {
-            new BackgroundJobClient()
-                .Enqueue(expression);
+            new BackgroundJobClient().Enqueue(expression);
+        }
+        catch (Exception exception)
+        {
+            Log.Error($"[LOG ERROR] - Exception:{exception.Message} - {JsonConvert.SerializeObject(exception)}\n"); throw;
+        }
+    }
+
+    /// <summary>
+    /// Remover job recorrente.
+    /// </summary>
+    /// <param name="jobId"></param>
+    public void RemoveRecurrentJob(string jobId)
+    {
+        Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(HangFireJobService)} - METHOD {nameof(RemoveRecurrentJob)}\n");
+
+        try
+        {
+            RecurringJob.RemoveIfExists(jobId);
         }
         catch (Exception exception)
         {
