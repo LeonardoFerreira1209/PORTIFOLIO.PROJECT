@@ -96,13 +96,13 @@ public interface IUserService
     /// </summary>
     /// <param name="roleRequest"></param>
     /// <returns></returns>
-    Task<ApiResponse<object>> CreateRoleAsync(RoleRequest roleRequest);
+    Task<ObjectResult> CreateRoleAsync(RoleRequest roleRequest);
 
     /// <summary>
     /// Método responsavel por retornar todas as roles.
     /// </summary>
     /// <returns></returns>
-    Task<ApiResponse<object>> GetRolesAsync();
+    Task<ObjectResult> GetRolesAsync();
 
     /// <summary>
     /// Método responsável por adicionar uma nova lista de claims na role.

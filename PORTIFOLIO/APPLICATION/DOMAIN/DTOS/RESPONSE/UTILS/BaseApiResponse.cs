@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using Newtonsoft.Json;
+using System.Net;
 
 namespace APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
 
@@ -12,6 +13,7 @@ public class DadosNotificacao
     /// <summary>
     /// Mensagem da notificação.
     /// </summary>
+    [JsonProperty("Mensagem")]
     public string Mensagem { get; }
 }
 
@@ -41,20 +43,24 @@ public abstract class BaseApiResponse
     /// <summary>
     /// Status code.
     /// </summary>
+    [JsonProperty("StatusCode")]
     public HttpStatusCode StatusCode { get; }
 
     /// <summary>
     /// Retorna true se a requisição para API foi bem sucedida.
     /// </summary>
+    [JsonProperty("Sucesso")]
     public bool Sucesso { get; }
 
     /// <summary>
     /// Dados a serem retornados na requisição.
     /// </summary>
+    [JsonProperty("Dados")]
     public object Dados { get; }
 
     /// <summary>
     /// Notificações que retornam da requisição, sejam elas Sucesso, Erro, Informação.
     /// </summary>
+    [JsonProperty("Notificacoes")]
     public List<DadosNotificacao> Notificacoes { get; }
 }

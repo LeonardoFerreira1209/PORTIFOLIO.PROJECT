@@ -264,4 +264,9 @@ public class UserRepository : IUserRepository
         Guid userId, string code)
         => await _context.AspNetUserCodes.FirstOrDefaultAsync(
                 x => x.UserId.Equals(userId) && x.NumberCode.Equals(code));
+
+    public void Dispose()
+    {
+        _context.Dispose();
+    }
 }

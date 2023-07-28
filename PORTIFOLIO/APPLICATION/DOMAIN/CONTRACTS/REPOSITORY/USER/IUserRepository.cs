@@ -5,7 +5,7 @@ using System.Security.Claims;
 
 namespace APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.USER;
 
-public interface IUserRepository
+public interface IUserRepository : IDisposable
 {
     /// <summary>
     /// Retorna o resultado de autenicação do usuário.

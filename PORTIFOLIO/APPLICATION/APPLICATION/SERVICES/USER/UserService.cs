@@ -31,9 +31,7 @@ using Serilog;
 using System.Data;
 using System.Net;
 using System.Security.Claims;
-using System.Web;
 using static APPLICATION.DOMAIN.EXCEPTIONS.USER.CustomUserException;
-using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
 namespace APPLICATION.APPLICATION.SERVICES.USER
@@ -117,8 +115,8 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                             (tokenJwtTask) =>
                             {
                                 var tokenJWT =
-                                tokenJwtTask.Result
-                                ?? throw new TokenJwtException(null);
+                                    tokenJwtTask.Result
+                                    ?? throw new TokenJwtException(null);
 
                                 return tokenJWT;
                             });
@@ -669,7 +667,7 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                     return await _userRepository.RemoveToUserRoleAsync(userEntity, roleName).ContinueWith(identityResultTask =>
                     {
                         var identityResult
-                                = identityResultTask.Result;
+                            = identityResultTask.Result;
 
                         if (identityResult.Succeeded is false)
                             throw new CustomException(HttpStatusCode.BadRequest, new { username, roleName }, new List<DadosNotificacao> {
@@ -678,8 +676,8 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
 
                         return new OkObjectResult(
                               new ApiResponse<object>(
-                                  identityResult.Succeeded, HttpStatusCode.OK, new { username, roleName },
-                                  new List<DadosNotificacao> { new DadosNotificacao($"Role {roleName}, removida com sucesso do usuário {username}.") }));
+                                identityResult.Succeeded, HttpStatusCode.OK, new { username, roleName },
+                                new List<DadosNotificacao> { new DadosNotificacao($"Role {roleName}, removida com sucesso do usuário {username}.") }));
                     });
 
                 }).Result;
@@ -688,34 +686,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
             {
                 Log.Error($"[LOG ERROR] - Exception: {exception.Message}  -  {JsonConvert.SerializeObject(exception)}\n"); throw;
             }
-        }
-
-        /// <summary>
-        /// Método responsavel por gerar um token de autorização e enviar por e-mail.
-        /// </summary>
-        /// <param name="user"></param>
-        /// <returns></returns>
-        private async Task ConfirmeUserForEmailAsync(UserEntity user)
-        {
-            Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(ConfirmeUserForEmailAsync)}\n");
-
-            Log.Information($"[LOG INFORMATION] - Gerando codigo de confirmação de e-mail.\n");
-
-            var confirmationCode = await _userRepository.GenerateEmailConfirmationTokenAsync(user);
-
-            var codifyEmailCode = HttpUtility.UrlEncode(confirmationCode).Replace("%", ";");
-
-            Log.Information($"[LOG INFORMATION] - Código gerado - {codifyEmailCode}.\n");
-
-            //SendUserEmailToServiceBusJob.Execute(new UserEmailMessageDto
-            //{
-            //    Receivers = new List<string> { user.Email },
-            //    Link = $"{_appsettings.Value.UrlBase.TOOLS_WEB_APP}/confirmEmail/{codifyEmailCode}/{user.Id}",
-            //    Subject = "Ativação de e-mail",
-            //    Content = $"{user.UserName}, estamos muito felizes com o seu cadastro em nosso sistema. Clique no botão para liberarmos o seu acesso.",
-            //    ButtonText = "Liberar acesso",
-            //    TemplateName = "Activate.Template"
-            //});
         }
 
         /// <summary>
@@ -789,45 +759,38 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         /// </summary>
         /// <param name="roleRequest"></param>
         /// <returns></returns>
-        public async Task<ApiResponse<object>> CreateRoleAsync(RoleRequest roleRequest)
+        public async Task<ObjectResult> CreateRoleAsync(RoleRequest roleRequest)
         {
-            Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(CreateAsync)}\n");
+            Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(CreateRoleAsync)}\n");
 
             try
             {
-                // Mapper to entity.
                 var role = roleRequest.ToIdentityRole();
 
-                Log.Information($"[LOG INFORMATION] - Criando nova Role {roleRequest.Name}\n");
-
-                // Create a role in database.
-                var response = await _roleManager.CreateAsync(role);
-
-                // Is success enter.
-                if (response.Succeeded)
-                {
-                    Log.Information($"[LOG INFORMATION] - Adicionando claims na role {roleRequest.Name}\n");
-
-                    foreach (var claim in roleRequest.Claims)
+                return await _roleManager.CreateAsync(role).ContinueWith(
+                    async (idenityResultTask) =>
                     {
-                        await _roleManager.AddClaimAsync(role, new Claim(claim.Type, claim.Value));
-                    }
+                        var identityResult = idenityResultTask.Result;
 
-                    // Response success.
-                    return new ApiResponse<object>(response.Succeeded, HttpStatusCode.Created, null, new List<DadosNotificacao> { new DadosNotificacao("Role criado com sucesso.") });
-                }
+                        if (identityResult.Succeeded is false)
+                            throw new CustomException(HttpStatusCode.BadRequest, roleRequest, new List<DadosNotificacao> {
+                                    new DadosNotificacao(identityResult.Errors.FirstOrDefault()?.Code.CustomExceptionMessage())
+                            });
 
-                Log.Information($"[LOG INFORMATION] - Falha ao criar role.\n");
+                        foreach (var claim in roleRequest.Claims) {
+                            await _roleManager.AddClaimAsync(role, new Claim(claim.Type, claim.Value));
+                        }
 
-                // Response error.
-                return new ApiResponse<object>(response.Succeeded, HttpStatusCode.BadRequest, null, response.Errors.Select(e => new DadosNotificacao(e.Description)).ToList());
+                        return new OkObjectResult(
+                            new ApiResponse<object>(
+                                identityResult.Succeeded, HttpStatusCode.OK, roleRequest,
+                                new List<DadosNotificacao> { new DadosNotificacao($"Role {roleRequest.Name}, Role criado com sucesso.") }));
+
+                    }).Result;
             }
             catch (Exception exception)
             {
-                Log.Error($"[LOG ERROR] - {exception.InnerException} - {exception.Message}\n");
-
-                // Error response.
-                return new ApiResponse<object>(false, HttpStatusCode.InternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) });
+                Log.Error($"[LOG ERROR] - Exception: {exception.Message}  -  {JsonConvert.SerializeObject(exception)}\n"); throw;
             }
         }
 
@@ -835,26 +798,25 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
         /// Método responsavel por retornar todas as roles.
         /// </summary>
         /// <returns></returns>
-        public async Task<ApiResponse<object>> GetRolesAsync()
+        public async Task<ObjectResult> GetRolesAsync()
         {
             Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(GetByIdAsync)}\n");
 
             try
             {
-                Log.Information($"[LOG INFORMATION] - Recuperando todas as roles\n");
+               return await _roleManager.Roles.ToListAsync().ContinueWith(
+                   (rolesEntityTask) =>
+                   {
+                       var roles = rolesEntityTask.Result;  
 
-                // Get roles.
-                var roles = await _roleManager.Roles.ToListAsync();
-
-                // Response success.
-                return new ApiResponse<object>(true, HttpStatusCode.OK, roles, new List<DadosNotificacao> { new DadosNotificacao("Roles recuperadas com sucesso.") });
+                       return new OkObjectResult(
+                            new ApiResponse<object>(
+                                true, HttpStatusCode.OK, roles));
+                   });
             }
             catch (Exception exception)
             {
-                Log.Error($"[LOG ERROR] - {exception.InnerException} - {exception.Message}\n");
-
-                // Error response.
-                return new ApiResponse<object>(false, HttpStatusCode.InternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) });
+                Log.Error($"[LOG ERROR] - Exception: {exception.Message}  -  {JsonConvert.SerializeObject(exception)}\n"); throw;
             }
         }
 
@@ -946,20 +908,24 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
             }
         }
 
+        /// <summary>
+        /// Envie a mensagem de confirmação.
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
         private async Task SendConfirmationEmailCode(UserEntity user)
         {
             var confirmationCodeIdentity = await _userRepository.GenerateEmailConfirmationTokenAsync(user);
 
             var userCodeEntity = await _userRepository.AddUserConfirmationCode(
-                       new UserCodeEntity
-                       {
-                           Created = DateTime.Now,
-                           NumberCode = confirmationCodeIdentity.HashCode(),
-                           HashCode = confirmationCodeIdentity,
-                           Status = Status.Active,
-                           UserId = user.Id
-
-                       });
+                new UserCodeEntity
+                {
+                    Created = DateTime.Now,
+                    NumberCode = confirmationCodeIdentity.HashCode(),
+                    HashCode = confirmationCodeIdentity,
+                    Status = Status.Active,
+                    UserId = user.Id
+                });
 
             await _mailService.SendSingleMailWithTemplateAsync(
                 new EmailAddress(),
@@ -972,7 +938,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
             }).ContinueWith(async (mailResultTask) =>
             {
                 if (mailResultTask.Result.Sucesso is false)
-                {
                     await _eventRepository.CreateAsync(EventExtensions.CreateMailEvent(
                         "FailedToSendConfirmationMail", "Reenvio de e-mail de confirmação de usuário.", new
                         {
@@ -985,7 +950,6 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                                 Code = userCodeEntity.NumberCode
                             }
                         }));
-                }
 
                 await _unitOfWork.CommitAsync();
             });

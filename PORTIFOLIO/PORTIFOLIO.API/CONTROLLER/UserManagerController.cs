@@ -251,7 +251,7 @@ public class UserManagerController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-    public async Task<ApiResponse<object>> CreateRoleAsync(RoleRequest roleRequest)
+    public async Task<ObjectResult> CreateRoleAsync(RoleRequest roleRequest)
     {
         using (LogContext.PushProperty("Controller", "RoleController"))
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(roleRequest)))
@@ -272,7 +272,7 @@ public class UserManagerController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-    public async Task<ApiResponse<object>> GetRolesAsync()
+    public async Task<ObjectResult> GetRolesAsync()
     {
         using (LogContext.PushProperty("Controller", "RoleController"))
         using (LogContext.PushProperty("Metodo", "GetAll"))
