@@ -229,11 +229,19 @@ namespace APPLICATION.APPLICATION.SERVICES.USER
                         if (identityResult.Succeeded is false) throw new CustomException(
                             HttpStatusCode.BadRequest, userCreateRequest, identityResult.Errors.Select((e) => new DadosNotificacao(e.Code.CustomExceptionMessage())).ToList());
 
+                        var userEntity = 
+                            await _userRepository.GetWithUsernameAsync(userCreateRequest.UserName);
+
                         await SendConfirmationEmailCode(user);
 
                         return new OkObjectResult(
                             new ApiResponse<object>(
-                                identityResult.Succeeded, HttpStatusCode.Created, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário criado com sucesso.") }));
+                                identityResult.Succeeded, HttpStatusCode.Created, new 
+                                {
+                                    userEntity.Id,
+                                    userEntity.UserName
+
+                                }, new List<DadosNotificacao> { new DadosNotificacao("Usuário criado com sucesso.") }));
 
                     }).Result;
             }

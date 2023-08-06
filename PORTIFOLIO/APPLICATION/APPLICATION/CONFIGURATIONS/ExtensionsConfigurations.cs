@@ -137,7 +137,7 @@ public static class ExtensionsConfigurations
 
                 options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
 
-            }, ServiceLifetime.Transient);
+            }, ServiceLifetime.Scoped);
 
         return services;
     }
