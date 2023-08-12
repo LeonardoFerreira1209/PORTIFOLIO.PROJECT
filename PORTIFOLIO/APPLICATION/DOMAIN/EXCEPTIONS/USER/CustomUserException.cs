@@ -38,7 +38,8 @@ public class CustomUserException
     public class NotFoundUserException : BaseException
     {
         public NotFoundUserException(
-            object dados) {
+            object dados)
+        {
             Response = new ErrorResponse
                (HttpStatusCode.NotFound, dados, new List<DadosNotificacao>() {
                    new DadosNotificacao("Dados do usuário não encontrado!")
@@ -46,14 +47,36 @@ public class CustomUserException
         }
 
         public NotFoundUserException(
-            object dados, List<DadosNotificacao> notificacoes) {
+            object dados, List<DadosNotificacao> notificacoes)
+        {
             Response = new ErrorResponse
                (HttpStatusCode.NotFound, dados, notificacoes);
         }
-
     }
 
-     /// <summary>
+    /// <summary>
+    /// Exception para usuário não encontrado.
+    /// </summary>
+    public class NotFoundRoleException : BaseException
+    {
+        public NotFoundRoleException(
+            object dados)
+        {
+            Response = new ErrorResponse
+               (HttpStatusCode.NotFound, dados, new List<DadosNotificacao>() {
+                   new DadosNotificacao("Roles não econtradas!")
+               });
+        }
+
+        public NotFoundRoleException(
+            object dados, List<DadosNotificacao> notificacoes)
+        {
+            Response = new ErrorResponse
+               (HttpStatusCode.NotFound, dados, notificacoes);
+        }
+    }
+
+    /// <summary>
     /// Exception para Criação de usuário inválido.
     /// </summary>
     public class InvalidUserAuthenticationException : BaseException
@@ -73,7 +96,6 @@ public class CustomUserException
             Response = new ErrorResponse
                (HttpStatusCode.NotFound, dados, notificacoes);
         }
-
     }
 
     /// <summary>
@@ -82,15 +104,17 @@ public class CustomUserException
     public class LockedOutAuthenticationException : BaseException
     {
         public LockedOutAuthenticationException(
-            object dados) {
+            object dados)
+        {
             Response = new ErrorResponse
                 (HttpStatusCode.Locked, dados, new List<DadosNotificacao>() {
                    new DadosNotificacao("Usúario está bloqueado, aguarde alguns minutos e tente novamente!")
                });
         }
 
-         public LockedOutAuthenticationException(
-            object dados, List<DadosNotificacao> notificacoes) {
+        public LockedOutAuthenticationException(
+           object dados, List<DadosNotificacao> notificacoes)
+        {
             Response = new ErrorResponse
                 (HttpStatusCode.Locked, dados, notificacoes);
         }
@@ -102,7 +126,8 @@ public class CustomUserException
     public class IsNotAllowedAuthenticationException : BaseException
     {
         public IsNotAllowedAuthenticationException(
-            object dados) {
+            object dados)
+        {
             Response = new ErrorResponse
                (HttpStatusCode.Unauthorized, dados, new List<DadosNotificacao>() {
                    new DadosNotificacao("Usuário não está habilitado, confirme o e-mail ou celular!")
@@ -110,7 +135,8 @@ public class CustomUserException
         }
 
         public IsNotAllowedAuthenticationException(
-            object dados, List<DadosNotificacao> notificacoes) {
+            object dados, List<DadosNotificacao> notificacoes)
+        {
             Response = new ErrorResponse
                (HttpStatusCode.Unauthorized, dados, notificacoes);
         }
@@ -131,7 +157,8 @@ public class CustomUserException
         }
 
         public RequiresTwoFactorAuthenticationException(
-            object dados, List<DadosNotificacao> notificacoes) {
+            object dados, List<DadosNotificacao> notificacoes)
+        {
             Response = new ErrorResponse
                (HttpStatusCode.Unauthorized, dados, notificacoes);
         }

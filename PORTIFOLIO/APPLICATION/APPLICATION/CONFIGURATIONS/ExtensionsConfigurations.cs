@@ -201,7 +201,8 @@ public static class ExtensionsConfigurations
 
             options.DefaultScheme = IdentityConstants.ApplicationScheme;
 
-        }).AddJwtBearer(options =>
+        })
+        .AddJwtBearer(options =>
         {
             options.SaveToken = true;
 
@@ -394,7 +395,6 @@ public static class ExtensionsConfigurations
     /// <returns></returns>
     public static IServiceCollection ConfigureDependencies(this IServiceCollection services, IConfiguration configurations, IWebHostEnvironment webHostEnvironment)
     {
-        // Se for ambiente de produção executa
         if (webHostEnvironment.IsProduction())
         {
             if (string.IsNullOrEmpty(configurations.GetValue<string>("ApplicationInsights:InstrumentationKey")))

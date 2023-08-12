@@ -5,15 +5,21 @@ using APPLICATION.DOMAIN.DTOS.REQUEST.USER;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.USER;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
 using APPLICATION.DOMAIN.ENUMS;
+using APPLICATION.DOMAIN.HUB;
 using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
+using APPLICATION.DOMAIN.UTILS.GLOBAL;
+using APPLICATION.INFRAESTRUTURE.SIGNALR;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Serilog.Context;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
+using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 using StatusCodes = Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace PORTIFOLIO.API.CONTROLLER;
@@ -28,14 +34,29 @@ public class UserManagerController : ControllerBase
 {
     private readonly IUserService _userService;
 
+    private readonly IHubContext<HubNotifications> _hubContext;
+
     /// <summary>
     /// ctor
     /// </summary>
     /// <param name="userService"></param>
     public UserManagerController(
+        IHubContext<HubNotifications> hubContext,
         IUserService userService)
     {
         _userService = userService;
+        _hubContext = hubContext;
+    }
+
+
+    [HttpPost]
+    public async Task<IActionResult> SendGlobalNotification(Notification notification, string id)
+    {
+        if (GlobalData.HubConnection is not null && GlobalData.HubConnection.TryGetValue(id, out var connectionId))
+        {
+            await _hubContext.Clients.Client(connectionId).SendAsync("ReceberMensagem", notification);
+        }
+        return Ok();
     }
 
     /// <summary>
@@ -293,7 +314,7 @@ public class UserManagerController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-    public async Task<ApiResponse<object>> AddClaimsToRoleAsync(RoleRequest roleRequest)
+    public async Task<ObjectResult> AddClaimsToRoleAsync(RoleRequest roleRequest)
     {
         using (LogContext.PushProperty("Controller", "RoleController"))
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(roleRequest)))
@@ -315,7 +336,7 @@ public class UserManagerController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-    public async Task<ApiResponse<object>> RemoverClaimsToRoleAsync(RoleRequest roleRequest)
+    public async Task<ObjectResult> RemoverClaimsToRoleAsync(RoleRequest roleRequest)
     {
         using (LogContext.PushProperty("Controller", "RoleController"))
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(roleRequest)))

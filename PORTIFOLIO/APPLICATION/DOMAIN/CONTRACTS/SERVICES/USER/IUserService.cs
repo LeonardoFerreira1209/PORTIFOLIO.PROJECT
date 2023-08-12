@@ -109,12 +109,12 @@ public interface IUserService
     /// </summary>
     /// <param name="roleRequest"></param>
     /// <returns></returns>
-    Task<ApiResponse<object>> AddClaimsToRoleAsync(RoleRequest roleRequest);
+    Task<ObjectResult> AddClaimsToRoleAsync(RoleRequest roleRequest);
 
     /// <summary>
     /// Método responsavel por remover uma lista de claims na role.
     /// </summary>
     /// <param name="roleRequest"></param>
     /// <returns></returns>
-    Task<ApiResponse<object>> RemoveClaimsToRoleAsync(RoleRequest roleRequest);
+    Task<ObjectResult> RemoveClaimsToRoleAsync(RoleRequest roleRequest);
 }

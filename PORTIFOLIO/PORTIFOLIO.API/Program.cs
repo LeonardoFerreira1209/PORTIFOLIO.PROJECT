@@ -3,6 +3,7 @@ using APPLICATION.DOMAIN.DTOS.CONFIGURATION;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.CUSTOMAUTHORIZE.FILTER;
 using APPLICATION.DOMAIN.GRAPHQL.QUERY;
 using APPLICATION.INFRAESTRUTURE.MIDDLEWARE;
+using APPLICATION.INFRAESTRUTURE.SIGNALR;
 using Hangfire;
 using HotChocolate.Types.Pagination;
 using Microsoft.AspNetCore.Builder;
@@ -81,6 +82,8 @@ try
             options 
             => options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
 
+    builder.Services.AddSignalR();
+
     var applicationbuilder = builder.Build();
 
     applicationbuilder.MapGraphQL();
@@ -103,10 +106,15 @@ try
                     Authorization =
                         new[] { new CustomAuthorizeHangfireFilter() }
                 })
-            .Seeds(applicationbuilder).Result
-            .StartRecurrentJobs();
+                .UseEndpoints(endpoints =>
+                {
+                    endpoints.MapHub<HubNotifications>("/notifications");
+                    endpoints.MapControllers();
+                })
+                .Seeds(applicationbuilder).Result
+                .StartRecurrentJobs();
 
-    applicationbuilder
+        applicationbuilder
         .Lifetime.ApplicationStarted
             .Register(() => Log.Debug(
                                 $"[LOG DEBUG] - Aplicação inicializada com sucesso: [PORTIFOLIO.API]\n"));
