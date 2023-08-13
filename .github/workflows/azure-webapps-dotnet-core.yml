@@ -51,7 +51,14 @@ jobs:
           Auth.ExpiresIn: ${{ secrets.__SECURITY_TOKEN_EXPIRES_IN__ }}
           ServiceBus.QueueEmail: ${{ secrets.__QUEUE_EMAIL__ }}
           Mail.ApiKey: ${{ secrets.__SENDGRID_APIKEY_ }}
-
+          
+      - name: Set up dependency caching for faster builds
+        uses: actions/cache@v3
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v2
         with:
