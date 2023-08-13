@@ -32,6 +32,8 @@ jobs:
         # run test
       # - name: Test .NET Core
       #  run: dotnet test
+      - name: Mostrar caminho do diretório de trabalho
+        run: echo "O caminho do diretório de trabalho é $GITHUB_WORKSPACE e  ${{env.DOTNET_ROOT}}"
       - name: dotnet publish
         run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/PORTIFOLIO/PORTIFOLIO.API/PORTIFOLIO.API.csproj
         #substitute production appsettings entries to appsettings json file
