@@ -2,12 +2,20 @@
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
 name: Build and deploy ASP.Net Core app to Azure Web App - PORTIFOLIOIO
-
+env:
+  AZURE_WEBAPP_NAME: PORTIFOLIOAPI    # set this to the name of your Azure Web App
+  AZURE_WEBAPP_PACKAGE_PATH: '.'      # set this to the path to your web app project, defaults to the repository root
+  DOTNET_VERSION: '7.x'                 # set this to the .NET Core version to use
 on:
   push:
-    branches:
-      - master
-  workflow_dispatch:
+    branches: [ "master" ]
+  pull_request:
+    # The branches below must be a subset of the branches above
+    branches: [ "master" ]
+  schedule:
+    - cron: '38 14 * * 1'
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -21,7 +29,9 @@ jobs:
         with:
           dotnet-version: '7.x'
           include-prerelease: true
-
+      # run test
+      # - name: Test .NET Core
+      #  run: dotnet test
       - name: Build with dotnet
         run: dotnet build --configuration Release
 
