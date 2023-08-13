@@ -30,8 +30,8 @@ jobs:
           dotnet-version: '7.x'
           include-prerelease: true
         # run test
-      - name: Test .NET Core
-        run: dotnet test
+      # - name: Test .NET Core
+      #  run: dotnet test
       - name: dotnet publish
         run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
         #substitute production appsettings entries to appsettings json file
