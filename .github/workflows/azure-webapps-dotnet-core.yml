@@ -33,7 +33,7 @@ jobs:
       # - name: Test .NET Core
       #  run: dotnet test
       - name: dotnet publish
-        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}} PORTIFOLIO\PORTIFOLIO.sln
+        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp PORTIFOLIO\PORTIFOLIO.sln
         #substitute production appsettings entries to appsettings json file
       - name: App Settings Variable Substitution
         uses: microsoft/variable-substitution@v1
