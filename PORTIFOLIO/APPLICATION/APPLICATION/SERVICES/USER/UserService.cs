@@ -749,13 +749,13 @@ public class UserService : IUserService
                 tokenTask.Result
                 ?? throw new TokenJwtException(loginRequest);
 
-            await _userRepository
-                .SetUserAuthenticationTokenAsync(userEntity, "LOCAL-TOKEN", "AUTHENTICATION-TOKEN", tokenJwt.Token).ContinueWith(
-                    async (task) =>
-                    {
-                        await _unitOfWork.CommitAsync();
+            //await _userRepository
+            //    .SetUserAuthenticationTokenAsync(userEntity, "LOCAL-TOKEN", "AUTHENTICATION-TOKEN", tokenJwt.Token).ContinueWith(
+            //        async (task) =>
+            //        {
+            //            await _unitOfWork.CommitAsync();
 
-                    }).Result;
+            //        }).Result;
 
             return tokenJwt;
 
