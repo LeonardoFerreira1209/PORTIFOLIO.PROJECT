@@ -12,7 +12,7 @@ public class RemoveClaimValidator : AbstractValidator<ClaimRequest>
 {
     public RemoveClaimValidator()
     {
-        RuleFor(claim => claim.Type).NotEmpty().NotNull().WithErrorCode(ErrorCode.CamposObrigatorios.ToCode()).WithMessage("Preencha o campo type.");
+        RuleFor(claim => claim.Type).NotEmpty().NotNull().WithErrorCode(ErrorCode.CamposObrigatorios.ToCode()).WithMessage("Preencha o campo type."); 
 
         RuleFor(claim => claim.Value).NotEmpty().NotNull().WithErrorCode(ErrorCode.CamposObrigatorios.ToCode()).WithMessage("Preencha o campo value.");
     }
