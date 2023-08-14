@@ -45,7 +45,7 @@ public class UserManagerController : ControllerBase
         IUserService userService)
     {
         _userService = userService;
-        _hubContext = hubContext;
+        _hubContext = hubContext; 
     }
 
 
