@@ -12,14 +12,12 @@ using APPLICATION.INFRAESTRUTURE.SIGNALR;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Serilog.Context;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
-using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 using StatusCodes = Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace PORTIFOLIO.API.CONTROLLER;
