@@ -74,4 +74,10 @@ jobs:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.__AZURE_PORTIFOLIO_API_PUBLISH_PROFILE__ }}
           package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
-        
+          
+      - name: Delete branch
+        if: success() # Isso só será executado se todos os passos anteriores tiverem sucesso
+        run: |
+          git push origin --delete ${{ github.ref }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.DELETE_BRANCH_TOKEN }}
