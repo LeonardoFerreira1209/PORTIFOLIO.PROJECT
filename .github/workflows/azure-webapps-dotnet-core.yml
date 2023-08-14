@@ -47,7 +47,7 @@ jobs:
           Auth.SecurityKey: ${{ secrets.__HYPER_SECURITY_KEY__ }}
           Auth.ExpiresIn: ${{ secrets.__SECURITY_TOKEN_EXPIRES_IN__ }}
           ServiceBus.QueueEmail: ${{ secrets.__QUEUE_EMAIL__ }}
-          Mail.ApiKey: ${{ secrets.__SENDGRID_APIKEY_ }}
+          Mail.ApiKey: ${{ secrets.__SENDGRID_APIKEY__ }}
           
       - name: Set up dependency caching for faster builds
         uses: actions/cache@v3
