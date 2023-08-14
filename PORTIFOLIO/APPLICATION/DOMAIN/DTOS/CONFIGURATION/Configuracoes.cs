@@ -14,7 +14,6 @@ public class AppSettings
     public Auth Auth { get; set; }
     public AzureStorage AzureStorage { get; set; }
     public ServiceBus ServiceBus { get; set; }
-    public UrlBase UrlBase { get; set; }
     public Mail Mail { get; set; }
 }
 
@@ -97,16 +96,12 @@ public class Password
 }
 
 /// <summary>
-/// Classe de url externas.
+/// Classe de config de e-mail
 /// </summary>
-public class UrlBase
-{
-    public string TOOLS_UTIL_API { get; set; }
-    public string BASE_URL { get; set; }
-    public string TOOLS_WEB_APP { get; set; }
-}
-
 public class Mail
 {
+    /// <summary>
+    /// Chave da API.
+    /// </summary>
     public string ApiKey { get; set; }
 }
