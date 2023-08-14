@@ -111,8 +111,7 @@ try
                     endpoints.MapHub<HubNotifications>("/notifications");
                     endpoints.MapControllers();
                 })
-                .Seeds(applicationbuilder).Result
-                .StartRecurrentJobs();
+                .Seeds(applicationbuilder).Result.StartRecurrentJobs();
 
         applicationbuilder
         .Lifetime.ApplicationStarted

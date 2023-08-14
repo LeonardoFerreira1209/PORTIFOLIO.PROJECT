@@ -81,26 +81,35 @@ public static class ExtensionsConfigurations
     public static IServiceCollection ConfigureSerilog(this IServiceCollection services, IConfiguration configurations)
     {
         Log.Logger = new LoggerConfiguration()
-                                 .MinimumLevel.Debug()
-                                 .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-                                 .MinimumLevel.Override("System", LogEventLevel.Error)
-                                 .Enrich.FromLogContext()
-                                 .Enrich.WithEnvironmentUserName()
-                                 .Enrich.WithMachineName()
-                                 .Enrich.WithProcessId()
-                                 .Enrich.WithProcessName()
-                                 .Enrich.WithThreadId()
-                                 .Enrich.WithThreadName()
-                                 .WriteTo.Console()
-                                 .WriteTo.ApplicationInsights(_telemetryConfig, TelemetryConverter.Traces, LogEventLevel.Information)
-                                 .WriteTo.MSSqlServer(configurations.GetValue<string>("ConnectionStrings:BaseDados"), new MSSqlServerSinkOptions
-                                 {
-                                     AutoCreateSqlDatabase = true,
-                                     TableName = "Logs"
-                                 })
-                                 .CreateLogger();
+                .MinimumLevel.Debug()
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                .MinimumLevel.Override("System", LogEventLevel.Error)
+                .Enrich.FromLogContext()
+                .Enrich.WithEnvironmentUserName()
+                .Enrich.WithMachineName()
+                .Enrich.WithProcessId()
+                .Enrich.WithProcessName()
+                .Enrich.WithThreadId()
+                .Enrich.WithThreadName()
+                .WriteTo.Console()
+                .WriteTo.ApplicationInsights(_telemetryConfig, TelemetryConverter.Traces, LogEventLevel.Information)
+                .WriteTo.MSSqlServer(configurations.GetValue<string>("ConnectionStrings:BaseDados"), new MSSqlServerSinkOptions
+                {
+                    AutoCreateSqlDatabase = true,
+                    TableName = "Logs"
+                })
+                .CreateLogger();
+
+        var applicationInsightsServiceOptions = new ApplicationInsightsServiceOptions
+        {
+            EnableAdaptiveSampling = false,
+            EnableDependencyTrackingTelemetryModule = false,
+            EnableRequestTrackingTelemetryModule = false
+        };
+
         services
-            .AddTransient<ILogWithMetric, LogWithMetric>();
+            .AddTransient<ILogWithMetric, LogWithMetric>()
+            .AddApplicationInsightsTelemetry(applicationInsightsServiceOptions);
 
         return services;
     }
