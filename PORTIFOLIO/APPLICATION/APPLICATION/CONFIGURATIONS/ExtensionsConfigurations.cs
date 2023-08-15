@@ -231,7 +231,7 @@ public static class ExtensionsConfigurations
             {
                 OnAuthenticationFailed = context =>
                 {
-                    Log.Information($"[LOG ERROR] {nameof(JwtBearerEvents)} - METHOD OnAuthenticationFailed - {context.Exception.Message}\n");
+                    Log.Error($"[LOG ERROR] {nameof(JwtBearerEvents)} - METHOD OnAuthenticationFailed - {context.Exception.Message}\n");
 
                     throw new UnauthorizedUserException(null);
                 },
