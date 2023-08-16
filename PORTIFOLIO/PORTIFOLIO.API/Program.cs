@@ -55,7 +55,8 @@ try
             MaxPageSize = 10,
             IncludeTotalCount = true,
             DefaultPageSize = 10,
-        });
+
+        }).AddProjections();
 
     if (
         builder.Environment.IsProduction()) {

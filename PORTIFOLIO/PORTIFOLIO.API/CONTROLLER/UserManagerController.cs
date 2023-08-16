@@ -50,7 +50,7 @@ public class UserManagerController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> SendGlobalNotification(Notification notification, string id)
     {
-        if (GlobalData.HubConnection is not null && GlobalData.HubConnection.TryGetValue(id, out var connectionId))
+        if (GlobalData.HubConnection is not null && GlobalData.HubConnection.TryGetValue(id.ToLower(), out var connectionId))
         {
             await _hubContext.Clients.Client(connectionId).SendAsync("ReceberMensagem", notification);
         }
