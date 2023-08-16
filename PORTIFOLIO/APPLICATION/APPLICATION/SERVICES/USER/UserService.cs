@@ -448,7 +448,8 @@ public class UserService : IUserService
                        ClaimRequest = claimRequest
                    });
 
-                return await _userRepository.AddClaimUserAsync(userEntity, new Claim(claimRequest.Type, claimRequest.Value)).ContinueWith(identityResultTask =>
+                return await _userRepository.AddClaimUserAsync(
+                    userEntity, new Claim(claimRequest.Type, claimRequest.Value)).ContinueWith(identityResultTask =>
                 {
                     var identityResult
                         = identityResultTask.Result;

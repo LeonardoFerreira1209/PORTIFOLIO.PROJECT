@@ -3,6 +3,9 @@ using APPLICATION.DOMAIN.GRAPHQL.DATALOADERS;
 
 namespace APPLICATION.DOMAIN.GRAPHQL.QUERY;
 
+/// <summary>
+/// Query de usuários.
+/// </summary>
 public class UserQuery
 {
     /// <summary>

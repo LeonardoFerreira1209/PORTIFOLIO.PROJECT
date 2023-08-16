@@ -1,4 +1,5 @@
 ﻿using APPLICATION.DOMAIN.ENUMS;
+using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 
 namespace APPLICATION.DOMAIN.HUB;
 
@@ -29,6 +30,11 @@ public class Notification
     /// Tipo da notificação.
     /// </summary>
     public NotificationType Type { get; set; }
+
+    /// <summary>
+    /// Descrição do tipo da notificação.
+    /// </summary>
+    public string TypeDescription { get => Type.ObterDescricao(); }
 
     /// <summary>
     /// Data de criação.
