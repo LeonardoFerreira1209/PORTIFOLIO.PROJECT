@@ -17,6 +17,7 @@ using Serilog.Context;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Threading.Tasks;
 using StatusCodes = Microsoft.AspNetCore.Http.StatusCodes;
 
@@ -31,7 +32,6 @@ namespace PORTIFOLIO.API.CONTROLLER;
 public class UserManagerController : ControllerBase
 {
     private readonly IUserService _userService;
-
     private readonly IHubContext<HubNotifications> _hubContext;
 
     /// <summary>
@@ -46,13 +46,17 @@ public class UserManagerController : ControllerBase
         _hubContext = hubContext; 
     }
 
-
     [HttpPost]
     public async Task<IActionResult> SendGlobalNotification(Notification notification, string id)
     {
-        if (GlobalData.HubConnection is not null && GlobalData.HubConnection.TryGetValue(id.ToLower(), out var connectionId))
+        if (GlobalData.HubConnections is not null)
         {
-            await _hubContext.Clients.Client(connectionId).SendAsync("ReceberMensagem", notification);
+            var connectionIds = GlobalData.HubConnections.Where(x => x.Key.Equals(id.ToLower())).Select(x => x.Value);
+
+            foreach (var connectionId in connectionIds)
+            {
+                await _hubContext.Clients.Client(connectionId).SendAsync("ReceberMensagem", notification);
+            }
         }
         return Ok();
     }

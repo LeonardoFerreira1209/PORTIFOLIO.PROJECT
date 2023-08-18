@@ -115,9 +115,9 @@ try
                 .Seeds(applicationbuilder).Result.StartRecurrentJobs();
 
         applicationbuilder
-        .Lifetime.ApplicationStarted
-            .Register(() => Log.Debug(
-                                $"[LOG DEBUG] - Aplicação inicializada com sucesso: [PORTIFOLIO.API]\n"));
+            .Lifetime.ApplicationStarted
+                .Register(() => Log.Debug(
+                        $"[LOG DEBUG] - Aplicação inicializada com sucesso: [PORTIFOLIO.API]\n"));
 
     applicationbuilder.Run();
 }
