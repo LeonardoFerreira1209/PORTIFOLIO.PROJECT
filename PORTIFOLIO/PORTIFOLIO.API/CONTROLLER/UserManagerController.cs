@@ -49,7 +49,7 @@ public class UserManagerController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> SendGlobalNotification(Notification notification, string id)
     {
-        if (GlobalData.HubConnections is not null)
+        if (GlobalData.HubConnection is not null && GlobalData.HubConnection.TryGetValue(id.ToLower(), out var connectionId))
         {
             var connectionIds = GlobalData.HubConnections.Where(x => x.Key.Equals(id.ToLower())).Select(x => x.Value);
 
