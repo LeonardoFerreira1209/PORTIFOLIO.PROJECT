@@ -5,7 +5,8 @@ env:
   DOTNET_VERSION: '7.x'                 # set this to the .NET Core version to use
 on:
   create:
-    branches: [ "release*" ]
+     branches:
+      - '*release*'
   schedule:
     - cron: '38 14 * * 1'
 permissions:
