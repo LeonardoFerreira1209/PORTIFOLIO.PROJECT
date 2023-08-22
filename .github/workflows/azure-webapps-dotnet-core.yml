@@ -76,7 +76,7 @@ jobs:
           publish-profile: ${{ secrets.__AZURE_PORTIFOLIO_API_PUBLISH_PROFILE__ }}
           package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
 
-      - name: Delete branch after deploy
-        run: |
-          git push origin --delete ${{ github.ref }}
-          echo "Branch ${{ github.ref }} deleted!"
+      #- name: Delete branch after deploy
+      #  run: |
+      #    git push origin --delete ${{ github.ref }}
+      #    echo "Branch ${{ github.ref }} deleted!"
