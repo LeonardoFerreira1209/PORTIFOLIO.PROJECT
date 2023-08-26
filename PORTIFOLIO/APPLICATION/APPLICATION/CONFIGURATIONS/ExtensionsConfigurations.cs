@@ -1,5 +1,6 @@
 ﻿using APPLICATION.APPLICATION.CONFIGURATIONS.APPLICATIONINSIGHTS;
 using APPLICATION.APPLICATION.CONFIGURATIONS.SWAGGER;
+using APPLICATION.APPLICATION.SERVICES.CHAT;
 using APPLICATION.APPLICATION.SERVICES.FILE;
 using APPLICATION.APPLICATION.SERVICES.JOBS;
 using APPLICATION.APPLICATION.SERVICES.TOKEN;
@@ -142,7 +143,7 @@ public static class ExtensionsConfigurations
         services
             .AddDbContext<Context>(options =>
             {
-                options.UseLazyLoadingProxies().UseSqlServer(configurations.GetValue<string>("ConnectionStrings:BaseDados")).LogTo(Console.WriteLine, LogLevel.None);
+                options./*UseLazyLoadingProxies().*/UseSqlServer(configurations.GetValue<string>("ConnectionStrings:BaseDados")).LogTo(Console.WriteLine, LogLevel.None);
 
                 options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
 
@@ -422,12 +423,14 @@ public static class ExtensionsConfigurations
             .AddTransient<IUserService, UserService>()
             .AddTransient<ITokenService, TokenService>()
             .AddTransient<IFileService, FileService>()
+            .AddTransient<IChatService, ChatSertvice>()
             // Facades
             .AddSingleton<IUtilFacade, UtilFacade>()
             // Repository
             .AddScoped<IUnitOfWork, UnitOfWork>()
             .AddScoped(typeof(IGenerictEntityCoreRepository<>), typeof(GenericEntityCoreRepository<>))
             .AddScoped<IEventRepository, EventRepository>()
+            .AddScoped<IChatRepository, ChatRepository>()
             .AddScoped<IUserRepository, UserRepository>()
             // Infra
             .AddSingleton<IUserEmailServiceBusSenderProvider, UserEmailServiceBusSenderProvider>()

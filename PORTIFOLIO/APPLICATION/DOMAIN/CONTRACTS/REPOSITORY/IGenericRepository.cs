@@ -55,5 +55,5 @@ public interface IGenericRepository<T> where T : Entity
     /// Recuperar todos.
     /// </summary>
     /// <returns></returns>
-    public Task<IList<T>> GetAllAsync(Expression<Func<T, bool>> predicate);
+    public Task<IQueryable<T>> GetAllAsync(Expression<Func<T, bool>> predicate);
 }

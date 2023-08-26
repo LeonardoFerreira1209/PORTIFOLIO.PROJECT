@@ -91,11 +91,11 @@ public class GenericEntityCoreRepository<T> : IGenerictEntityCoreRepository<T> w
     /// Recuperar todos.
     /// </summary>
     /// <returns></returns>
-    public async Task<IList<T>> GetAllAsync(Expression<Func<T, bool>> predicate = null)
+    public async Task<IQueryable<T>> GetAllAsync(Expression<Func<T, bool>> predicate = null)
     {
         IQueryable<T> query = _context.Set<T>();
 
-        return await query.Where(predicate).ToListAsync();
+        return await Task.FromResult(query.Where(predicate));
     }
 
     /// <summary>
