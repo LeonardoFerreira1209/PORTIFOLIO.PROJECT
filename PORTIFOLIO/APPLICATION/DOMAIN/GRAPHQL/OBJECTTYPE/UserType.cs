@@ -2,9 +2,9 @@
 
 namespace APPLICATION.DOMAIN.GRAPHQL.OBJECTTYPE;
 
-public class UserType : ObjectType<UserEntity>
+public class UserType : ObjectType<User>
 {
-    protected override void Configure(IObjectTypeDescriptor<UserEntity> descriptor)
+    protected override void Configure(IObjectTypeDescriptor<User> descriptor)
     {
         descriptor.Name("UserType").Description("Objeto que representa o usuário.");
 

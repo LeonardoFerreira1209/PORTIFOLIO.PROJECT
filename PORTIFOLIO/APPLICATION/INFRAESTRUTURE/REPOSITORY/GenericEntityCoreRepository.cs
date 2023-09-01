@@ -88,15 +88,19 @@ public class GenericEntityCoreRepository<T> : IGenerictEntityCoreRepository<T> w
         => _context.Set<T>().FirstOrDefaultAsync(entity => entity.Id.Equals(id));
 
     /// <summary>
-    /// Recuperar todos.
+    /// Recupera todos os registros do tipo T. Um predicado opcional pode ser fornecido para filtrar os registros.
     /// </summary>
-    /// <returns></returns>
-    public async Task<IQueryable<T>> GetAllAsync(Expression<Func<T, bool>> predicate = null)
+    /// <param name="predicate">Um predicado opcional para filtrar os registros recuperados.</param>
+    /// <returns>Uma tarefa que representa a operação de recuperação. O valor da tarefa é uma IQueryable<T> contendo todos os registros ou registros filtrados baseados no predicado.</returns>
+    public Task<IQueryable<T>> GetAllAsync(Expression<Func<T, bool>> predicate = null)
     {
         IQueryable<T> query = _context.Set<T>();
 
-        return await Task.FromResult(query.Where(predicate));
+        if (predicate != null) query = query.Where(predicate);
+
+        return Task.FromResult(query);
     }
+
 
     /// <summary>
     /// Começar uma transação no banco de dados.

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace APPLICATION.DOMAIN.ENTITY.ROLE;
 
-public class RoleEntity : IdentityRole<Guid>
+public class Role : IdentityRole<Guid>
 {
     /// <summary>
     /// Data de criação

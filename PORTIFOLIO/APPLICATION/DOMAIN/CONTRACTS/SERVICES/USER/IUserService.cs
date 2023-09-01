@@ -38,6 +38,13 @@ public interface IUserService
     Task<ObjectResult> CreateAsync(UserCreateRequest userCreateRequest);
 
     /// <summary>
+    /// Método responsavel por buscar usuários através do nome.
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
+    Task<ObjectResult> GetUsersByNameAsync(string name);
+
+    /// <summary>
     ///  Método responsável por atualizar um usuário.
     /// </summary>
     /// <param name="userUpdateRequest"></param>

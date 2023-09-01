@@ -100,13 +100,13 @@ public abstract class ServiceBusReceiverProviderBase
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <returns>retorna uma tupla com o valor convertido e o valor original</returns>
-    public virtual async Task<MessageEntity<T>> GetMessageAsync<T>()
+    public virtual async Task<Message<T>> GetMessageAsync<T>()
     {
         var receiveMessage = await _serviceBusReceiver.ReceiveMessageAsync(_LOCK_AWAIT_);
 
         var receiveMessageConvert = JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(receiveMessage.Body));
 
-        return new MessageEntity<T> { MappedMessage = receiveMessageConvert, OriginalMessage = receiveMessage };
+        return new Message<T> { MappedMessage = receiveMessageConvert, OriginalMessage = receiveMessage };
     }
 
     /// <summary>
@@ -116,9 +116,9 @@ public abstract class ServiceBusReceiverProviderBase
     /// </summary>
     /// <param name="quantity">Quantidade de mensagens que vai retornar</param>
     /// <returns>Retorna uma lista de (T) convertida</returns>
-    public virtual async Task<List<MessageEntity<T>>> GetMessagesAsync<T>(int quantity)
+    public virtual async Task<List<Message<T>>> GetMessagesAsync<T>(int quantity)
     {
-        var messages = new List<MessageEntity<T>>();
+        var messages = new List<Message<T>>();
 
         var listMessage = new List<ServiceBusReceivedMessage>();
 
@@ -142,7 +142,7 @@ public abstract class ServiceBusReceiverProviderBase
         {
             var mappedMessage = JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(item.Body));
 
-            messages.Add(new MessageEntity<T>(mappedMessage, item));
+            messages.Add(new Message<T>(mappedMessage, item));
         }
 
         return messages;

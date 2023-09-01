@@ -10,7 +10,7 @@ namespace APPLICATION.INFRAESTRUTURE.CONTEXTO;
 /// <summary>
 /// Classe de configuração do banco de dados.
 /// </summary>
-public class Context : IdentityDbContext<UserEntity, RoleEntity, Guid>
+public class Context : IdentityDbContext<User, Role, Guid>
 {
     public Context(
         DbContextOptions<Context> options) : base(options)
@@ -21,23 +21,23 @@ public class Context : IdentityDbContext<UserEntity, RoleEntity, Guid>
     /// <summary>
     /// Tabela de Chat.
     /// </summary>
-    public DbSet<ChatEntity> Chats { get; set; }
+    public DbSet<Chat> Chats { get; set; }
 
     /// <summary>
     /// Tabela de mensagens do chat.
     /// </summary>
-    public DbSet<ChatMessageEntity> ChatMessages { get; set; }
+    public DbSet<ChatMessage> ChatMessages { get; set; }
 
     /// <summary>
     /// Tabela de Eventos.
     /// </summary>
-    public DbSet<EventEntity> Events { get; set; }
+    public DbSet<Event> Events { get; set; }
 
     /// <summary>
     /// Tabela de códigos de confirmação de usuários.
     /// 
     /// </summary>
-    public DbSet<UserCodeEntity> AspNetUserCodes { get; set; }
+    public DbSet<UserCode> AspNetUserCodes { get; set; }
 
     /// <summary>
     /// Configrações fos datatypes.

@@ -15,7 +15,7 @@ public class UserQuery
     /// <param name="userBatchDataLoader"></param>
     /// <returns></returns>
     [UseProjection]
-    public async Task<UserEntity> GetUserByIdAsync(
+    public async Task<User> GetUserByIdAsync(
         Guid userId,
         UserBatchDataLoader userBatchDataLoader)
         => await userBatchDataLoader.LoadAsync(userId);
@@ -27,7 +27,7 @@ public class UserQuery
     /// <param name="usersBatchByNameDataloader"></param>
     /// <returns></returns>
     [UsePaging][UseProjection]
-    public async Task<IEnumerable<UserEntity>> GetUsersByNameAsync(
+    public async Task<IEnumerable<User>> GetUsersByNameAsync(
         string name,
         UsersBatchByNameDataloader usersBatchByNameDataloader)
         => await usersBatchByNameDataloader.LoadAsync(name);

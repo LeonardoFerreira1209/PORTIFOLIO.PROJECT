@@ -10,8 +10,10 @@ using APPLICATION.DOMAIN.CONTRACTS.CONFIGURATIONS;
 using APPLICATION.DOMAIN.CONTRACTS.CONFIGURATIONS.APPLICATIONINSIGHTS;
 using APPLICATION.DOMAIN.CONTRACTS.FACADE;
 using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY;
+using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.CHAT;
 using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.EVENTS;
 using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.USER;
+using APPLICATION.DOMAIN.CONTRACTS.SERVICES.CHAT;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.FILE;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.JOBS;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.TOKEN;
@@ -26,6 +28,7 @@ using APPLICATION.INFRAESTRUTURE.FACADES;
 using APPLICATION.INFRAESTRUTURE.JOBS.FACTORY.FLUENTSCHEDULER;
 using APPLICATION.INFRAESTRUTURE.JOBS.INTERFACES.BASE;
 using APPLICATION.INFRAESTRUTURE.REPOSITORY;
+using APPLICATION.INFRAESTRUTURE.REPOSITORY.CHAT;
 using APPLICATION.INFRAESTRUTURE.REPOSITORY.EVENTS;
 using APPLICATION.INFRAESTRUTURE.REPOSITORY.USER;
 using APPLICATION.INFRAESTRUTURE.SERVICEBUS.PROVIDER.USER;
@@ -160,7 +163,7 @@ public static class ExtensionsConfigurations
     public static IServiceCollection ConfigureIdentityServer(this IServiceCollection services, IConfiguration configuration)
     {
         services
-            .AddIdentity<UserEntity, RoleEntity>(options =>
+            .AddIdentity<User, Role>(options =>
             {
                 options.SignIn.RequireConfirmedEmail = true;
 
@@ -627,9 +630,9 @@ public static class ExtensionsConfigurations
     {
         using (var scope = webApplication.Services.CreateScope())
         {
-            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<UserEntity>>();
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
 
-            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<RoleEntity>>();
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<Role>>();
 
             var context = scope.ServiceProvider.GetRequiredService<Context>();
 
@@ -638,7 +641,7 @@ public static class ExtensionsConfigurations
                 Log.Debug($"[LOG DEBUG] - Iniciando seeds da aplicação.\n");
 
                 // Set data in user.
-                var user = new UserEntity
+                var user = new User
                 {
                     FirstName = "Hyper",
                     LastName = "Teste",
@@ -650,7 +653,7 @@ public static class ExtensionsConfigurations
                 };
 
                 // Generate a password hash.
-                user.PasswordHash = new PasswordHasher<UserEntity>().HashPassword(user, "Teste@123456");
+                user.PasswordHash = new PasswordHasher<User>().HashPassword(user, "Teste@123456");
 
                 // Create user.
                 await userManager.CreateAsync(user);
@@ -662,7 +665,7 @@ public static class ExtensionsConfigurations
                 await userManager.AddLoginAsync(user, new UserLoginInfo("TOOLS.USER.API", "TOOLS.USER", "TOOLS.USER.PROVIDER.KEY"));
 
                 // Set data in role.
-                var role = new RoleEntity
+                var role = new Role
                 {
                     Name = "administrator",
                     Status = Status.Active,

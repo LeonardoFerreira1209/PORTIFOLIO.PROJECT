@@ -17,7 +17,7 @@ using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
 using APPLICATION.DOMAIN.ENTITY.ROLE;
 using APPLICATION.DOMAIN.ENTITY.USER;
 using APPLICATION.DOMAIN.ENUMS;
-using APPLICATION.DOMAIN.EXCEPTIONS.USER;
+using APPLICATION.DOMAIN.EXCEPTIONS;
 using APPLICATION.DOMAIN.UTILS.Extensions;
 using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 using APPLICATION.DOMAIN.VALIDATORS;
@@ -44,7 +44,7 @@ public class UserService : IUserService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IUserRepository _userRepository;
     private readonly IEventRepository _eventRepository;
-    private readonly RoleManager<RoleEntity> _roleManager;
+    private readonly RoleManager<Role> _roleManager;
     private readonly IOptions<AppSettings> _appsettings;
     private readonly ITokenService _tokenService;
     private readonly IUtilFacade _utilFacade;
@@ -59,7 +59,7 @@ public class UserService : IUserService
     /// <param name="appsettings"></param>
     /// <param name="tokenService"></param>
     /// <param name="utilFacade"></param>
-    public UserService(IUnitOfWork unitOfWork, IUserRepository userRepository, IEventRepository eventRepository, RoleManager<RoleEntity> roleManager, IOptions<AppSettings> appsettings, ITokenService tokenService, IUtilFacade utilFacade)
+    public UserService(IUnitOfWork unitOfWork, IUserRepository userRepository, IEventRepository eventRepository, RoleManager<Role> roleManager, IOptions<AppSettings> appsettings, ITokenService tokenService, IUtilFacade utilFacade)
     {
         _unitOfWork = unitOfWork;
         _userRepository = userRepository;
@@ -111,7 +111,7 @@ public class UserService : IUserService
                             if (signInResult.Succeeded is false) ThrownAuthorizationException(signInResult, loginRequest);
                         });
 
-                    return await GenerateTokenJwtAsync(userEntity, loginRequest).ContinueWith(
+                    return await GenerateTokenJwtAsync(loginRequest).ContinueWith(
                         (tokenJwtTask) =>
                         {
                             var tokenJWT =
@@ -191,6 +191,51 @@ public class UserService : IUserService
                         true, HttpStatusCode.OK, userResponse, new List<DadosNotificacao> { new DadosNotificacao("Usuario recuperado com sucesso.") })
                     );
             });
+        }
+        catch (Exception exception)
+        {
+            Log.Error($"[LOG ERROR] - Exception:{exception.Message} - {JsonConvert.SerializeObject(exception)}\n"); throw;
+        }
+    }
+
+    /// <summary>
+    ///  Método responsável por buscar usuários através de um nome.
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
+    public async Task<ObjectResult> GetUsersByNameAsync(string name)
+    {
+        Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(GetUsersByNameAsync)}\n");
+
+        try
+        {
+            if (name is not null)
+            {
+                var names =
+                    new List<string> { name };
+
+                return await _userRepository.GetByNamesAsync(names).ContinueWith(userEntityTask =>
+                {
+                    var usersEntity =
+                        userEntityTask.Result.ToList();
+
+                    var usersResponse =
+                            usersEntity.Select(
+                                user => user.ToResponse()).ToList();
+
+                    return new OkObjectResult(
+                        new ApiResponse<List<UserResponse>>(
+                            true, HttpStatusCode.OK, new { users = usersResponse }, new List<DadosNotificacao> { new DadosNotificacao("Usuarios recuperados com sucesso.") })
+                        );
+                });
+            }
+            else
+            {
+                return new OkObjectResult(
+                        new ApiResponse<List<UserResponse>>(
+                            true, HttpStatusCode.OK, new { users = Enumerable.Empty<UserResponse>() }, new List<DadosNotificacao> { new DadosNotificacao("Usuarios recuperados com sucesso.") })
+                        );
+            }
         }
         catch (Exception exception)
         {
@@ -738,21 +783,19 @@ public class UserService : IUserService
     /// <summary>
     /// Método responsavel por gerar um tokenJwt.
     /// </summary>
-    /// <param name="userEntity"></param>
     /// <param name="loginRequest"></param>
     /// <returns></returns>
     /// <exception cref="CustomException"></exception>
-    private async Task<TokenJWT> GenerateTokenJwtAsync(UserEntity userEntity, LoginRequest loginRequest)
+    private async Task<TokenJWT> GenerateTokenJwtAsync(LoginRequest loginRequest)
     {
-        return await _tokenService.CreateJsonWebToken(loginRequest.Username).ContinueWith(async (tokenTask) =>
+        return await _tokenService.CreateJsonWebToken(loginRequest.Username).ContinueWith((tokenTask) =>
         {
             var tokenJwt =
                 tokenTask.Result
                 ?? throw new TokenJwtException(loginRequest);
 
             return tokenJwt;
-
-        }).Result;
+        });
     }
 
     /// <summary>
@@ -893,12 +936,12 @@ public class UserService : IUserService
     /// </summary>
     /// <param name="user"></param>
     /// <returns></returns>
-    private async Task SendConfirmationEmailCode(UserEntity user)
+    private async Task SendConfirmationEmailCode(User user)
     {
         var confirmationCodeIdentity = await _userRepository.GenerateEmailConfirmationTokenAsync(user);
 
         var userCodeEntity = await _userRepository.AddUserConfirmationCode(
-            new UserCodeEntity
+            new UserCode
             {
                 Created = DateTime.Now,
                 NumberCode = confirmationCodeIdentity.HashCode(),

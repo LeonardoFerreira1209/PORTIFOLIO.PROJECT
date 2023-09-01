@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace APPLICATION.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20230719233854_ADD_USERCONFIRMATIONCODE_TABLE")]
-    partial class ADD_USERCONFIRMATIONCODE_TABLE
+    [Migration("20230829024124_INIT")]
+    partial class INIT
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -21,14 +21,70 @@ namespace APPLICATION.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "7.0.9")
-                .HasAnnotation("Proxies:ChangeTracking", false)
-                .HasAnnotation("Proxies:CheckEquality", false)
-                .HasAnnotation("Proxies:LazyLoading", true)
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.EventEntity", b =>
+            modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.CHAT.Chat", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("FirstUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("SecondUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("Updated")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Chats");
+                });
+
+            modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.CHAT.ChatMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ChatId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Message")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("Updated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChatId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ChatMessages");
+                });
+
+            modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.Event", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -66,7 +122,7 @@ namespace APPLICATION.Migrations
                     b.ToTable("Events");
                 });
 
-            modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.ROLE.RoleEntity", b =>
+            modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.ROLE.Role", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -103,36 +159,7 @@ namespace APPLICATION.Migrations
                     b.ToTable("AspNetRoles", (string)null);
                 });
 
-            modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.USER.UserCodeEntity", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("HashCode")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("NumberCode")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("Updated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("UserConfirmationCodes");
-                });
-
-            modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.USER.UserEntity", b =>
+            modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.USER.User", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -220,6 +247,35 @@ namespace APPLICATION.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.USER.UserCode", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("HashCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NumberCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("Updated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AspNetUserCodes");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -329,9 +385,24 @@ namespace APPLICATION.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.CHAT.ChatMessage", b =>
+                {
+                    b.HasOne("APPLICATION.DOMAIN.ENTITY.CHAT.Chat", null)
+                        .WithMany("Messages")
+                        .HasForeignKey("ChatId");
+
+                    b.HasOne("APPLICATION.DOMAIN.ENTITY.USER.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
-                    b.HasOne("APPLICATION.DOMAIN.ENTITY.ROLE.RoleEntity", null)
+                    b.HasOne("APPLICATION.DOMAIN.ENTITY.ROLE.Role", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -340,7 +411,7 @@ namespace APPLICATION.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
                 {
-                    b.HasOne("APPLICATION.DOMAIN.ENTITY.USER.UserEntity", null)
+                    b.HasOne("APPLICATION.DOMAIN.ENTITY.USER.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -349,7 +420,7 @@ namespace APPLICATION.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
                 {
-                    b.HasOne("APPLICATION.DOMAIN.ENTITY.USER.UserEntity", null)
+                    b.HasOne("APPLICATION.DOMAIN.ENTITY.USER.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -358,13 +429,13 @@ namespace APPLICATION.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
                 {
-                    b.HasOne("APPLICATION.DOMAIN.ENTITY.ROLE.RoleEntity", null)
+                    b.HasOne("APPLICATION.DOMAIN.ENTITY.ROLE.Role", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("APPLICATION.DOMAIN.ENTITY.USER.UserEntity", null)
+                    b.HasOne("APPLICATION.DOMAIN.ENTITY.USER.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -373,11 +444,16 @@ namespace APPLICATION.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
                 {
-                    b.HasOne("APPLICATION.DOMAIN.ENTITY.USER.UserEntity", null)
+                    b.HasOne("APPLICATION.DOMAIN.ENTITY.USER.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.CHAT.Chat", b =>
+                {
+                    b.Navigation("Messages");
                 });
 #pragma warning restore 612, 618
         }

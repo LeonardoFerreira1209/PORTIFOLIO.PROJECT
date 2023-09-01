@@ -4,7 +4,7 @@ using APPLICATION.DOMAIN.ENTITY.USER;
 namespace APPLICATION.DOMAIN.GRAPHQL.DATALOADERS;
 
 public class UsersBatchByNameDataloader
-    : GroupedDataLoader<string, UserEntity>
+    : GroupedDataLoader<string, User>
 {
     private readonly IUserRepository _userRepository;
 
@@ -29,7 +29,7 @@ public class UsersBatchByNameDataloader
     /// <param name="keys"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    protected override async Task<ILookup<string, UserEntity>> LoadGroupedBatchAsync(
+    protected override async Task<ILookup<string, User>> LoadGroupedBatchAsync(
         IReadOnlyList<string> keys, 
         CancellationToken cancellationToken)
     {

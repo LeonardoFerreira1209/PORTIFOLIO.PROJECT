@@ -49,9 +49,9 @@ public class UserManagerController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> SendGlobalNotification(Notification notification, string id)
     {
-        if (GlobalData.HubConnections is not null)
+        if (GlobalData.HubNotifcationConnections is not null)
         {
-            var connectionIds = GlobalData.HubConnections.Where(x => x.Key.Equals(id.ToLower())).Select(x => x.Value);
+            var connectionIds = GlobalData.HubNotifcationConnections.Where(x => x.Key.Equals(id.ToLower())).Select(x => x.Value);
     
             foreach (var connectionId in connectionIds)
             {
@@ -130,6 +130,28 @@ public class UserManagerController : ControllerBase
     }
 
     /// <summary>
+    /// Método responsável por buscar usuáruos pelo nome.
+    /// </summary>
+    /// <param name="userCreateRequest"></param>
+    /// <returns></returns>
+    [HttpGet("get/users/by/name")]
+    [CustomAuthorize(Claims.User, "Get")]
+    [SwaggerOperation(Summary = "Buscar uauários pelo nome.", Description = "Método responsavel por buscar usuários pelo nome.")]
+    [ProducesResponseType(typeof(ApiResponse<UserResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<UserResponse>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<UserResponse>), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetUsersByNameAsync(string name)
+    {
+        using (LogContext.PushProperty("Controller", "UserController"))
+        using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(name)))
+        using (LogContext.PushProperty("Metodo", "GetUsersByNameAsync"))
+        {
+            return await Tracker.Time(()
+                => _userService.GetUsersByNameAsync(name), "Buscar usuários pelo nome");
+        }
+    }
+
+    /// <summary>
     /// Método responsável por atualizar um  usuario.
     /// </summary>
     /// <param name="userUpdateRequest"></param>
@@ -144,7 +166,7 @@ public class UserManagerController : ControllerBase
     {
         using (LogContext.PushProperty("Controller", "UserController"))
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(userUpdateRequest)))
-        using (LogContext.PushProperty("Metodo", "Create"))
+        using (LogContext.PushProperty("Metodo", "UpdateAsync"))
         {
             return await Tracker.Time(()
                 => _userService.UpdateAsync(userUpdateRequest), "Atualizar usuário");
@@ -166,7 +188,7 @@ public class UserManagerController : ControllerBase
     {
         using (LogContext.PushProperty("Controller", "UserController"))
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(userId)))
-        using (LogContext.PushProperty("Metodo", "Get"))
+        using (LogContext.PushProperty("Metodo", "GetAsync"))
         {
             return await Tracker.Time(()
                 => _userService.GetByIdAsync(Guid.Parse(userId)), "Recuperar um usuário");
@@ -188,7 +210,7 @@ public class UserManagerController : ControllerBase
     {
         using (LogContext.PushProperty("Controller", "UserController"))
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(new { userId, code })))
-        using (LogContext.PushProperty("Metodo", "activate"))
+        using (LogContext.PushProperty("Metodo", "ActivateAsync"))
         {
             return await Tracker.Time(()
                 => _userService.ActivateUserAsync(userId, code), "Ativar usuário");

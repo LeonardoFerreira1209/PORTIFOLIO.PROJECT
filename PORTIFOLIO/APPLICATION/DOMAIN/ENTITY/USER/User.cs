@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace APPLICATION.DOMAIN.ENTITY.USER;
 
-public class UserEntity : IdentityUser<Guid>
+public class User : IdentityUser<Guid>
 {
     /// <summary>
     /// Primeiro nome.

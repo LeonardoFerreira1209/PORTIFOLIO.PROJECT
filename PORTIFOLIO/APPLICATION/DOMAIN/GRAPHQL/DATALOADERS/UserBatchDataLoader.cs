@@ -3,7 +3,7 @@ using APPLICATION.DOMAIN.ENTITY.USER;
 
 namespace APPLICATION.DOMAIN.GRAPHQL.DATALOADERS;
 
-public class UserBatchDataLoader : BatchDataLoader<Guid, UserEntity>
+public class UserBatchDataLoader : BatchDataLoader<Guid, User>
 {
     private readonly IUserRepository _userRepository;
 
@@ -28,7 +28,7 @@ public class UserBatchDataLoader : BatchDataLoader<Guid, UserEntity>
     /// <param name="keys"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    protected override async Task<IReadOnlyDictionary<Guid, UserEntity>> LoadBatchAsync(
+    protected override async Task<IReadOnlyDictionary<Guid, User>> LoadBatchAsync(
         IReadOnlyList<Guid> keys,
         CancellationToken cancellationToken)
     {

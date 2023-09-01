@@ -6,14 +6,14 @@ namespace APPLICATION.DOMAIN.ENTITY.MESSAGE;
 /// Classe de mensagem do serviceBus
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public class MessageEntity<T>
+public class Message<T>
 {
     /// <summary>
     /// Construtor onde recebe dois parametros de mensagem
     /// </summary>
     /// <param name="_mappedMessage"></param>
     /// <param name="_originalMessage"></param>
-    public MessageEntity(T _mappedMessage, ServiceBusReceivedMessage _originalMessage)
+    public Message(T _mappedMessage, ServiceBusReceivedMessage _originalMessage)
     {
         MappedMessage = _mappedMessage; OriginalMessage = _originalMessage;
     }
@@ -21,7 +21,7 @@ public class MessageEntity<T>
     /// <summary>
     /// Construtor vazio
     /// </summary>
-    public MessageEntity() { }
+    public Message() { }
 
     /// <summary>
     /// Mensagem mapeada

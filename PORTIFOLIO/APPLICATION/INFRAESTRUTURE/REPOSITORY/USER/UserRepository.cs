@@ -1,6 +1,7 @@
 ﻿using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.USER;
 using APPLICATION.DOMAIN.ENTITY.ROLE;
 using APPLICATION.DOMAIN.ENTITY.USER;
+using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 using APPLICATION.INFRAESTRUTURE.CONTEXTO;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -14,14 +15,14 @@ namespace APPLICATION.INFRAESTRUTURE.REPOSITORY.USER;
 public class UserRepository : IUserRepository
 {
     private readonly Context _context;
-    private readonly SignInManager<UserEntity> _signInManager;
-    private readonly UserManager<UserEntity> _userManager;
-    private readonly RoleManager<RoleEntity> _roleManager;
+    private readonly SignInManager<User> _signInManager;
+    private readonly UserManager<User> _userManager;
+    private readonly RoleManager<Role> _roleManager;
 
-    public UserRepository(SignInManager<UserEntity> signInManager,
+    public UserRepository(SignInManager<User> signInManager,
         Context context,
-        UserManager<UserEntity> userManager, 
-        RoleManager<RoleEntity> roleManager)
+        UserManager<User> userManager,
+        RoleManager<Role> roleManager)
     {
         _context = context;
         _signInManager = signInManager;
@@ -37,7 +38,7 @@ public class UserRepository : IUserRepository
     /// <param name="isPersistent"></param>
     /// <param name="lockoutOnFailure"></param>
     /// <returns></returns>
-    public async Task<SignInResult> PasswordSignInAsync(UserEntity userEntity, string password, bool isPersistent, bool lockoutOnFailure) 
+    public async Task<SignInResult> PasswordSignInAsync(User userEntity, string password, bool isPersistent, bool lockoutOnFailure)
         => await _signInManager.PasswordSignInAsync(userEntity, password, isPersistent, lockoutOnFailure);
 
     /// <summary>
@@ -46,7 +47,7 @@ public class UserRepository : IUserRepository
     /// <param name="userEntity"></param>
     /// <param name="password"></param>
     /// <returns></returns>
-    public async Task<IdentityResult> CreateUserAsync(UserEntity userEntity, string password) 
+    public async Task<IdentityResult> CreateUserAsync(User userEntity, string password)
         => await _userManager.CreateAsync(userEntity, password);
 
     /// <summary>
@@ -54,7 +55,7 @@ public class UserRepository : IUserRepository
     /// </summary>
     /// <param name="userEntity"></param>
     /// <returns></returns>
-    public async Task<IdentityResult> UpdateUserAsync(UserEntity userEntity)
+    public async Task<IdentityResult> UpdateUserAsync(User userEntity)
         => await _userManager.UpdateAsync(userEntity);
 
     /// <summary>
@@ -62,7 +63,7 @@ public class UserRepository : IUserRepository
     /// </summary>
     /// <param name="userId"></param>
     /// <returns></returns>
-    public async Task<UserEntity> GetByAsync(Guid userId) 
+    public async Task<User> GetByAsync(Guid userId)
         => await _userManager.FindByIdAsync(userId.ToString());
 
     /// <summary>
@@ -70,7 +71,7 @@ public class UserRepository : IUserRepository
     /// </summary>
     /// <param name="userIds"></param>
     /// <returns></returns>
-    public async Task<IEnumerable<UserEntity>> GetByIdsAsync(List<Guid> userIds) 
+    public async Task<IEnumerable<User>> GetByIdsAsync(List<Guid> userIds)
         => await _userManager.Users.Where(user => userIds.Contains(user.Id)).ToListAsync();
 
     /// <summary>
@@ -78,18 +79,35 @@ public class UserRepository : IUserRepository
     /// </summary>
     /// <param name="names"></param>
     /// <returns></returns>
-    public async Task<IEnumerable<UserEntity>> GetByNamesAsync(List<string> names)
-        => await _userManager.Users.Where(user =>
-               names.Contains(user.FirstName)
-            || names.Contains(user.LastName)
-        ).ToListAsync();
+    public async Task<IEnumerable<User>> GetByNamesAsync(List<string> names)
+    {
+        var normalizedNames 
+            = names.ConvertAll(name 
+                => name.RemoveAccentAndConvertToLower());
+
+        var users = await _context.Users.ToListAsync();
+
+        return users.Where(
+            user => normalizedNames.Any(
+                normalized => 
+                    $"{user.FirstName.RemoveAccentAndConvertToLower()} {user.LastName.RemoveAccentAndConvertToLower()}".Contains(normalized) 
+                    ||
+                normalized.Contains(
+                    $"{user.FirstName.RemoveAccentAndConvertToLower()} {user.LastName.RemoveAccentAndConvertToLower()}")
+                ) 
+            ||
+            names.Any(name => user.Email.Contains(name) || user.UserName.Contains(name)
+            || 
+            name.Contains(user.Email) || name.Contains(user.UserName))            
+        ).ToList();
+    }
 
     /// <summary>
     /// Método responsável por recuperar um usuário pelo username.
     /// </summary>
     /// <param name="username"></param>
     /// <returns></returns>
-    public async Task<UserEntity> GetWithUsernameAsync(string username)
+    public async Task<User> GetWithUsernameAsync(string username)
         => await _userManager.FindByNameAsync(username);
 
     /// <summary>
@@ -98,7 +116,7 @@ public class UserRepository : IUserRepository
     /// <param name="userEntity"></param>
     /// <param name="username"></param>
     /// <returns></returns>
-    public async Task<IdentityResult> SetUserNameAsync(UserEntity userEntity, string username)
+    public async Task<IdentityResult> SetUserNameAsync(User userEntity, string username)
         => await _userManager.SetUserNameAsync(userEntity, username);
 
     /// <summary>
@@ -108,7 +126,7 @@ public class UserRepository : IUserRepository
     /// <param name="currentPassword"></param>
     /// <param name="password"></param>
     /// <returns></returns>
-    public async Task<IdentityResult> ChangePasswordAsync(UserEntity userEntity, string currentPassword, string password) 
+    public async Task<IdentityResult> ChangePasswordAsync(User userEntity, string currentPassword, string password)
         => await _userManager.ChangePasswordAsync(userEntity, currentPassword, password);
 
     /// <summary>
@@ -117,7 +135,7 @@ public class UserRepository : IUserRepository
     /// <param name="userEntity"></param>
     /// <param name="email"></param>
     /// <returns></returns>
-    public async Task<IdentityResult> SetEmailAsync(UserEntity userEntity, string email)
+    public async Task<IdentityResult> SetEmailAsync(User userEntity, string email)
         => await _userManager.SetEmailAsync(userEntity, email);
 
     /// <summary>
@@ -126,7 +144,7 @@ public class UserRepository : IUserRepository
     /// <param name="userEntity"></param>
     /// <param name="phoneNumber"></param>
     /// <returns></returns>
-    public async Task<IdentityResult> SetPhoneNumberAsync(UserEntity userEntity, string phoneNumber)
+    public async Task<IdentityResult> SetPhoneNumberAsync(User userEntity, string phoneNumber)
         => await _userManager.SetPhoneNumberAsync(userEntity, phoneNumber);
 
     /// <summary>
@@ -135,7 +153,7 @@ public class UserRepository : IUserRepository
     /// <param name="userEntity"></param>
     /// <param name="code"></param>
     /// <returns></returns>
-    public async Task<IdentityResult> ConfirmEmailAsync(UserEntity userEntity, string code) 
+    public async Task<IdentityResult> ConfirmEmailAsync(User userEntity, string code)
         => await _userManager.ConfirmEmailAsync(userEntity, code);
 
     /// <summary>
@@ -143,8 +161,8 @@ public class UserRepository : IUserRepository
     /// </summary>
     /// <param name="userEntity"></param>
     /// <returns></returns>
-    public async Task<string> GenerateEmailConfirmationTokenAsync(UserEntity userEntity)
-        =>await _userManager.GenerateEmailConfirmationTokenAsync(userEntity);
+    public async Task<string> GenerateEmailConfirmationTokenAsync(User userEntity)
+        => await _userManager.GenerateEmailConfirmationTokenAsync(userEntity);
 
     /// <summary>
     /// Método responsável por adicionar uma claim em um usuário.
@@ -152,7 +170,7 @@ public class UserRepository : IUserRepository
     /// <param name="userEntity"></param>
     /// <param name="claim"></param>
     /// <returns></returns>
-    public async Task<IdentityResult> AddClaimUserAsync(UserEntity userEntity, Claim claim)
+    public async Task<IdentityResult> AddClaimUserAsync(User userEntity, Claim claim)
         => await _userManager.AddClaimAsync(userEntity, claim);
 
     /// <summary>
@@ -161,7 +179,7 @@ public class UserRepository : IUserRepository
     /// <param name="userEntity"></param>
     /// <param name="claim"></param>
     /// <returns></returns>
-    public async Task<IdentityResult> RemoveClaimUserAsync(UserEntity userEntity, Claim claim)
+    public async Task<IdentityResult> RemoveClaimUserAsync(User userEntity, Claim claim)
         => await _userManager.RemoveClaimAsync(userEntity, claim);
 
     /// <summary>
@@ -170,7 +188,7 @@ public class UserRepository : IUserRepository
     /// <param name="userEntity"></param>
     /// <param name="roleName"></param>
     /// <returns></returns>
-    public async Task<IdentityResult> AddToUserRoleAsync(UserEntity userEntity, string roleName)
+    public async Task<IdentityResult> AddToUserRoleAsync(User userEntity, string roleName)
         => await _userManager.AddToRoleAsync(userEntity, roleName);
 
     /// <summary>
@@ -179,7 +197,7 @@ public class UserRepository : IUserRepository
     /// <param name="userEntity"></param>
     /// <param name="roleName"></param>
     /// <returns></returns>
-    public async Task<IdentityResult> RemoveToUserRoleAsync(UserEntity userEntity, string roleName)
+    public async Task<IdentityResult> RemoveToUserRoleAsync(User userEntity, string roleName)
         => await _userManager.RemoveFromRoleAsync(userEntity, roleName);
 
     /// <summary>
@@ -187,7 +205,7 @@ public class UserRepository : IUserRepository
     /// </summary>
     /// <param name="userEntity"></param>
     /// <returns></returns>
-    public async Task<IList<string>> GetUserRolesAsync(UserEntity userEntity)
+    public async Task<IList<string>> GetUserRolesAsync(User userEntity)
         => await _userManager.GetRolesAsync(userEntity);
 
     /// <summary>
@@ -195,7 +213,7 @@ public class UserRepository : IUserRepository
     /// </summary>
     /// <param name="roleName"></param>
     /// <returns></returns>
-    public async Task<RoleEntity> GetRoleAsync(string roleName) 
+    public async Task<Role> GetRoleAsync(string roleName)
         => await _roleManager.Roles.FirstOrDefaultAsync(role => role.Name.Equals(roleName));
 
     /// <summary>
@@ -203,7 +221,7 @@ public class UserRepository : IUserRepository
     /// </summary>
     /// <param name="roleEntity"></param>
     /// <returns></returns>
-    public async Task<IList<Claim>> GetRoleClaimsAsync(RoleEntity roleEntity)
+    public async Task<IList<Claim>> GetRoleClaimsAsync(Role roleEntity)
         => await _roleManager.GetClaimsAsync(roleEntity);
 
     /// <summary>
@@ -215,7 +233,7 @@ public class UserRepository : IUserRepository
     /// <param name="token"></param>
     /// <returns></returns>
     public async Task SetUserAuthenticationTokenAsync(
-        UserEntity userEntity, string providerName, string tokenName, string token)
+        User userEntity, string providerName, string tokenName, string token)
     {
         await _userManager
             .RemoveAuthenticationTokenAsync(
@@ -233,8 +251,8 @@ public class UserRepository : IUserRepository
     /// </summary>
     /// <param name="userCodeEntity"></param>
     /// <returns></returns>
-    public async Task<UserCodeEntity> AddUserConfirmationCode(
-        UserCodeEntity userCodeEntity)
+    public async Task<UserCode> AddUserConfirmationCode(
+        UserCode userCodeEntity)
     {
         await _context.AddAsync(userCodeEntity);
 
@@ -247,7 +265,7 @@ public class UserRepository : IUserRepository
     /// <param name="userId"></param>
     /// <param name="code"></param>
     /// <returns></returns>
-    public UserCodeEntity UpdateUserConfirmationCode(UserCodeEntity userCodeEntity)
+    public UserCode UpdateUserConfirmationCode(UserCode userCodeEntity)
     {
         _context.Update(userCodeEntity);
 
@@ -260,7 +278,7 @@ public class UserRepository : IUserRepository
     /// <param name="userId"></param>
     /// <param name="code"></param>
     /// <returns></returns>
-    public async Task<UserCodeEntity> GetUserConfirmationCode(
+    public async Task<UserCode> GetUserConfirmationCode(
         Guid userId, string code)
         => await _context.AspNetUserCodes.FirstOrDefaultAsync(
                 x => x.UserId.Equals(userId) && x.NumberCode.Equals(code));

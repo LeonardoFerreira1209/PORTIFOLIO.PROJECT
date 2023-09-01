@@ -1,6 +1,6 @@
-﻿using APPLICATION.DOMAIN.CONTRACTS.SERVICES.USER;
+﻿using APPLICATION.DOMAIN.CONTRACTS.SERVICES.CHAT;
+using APPLICATION.DOMAIN.DTOS.CHAT;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
-using APPLICATION.DOMAIN.ENTITY.CHAT;
 using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 using APPLICATION.INFRAESTRUTURE.SIGNALR;
 using Microsoft.AspNetCore.Cors;
@@ -19,7 +19,7 @@ namespace PORTIFOLIO.API.CONTROLLER;
 /// ChatController
 /// </summary>
 [ApiController]
-[Route("api/chat")]
+[Route("api/chatmanager")]
 [EnableCors("CorsPolicy")]
 public class ChatManagerController : ControllerBase
 {
@@ -37,25 +37,10 @@ public class ChatManagerController : ControllerBase
         _chatService = chatService;
     }
 
-    //[HttpPost]
-    //public async Task<IActionResult> SendGlobalNotification(HubNotificationDto notification, string id)
-    //{
-    //    if (GlobalData.HubConnections is not null)
-    //    {
-    //        var connectionIds = GlobalData.HubConnections.Where(x => x.Key.Equals(id.ToLower())).Select(x => x.Value);
-
-    //        foreach (var connectionId in connectionIds)
-    //        {
-    //            await _hubContext.Clients.Client(connectionId).SendAsync("ReceberMensagem", notification);
-    //        }
-    //    }
-    //    return Ok();
-    //}
-
     /// <summary>
-    /// 
+    /// Cria um chat.
     /// </summary>
-    /// <param name="userId"></param>
+    /// <param name="chatRequest"></param>
     /// <returns></returns>
     [HttpPost("create/chat")]
     //[CustomAuthorize(Claims.Role, "Delete")]
@@ -63,14 +48,36 @@ public class ChatManagerController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetChatsByUserAsync(ChatEntity chatEntity)
+    public async Task<IActionResult> CreateChatAsync(ChatRequest chatRequest)
     {
         using (LogContext.PushProperty("Controller", "ChatManagerController"))
-        using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(chatEntity)))
-        using (LogContext.PushProperty("Metodo", "GetChatsByUser"))
+        using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(chatRequest)))
+        using (LogContext.PushProperty("Metodo", "CreateChatAsync"))
         {
             return await Tracker.Time(()
-                => _chatService.CreateChatAsync(chatEntity), "Chat criado com sucesso!");
+                => _chatService.CreateChatAsync(chatRequest), "Criar chat");
+        }
+    }
+
+    /// <summary>
+    /// Cria e envia mensagem.
+    /// </summary>
+    /// <param name="chatMessageRequest"></param>
+    /// <returns></returns>
+    [HttpPost("send/message")]
+    //[CustomAuthorize(Claims.Role, "Delete")]
+    [SwaggerOperation(Summary = "Recuperar dados do chat", Description = "Método responsável por recuperar dados do chat")]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> SendMessageAsync(ChatMessageRequest chatMessageRequest)
+    {
+        using (LogContext.PushProperty("Controller", "ChatManagerController"))
+        using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(chatMessageRequest)))
+        using (LogContext.PushProperty("Metodo", "SendMessageAsync"))
+        {
+            return await Tracker.Time(()
+                => _chatService.SendMessageAsync(chatMessageRequest), "Enviar mensagem");
         }
     }
 

@@ -20,8 +20,8 @@ namespace APPLICATION.APPLICATION.SERVICES.TOKEN;
 /// </summary>
 public class TokenService : ITokenService
 {
-    private readonly UserManager<UserEntity> _userManager;
-    private readonly RoleManager<RoleEntity> _roleManager;
+    private readonly UserManager<User> _userManager;
+    private readonly RoleManager<Role> _roleManager;
     private readonly IOptions<AppSettings> _appsettings;
 
     /// <summary>
@@ -30,7 +30,7 @@ public class TokenService : ITokenService
     /// <param name="userManager"></param>
     /// <param name="roleManager"></param>
     /// <param name="appsettings"></param>
-    public TokenService(UserManager<UserEntity> userManager, RoleManager<RoleEntity> roleManager, IOptions<AppSettings> appsettings)
+    public TokenService(UserManager<User> userManager, RoleManager<Role> roleManager, IOptions<AppSettings> appsettings)
     {
         _userManager = userManager;
         _roleManager = roleManager;
@@ -114,7 +114,7 @@ public class TokenService : ITokenService
     /// </summary>
     /// <param name="username"></param>
     /// <returns></returns>
-    private async Task<UserEntity> User(string username)
+    private async Task<User> User(string username)
         => await _userManager.Users.FirstOrDefaultAsync(u => u.UserName.Equals(username));
 
     /// <summary>
@@ -122,7 +122,7 @@ public class TokenService : ITokenService
     /// </summary>
     /// <param name="user"></param>
     /// <returns></returns>
-    private async Task<List<Claim>> Roles(UserEntity user)
+    private async Task<List<Claim>> Roles(User user)
     {
         return await _userManager.GetRolesAsync(user).ContinueWith(rolesTask =>
         {
@@ -137,7 +137,7 @@ public class TokenService : ITokenService
     /// </summary>
     /// <param name="user"></param>
     /// <returns></returns>
-    private async Task<List<Claim>> Claims(UserEntity user, List<Claim> roles)
+    private async Task<List<Claim>> Claims(User user, List<Claim> roles)
     {
         var claims = new List<Claim>();
 

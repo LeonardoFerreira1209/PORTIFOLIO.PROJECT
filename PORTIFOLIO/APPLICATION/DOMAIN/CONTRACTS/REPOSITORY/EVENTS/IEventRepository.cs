@@ -2,7 +2,7 @@
 
 namespace APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.EVENTS;
 
-public interface IEventRepository : IGenerictEntityCoreRepository<EventEntity>
+public interface IEventRepository : IGenerictEntityCoreRepository<Event>
 {
 
 }

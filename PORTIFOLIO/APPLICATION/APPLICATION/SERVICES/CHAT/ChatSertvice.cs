@@ -1,8 +1,10 @@
 ﻿using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY;
-using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.EVENTS;
-using APPLICATION.DOMAIN.CONTRACTS.SERVICES.USER;
+using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.CHAT;
+using APPLICATION.DOMAIN.CONTRACTS.SERVICES.CHAT;
+using APPLICATION.DOMAIN.DTOS.CHAT;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
 using APPLICATION.DOMAIN.ENTITY.CHAT;
+using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -31,28 +33,56 @@ public class ChatSertvice : IChatService
     }
 
     /// <summary>
-    /// Criar usuários.
+    /// Criar um chat.
     /// </summary>
-    /// <param name="chatEntity"></param>
+    /// <param name="chatRequest"></param>
     /// <returns></returns>
-    public async Task<ObjectResult> CreateChatAsync(ChatEntity chatEntity)
+    public async Task<ObjectResult> CreateChatAsync(ChatRequest chatRequest)
     {
         Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(ChatSertvice)} - METHOD {nameof(CreateChatAsync)}\n");
 
         try
         {
-            return await _chatRepository.CreateAsync(chatEntity)
+            return await _chatRepository.CreateAsync(chatRequest.AsEntity())
                 .ContinueWith(async astaskResult =>
                  {
                      await _unitOfWork.CommitAsync();
 
-                    return new OkObjectResult(
-                        new ApiResponse<ChatEntity>(
-                            true, HttpStatusCode.Created, null, new List<DadosNotificacao>  {
+                     return new OkObjectResult(
+                         new ApiResponse<Chat>(
+                             true, HttpStatusCode.Created, null, new List<DadosNotificacao>  {
                                     new DadosNotificacao("Chat criado com sucesso!")
-                            }));
-
+                             }));
                  }).Result;
+        }
+        catch (Exception exception)
+        {
+            Log.Error($"[LOG ERROR] - Exception:{exception.Message} - {JsonConvert.SerializeObject(exception)}\n"); throw;
+        }
+    }
+
+    /// <summary>
+    /// Enviar uma mensagem e vincular com o chat.
+    /// </summary>
+    /// <param name="chatMessageRequest"></param>
+    /// <returns></returns>
+    public async Task<ObjectResult> SendMessageAsync(ChatMessageRequest chatMessageRequest)
+    {
+        Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(ChatSertvice)} - METHOD {nameof(SendMessageAsync)}\n");
+
+        try
+        {
+            return await _chatRepository.CreateMessageAsync(chatMessageRequest.AsEntity())
+                .ContinueWith(async astaskResult =>
+                {
+                    await _unitOfWork.CommitAsync();
+
+                    return new OkObjectResult(
+                        new ApiResponse<ChatMessage>(
+                            true, HttpStatusCode.Created, null, new List<DadosNotificacao>  {
+                                    new DadosNotificacao("Mensagem enviada com sucesso!")
+                            }));
+                }).Result;
         }
         catch (Exception exception)
         {
@@ -65,7 +95,6 @@ public class ChatSertvice : IChatService
     /// </summary>
     /// <param name="userId"></param>
     /// <returns></returns>
-    /// <exception cref="NotImplementedException"></exception>
     public async Task<ObjectResult> GetChatsByUserAsync(Guid userId)
     {
         Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(ChatSertvice)} - METHOD {nameof(GetChatsByUserAsync)}\n");
@@ -76,12 +105,15 @@ public class ChatSertvice : IChatService
                 chat => chat.FirstUserId.Equals(userId) || chat.SecondUserId.Equals(userId)).ContinueWith(taskResult =>
                 {
                     var chats
-                        = taskResult.Result
-                        .AsQueryable().Include(x => x.Messages).ThenInclude(m => m.User).ToList();
+                        = taskResult.Result.AsQueryable()
+                            .Include(u => u.FirstUser)
+                            .Include(u => u.SecondUser)
+                            .Include(x => x.Messages)
+                            .ThenInclude(m => m.User).ToList();
 
                     return new OkObjectResult(
-                        new ApiResponse<ChatEntity>(
-                            true, HttpStatusCode.OK, chats, new List<DadosNotificacao>  {
+                        new ApiResponse<Chat>(
+                            true, HttpStatusCode.OK, new { chats }, new List<DadosNotificacao>  {
                                 new DadosNotificacao("Chats recuperados com sucesso!")
                             }));
                 });

@@ -5,7 +5,7 @@ namespace APPLICATION.DOMAIN.ENTITY.USER;
 /// <summary>
 /// Entidade de código de confirmação de usuário.
 /// </summary>
-public class UserCodeEntity : Entity
+public class UserCode : Entity
 {
     /// <summary>
     /// Código numérico de confirmação de usuário.

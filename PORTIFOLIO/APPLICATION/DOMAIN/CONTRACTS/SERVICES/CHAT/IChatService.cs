@@ -1,7 +1,7 @@
-﻿using APPLICATION.DOMAIN.ENTITY.CHAT;
+﻿using APPLICATION.DOMAIN.DTOS.CHAT;
 using Microsoft.AspNetCore.Mvc;
 
-namespace APPLICATION.DOMAIN.CONTRACTS.SERVICES.USER;
+namespace APPLICATION.DOMAIN.CONTRACTS.SERVICES.CHAT;
 
 /// <summary>
 /// Interface de ChatService
@@ -9,11 +9,18 @@ namespace APPLICATION.DOMAIN.CONTRACTS.SERVICES.USER;
 public interface IChatService
 {
     /// <summary>
-    /// 
+    /// Método responsável por criar um chat.
     /// </summary>
-    /// <param name="chatEntity"></param>
+    /// <param name="chatRequest"></param>
     /// <returns></returns>
-    Task<ObjectResult> CreateChatAsync(ChatEntity chatEntity);
+    Task<ObjectResult> CreateChatAsync(ChatRequest chatRequest);
+
+    /// <summary>
+    /// Método responsável por criar e enviar uma mensagem.
+    /// </summary>
+    /// <param name="chatMessageRequest"></param>
+    /// <returns></returns>
+    Task<ObjectResult> SendMessageAsync(ChatMessageRequest chatMessageRequest);
 
     /// <summary>
     /// Métodos responsável por recuperar Chats do usuário.

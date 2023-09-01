@@ -6,7 +6,7 @@ namespace APPLICATION.DOMAIN.ENTITY;
 /// <summary>
 /// Classe de entidade de eventos.
 /// </summary>
-public class EventEntity : Entity
+public class Event : Entity
 {
     /// <summary>
     /// Nome do evento.
