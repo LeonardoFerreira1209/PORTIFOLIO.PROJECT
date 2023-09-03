@@ -1,5 +1,6 @@
 ﻿using APPLICATION.DOMAIN.ENUMS;
 using Microsoft.AspNetCore.Identity;
+using File = APPLICATION.DOMAIN.ENTITY.FILE.File;
 
 namespace APPLICATION.DOMAIN.ENTITY.USER;
 
@@ -44,4 +45,14 @@ public class User : IdentityUser<Guid>
     /// Status
     /// </summary>
     public Status Status { get; set; }
+
+    /// <summary>
+    /// Id do arquivo de imagem de perfil.
+    /// </summary>
+    public Guid? FileId { get; set; }
+
+    /// <summary>
+    /// Imagem de perfil.
+    /// </summary>
+    public virtual File File { get; set; }
 }

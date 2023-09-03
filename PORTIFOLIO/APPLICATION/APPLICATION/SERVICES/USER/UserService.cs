@@ -22,6 +22,8 @@ using APPLICATION.DOMAIN.UTILS.Extensions;
 using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 using APPLICATION.DOMAIN.VALIDATORS;
 using APPLICATION.INFRAESTRUTURE.FACTORY.MAIL;
+using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -94,7 +96,8 @@ public class UserService : IUserService
 
                     if (validation.IsValid is false)
                         await validation.GetValidationErrors();
-                });
+
+                }).Unwrap();
 
             var tokenJWT = await _userRepository.GetWithUsernameAsync(
                 loginRequest.Username).ContinueWith(async (userEntityTask) =>
@@ -121,7 +124,7 @@ public class UserService : IUserService
                             return tokenJWT;
                         });
 
-                }).Result;
+                }).Unwrap();
 
             return new OkObjectResult(
                 new ApiResponse<TokenJWT>(
@@ -178,7 +181,7 @@ public class UserService : IUserService
 
         try
         {
-            return await _userRepository.GetByAsync(userId).ContinueWith(userEntityTask =>
+            return await _userRepository.GetByIdAsync(userId).ContinueWith(userEntityTask =>
             {
                 var userEntity =
                     userEntityTask.Result
@@ -260,8 +263,22 @@ public class UserService : IUserService
                 {
                     var validation = validationTask.Result;
 
+                    await _userRepository.IsCpfAlreadyRegistered(userCreateRequest.CPF).ContinueWith((existTask) =>
+                    {
+                        if (existTask.Result)
+                        {
+                            validation.Errors.Add(new ValidationFailure
+                            {
+                                ErrorCode = "400",
+                                Severity = Severity.Warning,
+                                ErrorMessage = "CPF já registrado!"
+                            });
+                        }
+                    });
+
                     if (validation.IsValid is false) await validation.GetValidationErrors();
-                });
+
+                }).Unwrap();
 
             var user =
                 userCreateRequest.ToIdentityUser();
@@ -288,7 +305,7 @@ public class UserService : IUserService
 
                             }, new List<DadosNotificacao> { new DadosNotificacao("Usuário criado com sucesso.") }));
 
-                }).Result;
+                }).Unwrap();
         }
         catch (Exception exception)
         {
@@ -316,9 +333,10 @@ public class UserService : IUserService
 
                   if (validation.IsValid is false)
                       await validation.GetValidationErrors();
-              });
 
-            return await _userRepository.GetByAsync(userUpdateRequest.Id).ContinueWith(async (userEntityTask) =>
+              }).Unwrap();
+
+            return await _userRepository.GetByIdAsync(userUpdateRequest.Id).ContinueWith(async (userEntityTask) =>
             {
                 var userEntity =
                     userEntityTask.Result
@@ -387,7 +405,7 @@ public class UserService : IUserService
                        true, HttpStatusCode.OK, userEntity.ToResponse(),
                        new List<DadosNotificacao> { new DadosNotificacao("Usuário atualizado com sucesso.") }));
 
-            }).Result;
+            }).Unwrap();
         }
         catch (Exception exception)
         {
@@ -417,7 +435,7 @@ public class UserService : IUserService
                     if (userCode.Status is Status.Inactive)
                         throw new IncorrectConfirmationCodeAuthenticationException(new { userId, code });
 
-                    await _userRepository.GetByAsync(userCode.UserId).ContinueWith(
+                    await _userRepository.GetByIdAsync(userCode.UserId).ContinueWith(
                         async (userEntityTask) =>
                         {
                             var userEntity =
@@ -442,13 +460,13 @@ public class UserService : IUserService
                                             new List<DadosNotificacao> { new DadosNotificacao(identityResult.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) });
                                 });
 
-                        }).Result;
+                        }).Unwrap();
 
                     return new ObjectResult(
                         new ApiResponse<object>(
                             true, HttpStatusCode.OK, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário ativado com sucesso!") }));
 
-                }).Result;
+                }).Unwrap();
         }
         catch (Exception exception)
         {
@@ -481,7 +499,8 @@ public class UserService : IUserService
 
                   if (validation.IsValid is false)
                       await validation.GetValidationErrors();
-              });
+
+              }).Unwrap();
 
             return await _userRepository.GetWithUsernameAsync(username).ContinueWith(async (userEntityTask) =>
             {
@@ -495,30 +514,30 @@ public class UserService : IUserService
 
                 return await _userRepository.AddClaimUserAsync(
                     userEntity, new Claim(claimRequest.Type, claimRequest.Value)).ContinueWith(identityResultTask =>
-                {
-                    var identityResult
-                        = identityResultTask.Result;
+                    {
+                        var identityResult
+                            = identityResultTask.Result;
 
-                    if (identityResult.Succeeded is false)
-                        throw new CustomException(HttpStatusCode.BadRequest, new
-                        {
-                            Username = username,
-                            ClaimRequest = claimRequest
-                        },
-                        new List<DadosNotificacao> {
-                           new DadosNotificacao(identityResult.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) });
-
-                    return new OkObjectResult(
-                        new ApiResponse<object>(
-                            identityResult.Succeeded, HttpStatusCode.OK, new
+                        if (identityResult.Succeeded is false)
+                            throw new CustomException(HttpStatusCode.BadRequest, new
                             {
                                 Username = username,
                                 ClaimRequest = claimRequest
+                            },
+                            new List<DadosNotificacao> {
+                               new DadosNotificacao(identityResult.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) });
 
-                            }, new List<DadosNotificacao> { new DadosNotificacao($"Claim {claimRequest.Type} / {claimRequest.Value}, adicionada com sucesso ao usuário {username}.") }));
-                });
+                        return new OkObjectResult(
+                            new ApiResponse<object>(
+                                identityResult.Succeeded, HttpStatusCode.OK, new
+                                {
+                                    Username = username,
+                                    ClaimRequest = claimRequest
 
-            }).Result;
+                                }, new List<DadosNotificacao> { new DadosNotificacao($"Claim {claimRequest.Type} / {claimRequest.Value}, adicionada com sucesso ao usuário {username}.") }));
+                    });
+
+            }).Unwrap();
         }
         catch (Exception exception)
         {
@@ -551,7 +570,8 @@ public class UserService : IUserService
 
                     if (validation.IsValid is false)
                         await validation.GetValidationErrors();
-                });
+
+                }).Unwrap();
 
             return await _userRepository.GetWithUsernameAsync(username).ContinueWith(async (userEntityTask) =>
             {
@@ -587,7 +607,7 @@ public class UserService : IUserService
                             }, new List<DadosNotificacao> { new DadosNotificacao($"Claim {claimRequest.Type} / {claimRequest.Value}, removida com sucesso ao usuário {username}.") }));
                 });
 
-            }).Result;
+            }).Unwrap();
         }
         catch (Exception exception)
         {
@@ -638,9 +658,9 @@ public class UserService : IUserService
                                 new List<DadosNotificacao> { new DadosNotificacao($"Role {userRoleRequest.RoleName}, adicionada com sucesso ao usuário {userRoleRequest.Username}.") }));
                     });
 
-                }).Result;
+                }).Unwrap();
 
-            }).Result;
+            }).Unwrap();
         }
         catch (Exception exception)
         {
@@ -659,7 +679,7 @@ public class UserService : IUserService
 
         try
         {
-            return await _userRepository.GetByAsync(userId).ContinueWith(async (userEntityTask) =>
+            return await _userRepository.GetByIdAsync(userId).ContinueWith(async (userEntityTask) =>
             {
                 var userEntity =
                     userEntityTask.Result
@@ -692,7 +712,7 @@ public class UserService : IUserService
                                 new List<DadosNotificacao> { new DadosNotificacao("Roles recuperadas com sucesso!") }));
                 });
 
-            }).Result;
+            }).Unwrap();
         }
         catch (Exception exception)
         {
@@ -734,7 +754,7 @@ public class UserService : IUserService
                             new List<DadosNotificacao> { new DadosNotificacao($"Role {roleName}, removida com sucesso do usuário {username}.") }));
                 });
 
-            }).Result;
+            }).Unwrap();
         }
         catch (Exception exception)
         {
@@ -829,7 +849,7 @@ public class UserService : IUserService
                             identityResult.Succeeded, HttpStatusCode.OK, roleRequest,
                             new List<DadosNotificacao> { new DadosNotificacao($"Role {roleRequest.Name}, Role criado com sucesso.") }));
 
-                }).Result;
+                }).Unwrap();
         }
         catch (Exception exception)
         {
@@ -889,7 +909,7 @@ public class UserService : IUserService
                             true, HttpStatusCode.OK, role,
                             new List<DadosNotificacao> { new DadosNotificacao($"Claims adicionada a Role {roleRequest.Name} com sucesso!") }));
 
-                 }).Result;
+                 }).Unwrap();
         }
         catch (Exception exception)
         {
@@ -923,7 +943,7 @@ public class UserService : IUserService
                            true, HttpStatusCode.OK, role,
                            new List<DadosNotificacao> { new DadosNotificacao($"Claims removidas da Role {roleRequest.Name} com sucesso!") }));
 
-                }).Result;
+                }).Unwrap();
         }
         catch (Exception exception)
         {
@@ -975,6 +995,7 @@ public class UserService : IUserService
                     }));
 
             await _unitOfWork.CommitAsync();
-        });
+
+        }).Unwrap();
     }
 }

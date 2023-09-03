@@ -5,7 +5,7 @@ using System.Security.Claims;
 
 namespace APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.USER;
 
-public interface IUserRepository : IDisposable
+public interface IUserRepository
 {
     /// <summary>
     /// Retorna o resultado de autenicação do usuário.
@@ -37,7 +37,7 @@ public interface IUserRepository : IDisposable
     /// </summary>
     /// <param name="userId"></param>
     /// <returns></returns>
-    Task<User> GetByAsync(Guid userId);
+    Task<User> GetByIdAsync(Guid userId);
 
     /// <summary>
     /// Método responsável por recuperar vários usuários por id.
@@ -192,4 +192,11 @@ public interface IUserRepository : IDisposable
     /// <param name="code"></param>
     /// <returns></returns>
     Task<UserCode> GetUserConfirmationCode(Guid userId, string code);
+
+    /// <summary>
+    /// Método responsável por verificar se o cpf já existe em um uwuário.
+    /// </summary>
+    /// <param name="cpf"></param>
+    /// <returns></returns>
+    Task<bool> IsCpfAlreadyRegistered(string cpf);
 }

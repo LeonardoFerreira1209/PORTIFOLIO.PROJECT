@@ -61,7 +61,7 @@ public class SendGridMailService : IMailService<SendGridMailRequest, ApiResponse
                             response.IsSuccessStatusCode, response.StatusCode,
                                 JsonConvert.DeserializeObject(await response.Body.ReadAsStringAsync()));
 
-                    }).Result;
+                    }).Unwrap();
         }
         catch (Exception exception)
         {
@@ -94,7 +94,7 @@ public class SendGridMailService : IMailService<SendGridMailRequest, ApiResponse
                            response.IsSuccessStatusCode, response.StatusCode,
                                 JsonConvert.DeserializeObject(await response.Body.ReadAsStringAsync()));
 
-                    }).Result;
+                    }).Unwrap();
         }
         catch (Exception exception)
         {

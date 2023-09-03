@@ -43,8 +43,22 @@ public class Context : IdentityDbContext<User, Role, Guid>
     /// Configrações fos datatypes.
     /// </summary>
     /// <param name="builder"></param>
-    protected override void OnModelCreating(ModelBuilder builder)
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        base.OnModelCreating(builder);
+        // para FirstUserId
+        modelBuilder.Entity<Chat>()
+            .HasOne(chat => chat.FirstUser)
+            .WithMany()
+            .HasForeignKey(chat => chat.FirstUserId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        // para SecondUserId
+        modelBuilder.Entity<Chat>()
+            .HasOne(chat => chat.SecondUser)
+            .WithMany()
+            .HasForeignKey(chat => chat.SecondUserId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        base.OnModelCreating(modelBuilder);
     }
 }

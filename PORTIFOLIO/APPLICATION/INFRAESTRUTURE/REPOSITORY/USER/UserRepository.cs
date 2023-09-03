@@ -63,7 +63,7 @@ public class UserRepository : IUserRepository
     /// </summary>
     /// <param name="userId"></param>
     /// <returns></returns>
-    public async Task<User> GetByAsync(Guid userId)
+    public async Task<User> GetByIdAsync(Guid userId)
         => await _userManager.FindByIdAsync(userId.ToString());
 
     /// <summary>
@@ -283,8 +283,11 @@ public class UserRepository : IUserRepository
         => await _context.AspNetUserCodes.FirstOrDefaultAsync(
                 x => x.UserId.Equals(userId) && x.NumberCode.Equals(code));
 
-    public void Dispose()
-    {
-        _context.Dispose();
-    }
+    /// <summary>
+    /// Método responsável por verificar se o cpf já existe em um uwuário.
+    /// </summary>
+    /// <param name="cpf"></param>
+    /// <returns></returns>
+    public async Task<bool> IsCpfAlreadyRegistered(string cpf)
+        => await _context.Users.AnyAsync(user => user.CPF.Equals(cpf));
 }

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace APPLICATION.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20230829024124_INIT")]
-    partial class INIT
+    [Migration("20230903032932_CHAT")]
+    partial class CHAT
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -48,6 +48,10 @@ namespace APPLICATION.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("FirstUserId");
+
+                    b.HasIndex("SecondUserId");
+
                     b.ToTable("Chats");
                 });
 
@@ -57,7 +61,7 @@ namespace APPLICATION.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("ChatId")
+                    b.Property<Guid>("ChatId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("Created")
@@ -120,6 +124,35 @@ namespace APPLICATION.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Events");
+                });
+
+            modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.FILE.File", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ContentType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("Updated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Url")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("File");
                 });
 
             modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.ROLE.Role", b =>
@@ -185,6 +218,9 @@ namespace APPLICATION.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<Guid?>("FileId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("FirstName")
                         .HasColumnType("nvarchar(max)");
 
@@ -237,6 +273,8 @@ namespace APPLICATION.Migrations
                         .HasColumnType("nvarchar(256)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("FileId");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -385,11 +423,32 @@ namespace APPLICATION.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.CHAT.Chat", b =>
+                {
+                    b.HasOne("APPLICATION.DOMAIN.ENTITY.USER.User", "FirstUser")
+                        .WithMany()
+                        .HasForeignKey("FirstUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("APPLICATION.DOMAIN.ENTITY.USER.User", "SecondUser")
+                        .WithMany()
+                        .HasForeignKey("SecondUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FirstUser");
+
+                    b.Navigation("SecondUser");
+                });
+
             modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.CHAT.ChatMessage", b =>
                 {
                     b.HasOne("APPLICATION.DOMAIN.ENTITY.CHAT.Chat", null)
                         .WithMany("Messages")
-                        .HasForeignKey("ChatId");
+                        .HasForeignKey("ChatId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("APPLICATION.DOMAIN.ENTITY.USER.User", "User")
                         .WithMany()
@@ -398,6 +457,15 @@ namespace APPLICATION.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.USER.User", b =>
+                {
+                    b.HasOne("APPLICATION.DOMAIN.ENTITY.FILE.File", "File")
+                        .WithMany()
+                        .HasForeignKey("FileId");
+
+                    b.Navigation("File");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
