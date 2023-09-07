@@ -105,11 +105,10 @@ public class ChatSertvice : IChatService
                 chat => chat.FirstUserId.Equals(userId) || chat.SecondUserId.Equals(userId)).ContinueWith(taskResult =>
                 {
                     var chats
-                        = taskResult.Result.AsQueryable()
+                        = taskResult.Result
                             .Include(u => u.FirstUser)
                             .Include(u => u.SecondUser)
-                            .Include(x => x.Messages)
-                            .ThenInclude(m => m.User).ToList();
+                            .Include(x => x.Messages).ToList();
 
                     return new OkObjectResult(
                         new ApiResponse<Chat>(
@@ -117,6 +116,37 @@ public class ChatSertvice : IChatService
                                 new DadosNotificacao("Chats recuperados com sucesso!")
                             }));
                 });
+        }
+        catch (Exception exception)
+        {
+            Log.Error($"[LOG ERROR] - Exception:{exception.Message} - {JsonConvert.SerializeObject(exception)}\n"); throw;
+        }
+    }
+
+    /// <summary>
+    /// Método responsável por retornar as mensagens de um chat.
+    /// </summary>
+    /// <param name="chatId"></param>
+    /// <returns></returns>
+    public async Task<ObjectResult> GetMessagesByChatAsync(Guid chatId)
+    {
+        Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(ChatSertvice)} - METHOD {nameof(GetMessagesByChatAsync)}\n");
+
+        try
+        {
+            return await _chatRepository.GetMessagesByChatAsync(chatId).ContinueWith((taskResult) =>
+            {
+                var messages
+                     = taskResult.Result
+                         .Include(message => message.UserToSendMessage)
+                         .Include(message => message.Chat).ToList();
+
+                return new OkObjectResult(
+                        new ApiResponse<Chat>(
+                            true, HttpStatusCode.OK, new { messages }, new List<DadosNotificacao>  {
+                                new DadosNotificacao("Chats recuperados com sucesso!")
+                            }));
+            });
         }
         catch (Exception exception)
         {

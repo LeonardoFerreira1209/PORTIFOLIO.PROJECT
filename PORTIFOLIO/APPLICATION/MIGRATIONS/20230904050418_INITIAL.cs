@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace APPLICATION.Migrations
 {
     /// <inheritdoc />
-    public partial class CHAT : Migration
+    public partial class INITIAL : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -245,14 +245,12 @@ namespace APPLICATION.Migrations
                         name: "FK_Chats_AspNetUsers_FirstUserId",
                         column: x => x.FirstUserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Chats_AspNetUsers_SecondUserId",
                         column: x => x.SecondUserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(

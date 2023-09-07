@@ -34,4 +34,14 @@ public class ChatRepository : GenericEntityCoreRepository<Chat>, IChatRepository
 
         return message;
     }
+
+    /// <summary>
+    /// Buscar mensagems pelo Id do chat.
+    /// </summary>
+    /// <param name="chatId"></param>
+    /// <returns></returns>
+    public async Task<IQueryable<ChatMessage>> GetMessagesByChatAsync(
+    Guid chatId) 
+        => await Task.FromResult(_context
+            .ChatMessages.Where(message => message.ChatId.Equals(chatId)).AsQueryable());
 }

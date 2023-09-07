@@ -43,7 +43,7 @@ public class UserManagerController : ControllerBase
         IUserService userService)
     {
         _userService = userService;
-        _hubContext = hubContext; 
+        _hubContext = hubContext;
     }
 
     [HttpPost]
@@ -52,7 +52,7 @@ public class UserManagerController : ControllerBase
         if (GlobalData.HubNotifcationConnections is not null)
         {
             var connectionIds = GlobalData.HubNotifcationConnections.Where(x => x.Key.Equals(id.ToLower())).Select(x => x.Value);
-    
+
             foreach (var connectionId in connectionIds)
             {
                 await _hubContext.Clients.Client(connectionId).SendAsync("ReceberMensagem", notification);
@@ -132,7 +132,7 @@ public class UserManagerController : ControllerBase
     /// <summary>
     /// Método responsável por buscar usuáruos pelo nome.
     /// </summary>
-    /// <param name="userCreateRequest"></param>
+    /// <param name="name"></param>
     /// <returns></returns>
     [HttpGet("get/users/by/name")]
     [CustomAuthorize(Claims.User, "Get")]

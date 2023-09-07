@@ -425,13 +425,13 @@ namespace APPLICATION.Migrations
                     b.HasOne("APPLICATION.DOMAIN.ENTITY.USER.User", "FirstUser")
                         .WithMany()
                         .HasForeignKey("FirstUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("APPLICATION.DOMAIN.ENTITY.USER.User", "SecondUser")
                         .WithMany()
                         .HasForeignKey("SecondUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("FirstUser");

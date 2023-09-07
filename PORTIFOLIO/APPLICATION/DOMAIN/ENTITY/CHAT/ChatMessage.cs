@@ -14,14 +14,19 @@ public class ChatMessage : Entity
     public Guid UserId { get; set; }
 
     /// <summary>
+    /// Dados do usuário.
+    /// </summary>
+    public virtual User UserToSendMessage { get; set; }
+
+    /// <summary>
     /// Id do chat em que a mensagem está vinculada.
     /// </summary>
     public Guid ChatId { get; set; }
 
     /// <summary>
-    /// Dados do usuário.
+    /// Dados do chat em que a mensagem está vinculada.
     /// </summary>
-    public virtual User User { get; set; }
+    public virtual Chat Chat { get; set; }
 
     /// <summary>
     /// Mensagem

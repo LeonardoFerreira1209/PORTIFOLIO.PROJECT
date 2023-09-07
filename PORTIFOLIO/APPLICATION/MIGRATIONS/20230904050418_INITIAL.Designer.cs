@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace APPLICATION.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20230903032932_CHAT")]
-    partial class CHAT
+    [Migration("20230904050418_INITIAL")]
+    partial class INITIAL
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -428,13 +428,13 @@ namespace APPLICATION.Migrations
                     b.HasOne("APPLICATION.DOMAIN.ENTITY.USER.User", "FirstUser")
                         .WithMany()
                         .HasForeignKey("FirstUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("APPLICATION.DOMAIN.ENTITY.USER.User", "SecondUser")
                         .WithMany()
                         .HasForeignKey("SecondUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("FirstUser");

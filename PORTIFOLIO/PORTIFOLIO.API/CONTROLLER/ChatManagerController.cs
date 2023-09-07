@@ -102,4 +102,26 @@ public class ChatManagerController : ControllerBase
                 => _chatService.GetChatsByUserAsync(userId), "Recuperar chats por usuário");
         }
     }
+
+    /// <summary>
+    /// Recuperar dados das mensagens do chat.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    [HttpGet("get/messages/by/chat/{chatId}")]
+    //[CustomAuthorize(Claims.Role, "Delete")]
+    [SwaggerOperation(Summary = "Recuperar mensagens do chat", Description = "Método responsável por recuperar mensagens do chat")]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetMessagesByChatAsync(Guid chatId)
+    {
+        using (LogContext.PushProperty("Controller", "ChatManagerController"))
+        using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(chatId)))
+        using (LogContext.PushProperty("Metodo", "GetMessagesByChatAsync"))
+        {
+            return await Tracker.Time(()
+                => _chatService.GetMessagesByChatAsync(chatId), "Recuperar mensagens por chat");
+        }
+    }
 }
