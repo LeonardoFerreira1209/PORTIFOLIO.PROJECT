@@ -110,6 +110,7 @@ try
                 .UseEndpoints(endpoints =>
                 {
                     endpoints.MapHub<HubNotifications>("/notifications");
+                    endpoints.MapHub<HubChats>("/chats");
                     endpoints.MapControllers();
                 })
                 .Seeds(applicationbuilder).Result.StartRecurrentJobs();

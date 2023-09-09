@@ -40,8 +40,7 @@ public class ChatRepository : GenericEntityCoreRepository<Chat>, IChatRepository
     /// </summary>
     /// <param name="chatId"></param>
     /// <returns></returns>
-    public async Task<IQueryable<ChatMessage>> GetMessagesByChatAsync(
-    Guid chatId) 
+    public async Task<IQueryable<ChatMessage>> GetMessagesByChatAsync(Guid chatId) 
         => await Task.FromResult(_context
             .ChatMessages.Where(message => message.ChatId.Equals(chatId)).AsQueryable());
 }
