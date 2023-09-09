@@ -2,16 +2,16 @@
 using APPLICATION.DOMAIN.UTILS.GLOBAL;
 using Microsoft.AspNetCore.SignalR;
 
-namespace APPLICATION.INFRAESTRUTURE.SIGNALR;
+namespace APPLICATION.APPLICATION.SIGNALR;
 
 /// <summary>
 /// Hub de notificações.
 /// </summary>
 public class HubNotifications : HubBase
 {
-    public HubNotifications() 
+    public HubNotifications()
         : base(GlobalData.HubNotifcationConnections) { }
-    
+
     /// <summary>
     /// Método responsavel por envio de notificações para usuário
     /// </summary>

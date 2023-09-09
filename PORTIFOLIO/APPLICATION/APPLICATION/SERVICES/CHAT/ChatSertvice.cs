@@ -124,6 +124,35 @@ public class ChatSertvice : IChatService
     }
 
     /// <summary>
+    /// Método responsável por retornar dados de um chat.
+    /// </summary>
+    /// <param name="chatId"></param>
+    /// <returns></returns>
+    public async Task<ObjectResult> GetByIdAsync(Guid chatId)
+    {
+        Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(ChatSertvice)} - METHOD {nameof(GetByIdAsync)}\n");
+
+        try
+        {
+            return await _chatRepository.GetByIdAsync(chatId).ContinueWith(taskResult =>
+                {
+                    var chat
+                        = taskResult.Result;
+
+                    return new OkObjectResult(
+                        new ApiResponse<Chat>(
+                            true, HttpStatusCode.OK, new { chat }, new List<DadosNotificacao>  {
+                                new DadosNotificacao("Chat recuperados com sucesso!")
+                            }));
+                });
+        }
+        catch (Exception exception)
+        {
+            Log.Error($"[LOG ERROR] - Exception:{exception.Message} - {JsonConvert.SerializeObject(exception)}\n"); throw;
+        }
+    }
+
+    /// <summary>
     /// Método responsável por retornar as mensagens de um chat.
     /// </summary>
     /// <param name="chatId"></param>

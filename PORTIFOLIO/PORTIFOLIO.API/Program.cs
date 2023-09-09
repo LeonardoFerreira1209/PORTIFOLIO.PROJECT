@@ -1,9 +1,9 @@
 using APPLICATION.APPLICATION.CONFIGURATIONS;
+using APPLICATION.APPLICATION.SIGNALR;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.CUSTOMAUTHORIZE.FILTER;
 using APPLICATION.DOMAIN.GRAPHQL.QUERY;
 using APPLICATION.INFRAESTRUTURE.MIDDLEWARE;
-using APPLICATION.INFRAESTRUTURE.SIGNALR;
 using Hangfire;
 using HotChocolate.Types.Pagination;
 using Microsoft.AspNetCore.Builder;
@@ -110,7 +110,6 @@ try
                 .UseEndpoints(endpoints =>
                 {
                     endpoints.MapHub<HubNotifications>("/notifications");
-                    endpoints.MapHub<HubChats>("/chats");
                     endpoints.MapControllers();
                 })
                 .Seeds(applicationbuilder).Result.StartRecurrentJobs();

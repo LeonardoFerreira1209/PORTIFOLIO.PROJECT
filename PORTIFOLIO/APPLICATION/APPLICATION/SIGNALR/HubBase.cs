@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
 
-namespace APPLICATION.INFRAESTRUTURE.SIGNALR;
+namespace APPLICATION.APPLICATION.SIGNALR;
 
 /// <summary>
 /// Classe base de Hubs.
