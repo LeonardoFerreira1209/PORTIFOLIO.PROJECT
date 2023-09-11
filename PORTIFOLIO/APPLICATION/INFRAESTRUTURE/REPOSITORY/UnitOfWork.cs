@@ -31,6 +31,6 @@ public class UnitOfWork : IUnitOfWork
     /// Rollback a transação.
     /// </summary>
     /// <returns></returns>
-    public async Task RollbackAsync() 
+    public async Task RollbackAsync()
         => await _context.DisposeAsync();
 }

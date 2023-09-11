@@ -642,7 +642,7 @@ public class UserService : IUserService
                             new DadosNotificacao("Role não foi encontrada!")
                         });
 
-                    return await _userRepository.AddToUserRoleAsync(userEntity, userRoleRequest.RoleName).ContinueWith(identityResultTask =>
+                    return _userRepository.AddToUserRoleAsync(userEntity, userRoleRequest.RoleName).ContinueWith(identityResultTask =>
                     {
                         var identityResult
                             = identityResultTask.Result;
@@ -656,11 +656,11 @@ public class UserService : IUserService
                             new ApiResponse<object>(
                                 identityResult.Succeeded, HttpStatusCode.OK, userRoleRequest,
                                 new List<DadosNotificacao> { new DadosNotificacao($"Role {userRoleRequest.RoleName}, adicionada com sucesso ao usuário {userRoleRequest.Username}.") }));
-                    });
+                    }).Result;
 
-                }).Unwrap();
+                }).Result;
 
-            }).Result;
+            }).Unwrap();
         }
         catch (Exception exception)
         {

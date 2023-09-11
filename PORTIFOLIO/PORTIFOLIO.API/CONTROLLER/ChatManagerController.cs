@@ -34,7 +34,7 @@ public class ChatManagerController : ControllerBase
     public ChatManagerController(
         IHubContext<HubNotifications> hubContext, IChatService chatService)
     {
-        _hubContext = hubContext; 
+        _hubContext = hubContext;
         _chatService = chatService;
     }
 

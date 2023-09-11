@@ -43,7 +43,7 @@ public class ChatRepository : GenericEntityCoreRepository<Chat>, IChatRepository
     /// </summary>
     /// <param name="chatId"></param>
     /// <returns></returns>
-    public async Task<ICollection<ChatMessage>> GetMessagesByChatAsync(Guid chatId) 
+    public async Task<ICollection<ChatMessage>> GetMessagesByChatAsync(Guid chatId)
         => await _lazyLoadingContext
             .ChatMessages.Where(message => message.ChatId.Equals(chatId)).ToListAsync();
 

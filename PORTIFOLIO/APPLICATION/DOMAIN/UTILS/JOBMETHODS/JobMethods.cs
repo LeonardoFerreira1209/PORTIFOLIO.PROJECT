@@ -11,7 +11,7 @@ public class JobMethods : IJobMethods
     /// </summary>
     public JobMethods()
     {
-       
+
     }
 
     /// <summary>

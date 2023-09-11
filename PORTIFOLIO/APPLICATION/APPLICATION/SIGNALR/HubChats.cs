@@ -6,7 +6,6 @@ using APPLICATION.DOMAIN.UTILS.GLOBAL;
 using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
 using Serilog;
-using System;
 
 namespace APPLICATION.APPLICATION.SIGNALR;
 
@@ -39,7 +38,7 @@ public class HubChats : HubBase
 
             }).ContinueWith(async (taskResult) =>
             {
-                var apiResponse 
+                var apiResponse
                     = (ApiResponse<ChatMessageResponse>)taskResult.Result.Value;
 
                 await Clients

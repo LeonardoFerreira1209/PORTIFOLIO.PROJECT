@@ -30,10 +30,10 @@ public class SendGridMailService : IMailService<SendGridMailRequest, ApiResponse
     /// <param name="appsettings"></param>
     public SendGridMailService(
         IOptions<AppSettings> appsettings)
-        {
-            _sendGridClient = new SendGridClient(apiKey: appsettings.Value.Mail.ApiKey);
-            _jobsService = _hangfireJobFactory.CreateJobService();
-        }
+    {
+        _sendGridClient = new SendGridClient(apiKey: appsettings.Value.Mail.ApiKey);
+        _jobsService = _hangfireJobFactory.CreateJobService();
+    }
 
     /// <summary>
     /// Envie um único e-mail simples

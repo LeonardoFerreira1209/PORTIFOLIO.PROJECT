@@ -14,7 +14,8 @@ public class UserSubscriber : SubscriberBase, ISubscriberProcess
         options.Value.ServiceBus.QuantidadeMaximaDeRetentativas,
         options.Value.ServiceBus.TempoReagendamentoMinutos
 
-    ) { }
+    )
+    { }
 
     public override async Task ProcessHandlerAsync(ProcessMessageEventArgs args)
     {

@@ -185,7 +185,7 @@ public abstract class ServiceBusReceiverProviderBase
     /// <returns>none</returns>
     public virtual async Task CompleteMessageAsync(ServiceBusReceivedMessage message)
     {
-        if(_receiveMode == ServiceBusReceiveMode.PeekLock) await _serviceBusReceiver.CompleteMessageAsync(message);
+        if (_receiveMode == ServiceBusReceiveMode.PeekLock) await _serviceBusReceiver.CompleteMessageAsync(message);
     }
 
     /// <summary>

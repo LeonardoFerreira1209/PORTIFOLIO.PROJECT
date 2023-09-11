@@ -22,7 +22,8 @@ public class DadosNotificacao
 /// </summary>
 public abstract class BaseApiResponse
 {
-    public BaseApiResponse(HttpStatusCode statusCode) {
+    public BaseApiResponse(HttpStatusCode statusCode)
+    {
         StatusCode = statusCode;
     }
 
@@ -33,7 +34,8 @@ public abstract class BaseApiResponse
         Notificacoes = notificacoes;
     }
 
-    public BaseApiResponse(HttpStatusCode statusCode, bool sucesso, object dados, List<DadosNotificacao> notificacoes) {
+    public BaseApiResponse(HttpStatusCode statusCode, bool sucesso, object dados, List<DadosNotificacao> notificacoes)
+    {
         StatusCode = statusCode;
         Sucesso = sucesso;
         Dados = dados;

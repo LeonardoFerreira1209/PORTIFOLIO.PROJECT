@@ -66,7 +66,7 @@ namespace APPLICATION.DOMAIN.DTOS.REQUEST.USER
         /// </summary>
         [DataType(DataType.PhoneNumber)]
         public string PhoneNumber { get; set; }
-        
+
         /// <summary>
         /// Validação de dois fatores habilitada.
         /// </summary>

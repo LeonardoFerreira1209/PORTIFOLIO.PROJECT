@@ -45,13 +45,15 @@ public class ChatSertvice : IChatService
         try
         {
             return await _chatRepository.CreateAsync(chatRequest.AsEntity())
-                .ContinueWith(async astaskResult =>
+                .ContinueWith(async taskResult =>
                  {
                      await _unitOfWork.CommitAsync();
 
+                     var chat = taskResult.Result;
+
                      return new OkObjectResult(
                          new ApiResponse<ChatResponse>(
-                             true, HttpStatusCode.Created, null, new List<DadosNotificacao>  {
+                             true, HttpStatusCode.Created, chat, new List<DadosNotificacao>  {
                                     new DadosNotificacao("Chat criado com sucesso!")
                              }));
                  }).Result;

@@ -61,7 +61,8 @@ try
         }).AddProjections();
 
     if (
-        builder.Environment.IsProduction()) {
+        builder.Environment.IsProduction())
+    {
         builder.Services
             .ConfigureTelemetry(configurations)
                 .ConfigureApplicationInsights(configurations);
@@ -82,7 +83,7 @@ try
 
         })
         .AddNewtonsoftJson(
-            options 
+            options
             => options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
 
     builder.Services.AddSignalR();
@@ -117,10 +118,10 @@ try
                 })
                 .Seeds(applicationbuilder).Result.StartRecurrentJobs();
 
-        applicationbuilder
-            .Lifetime.ApplicationStarted
-                .Register(() => Log.Debug(
-                        $"[LOG DEBUG] - Aplicação inicializada com sucesso: [PORTIFOLIO.API]\n"));
+    applicationbuilder
+        .Lifetime.ApplicationStarted
+            .Register(() => Log.Debug(
+                    $"[LOG DEBUG] - Aplicação inicializada com sucesso: [PORTIFOLIO.API]\n"));
 
     applicationbuilder.Run();
 }

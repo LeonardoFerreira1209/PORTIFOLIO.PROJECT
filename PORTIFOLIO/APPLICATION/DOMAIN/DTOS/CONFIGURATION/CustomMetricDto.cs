@@ -1,5 +1,4 @@
 ﻿using APPLICATION.DOMAIN.ENUMS;
-using System.Diagnostics.CodeAnalysis;
 
 namespace APPLICATION.DOMAIN.DTOS.CONFIGURATION;
 

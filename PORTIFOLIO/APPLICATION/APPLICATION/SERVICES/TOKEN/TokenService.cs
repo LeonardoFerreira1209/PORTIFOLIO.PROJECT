@@ -74,10 +74,10 @@ public class TokenService : ITokenService
                     ClockSkew = TimeSpan.Zero,
                 });
 
-        var username = tokenValidationResult.IsValid 
+        var username = tokenValidationResult.IsValid
             ? (string)tokenValidationResult.Claims.First().Value : throw new TokenJwtException(tokenValidationResult);
 
-        return await 
+        return await
             BuildTokenJWT(username);
     }
 
@@ -148,7 +148,7 @@ public class TokenService : ITokenService
         if (roles is not null && roles.Any())
         {
             await _roleManager.Roles.Where(role
-                => rolesName.Contains(role.Name)).ToListAsync().ContinueWith(rolesTask =>  
+                => rolesName.Contains(role.Name)).ToListAsync().ContinueWith(rolesTask =>
                 {
                     var roles = rolesTask.Result;
 

@@ -1,4 +1,4 @@
-﻿using APPLICATION.DOMAIN.ENTITY.ENTITY;
+﻿using APPLICATION.DOMAIN.ENTITY.BASE;
 using System.Linq.Expressions;
 
 namespace APPLICATION.DOMAIN.CONTRACTS.REPOSITORY;
@@ -7,7 +7,7 @@ namespace APPLICATION.DOMAIN.CONTRACTS.REPOSITORY;
 /// Repositório genérico.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public interface IGenericRepository<T> where T : Entity 
+public interface IGenericRepository<T> where T : Entity
 {
     /// <summary>
     /// Criar.
@@ -48,9 +48,8 @@ public interface IGenericRepository<T> where T : Entity
     /// Recuperar por id.
     /// </summary>
     /// <param name="id"></param>
-    /// <param name="lazyLoading"></param>
     /// <returns></returns>
-    Task<T> GetByIdAsync(Guid id, bool lazyLoading = false);
+    Task<T> GetByIdAsync(Guid id, bool lazyLoading);
 
     /// <summary>
     /// Recuperar todos.

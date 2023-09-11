@@ -1,5 +1,5 @@
 ﻿using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY;
-using APPLICATION.DOMAIN.ENTITY.ENTITY;
+using APPLICATION.DOMAIN.ENTITY.BASE;
 using APPLICATION.INFRAESTRUTURE.CONTEXTO;
 using EFCore.BulkExtensions;
 using Microsoft.EntityFrameworkCore;
@@ -21,9 +21,10 @@ public class GenericEntityCoreRepository<T> : IGenerictEntityCoreRepository<T> w
     /// Ctor
     /// </summary>
     public GenericEntityCoreRepository
-        (Context context, LazyLoadingContext lazyLoadingContext) {
-            _context = context;
-            _lazyLoadingContext = lazyLoadingContext;
+        (Context context, LazyLoadingContext lazyLoadingContext)
+    {
+        _context = context;
+        _lazyLoadingContext = lazyLoadingContext;
     }
 
     /// <summary>
@@ -89,7 +90,7 @@ public class GenericEntityCoreRepository<T> : IGenerictEntityCoreRepository<T> w
     /// <param name="laziLoading"></param>
     /// <returns></returns>
     public Task<T> GetByIdAsync(Guid id, bool laziLoading)
-        => laziLoading ? _lazyLoadingContext.Set<T>().FirstOrDefaultAsync(entity => entity.Id.Equals(id))  : _context.Set<T>().FirstOrDefaultAsync(entity => entity.Id.Equals(id));
+        => laziLoading ? _lazyLoadingContext.Set<T>().FirstOrDefaultAsync(entity => entity.Id.Equals(id)) : _context.Set<T>().FirstOrDefaultAsync(entity => entity.Id.Equals(id));
 
     /// <summary>
     /// Recupera todos os registros do tipo T. Um predicado opcional pode ser fornecido para filtrar os registros.

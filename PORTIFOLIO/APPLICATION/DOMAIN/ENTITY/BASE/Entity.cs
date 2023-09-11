@@ -1,6 +1,6 @@
 ﻿using APPLICATION.DOMAIN.ENUMS;
 
-namespace APPLICATION.DOMAIN.ENTITY.ENTITY;
+namespace APPLICATION.DOMAIN.ENTITY.BASE;
 
 /// <summary>
 /// Classe abstrata de entidades.
@@ -16,7 +16,8 @@ public abstract class Entity
     /// <summary>
     /// ctor
     /// </summary>
-    public Entity() {
+    public Entity()
+    {
 
     }
 

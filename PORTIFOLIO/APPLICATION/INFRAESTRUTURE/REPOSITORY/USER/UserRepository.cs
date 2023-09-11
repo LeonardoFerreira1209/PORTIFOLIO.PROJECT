@@ -81,24 +81,24 @@ public class UserRepository : IUserRepository
     /// <returns></returns>
     public async Task<IEnumerable<User>> GetByNamesAsync(List<string> names)
     {
-        var normalizedNames 
-            = names.ConvertAll(name 
+        var normalizedNames
+            = names.ConvertAll(name
                 => name.RemoveAccentAndConvertToLower());
 
         var users = await _context.Users.ToListAsync();
 
         return users.Where(
             user => normalizedNames.Any(
-                normalized => 
-                    $"{user.FirstName.RemoveAccentAndConvertToLower()} {user.LastName.RemoveAccentAndConvertToLower()}".Contains(normalized) 
+                normalized =>
+                    $"{user.FirstName.RemoveAccentAndConvertToLower()} {user.LastName.RemoveAccentAndConvertToLower()}".Contains(normalized)
                     ||
                 normalized.Contains(
                     $"{user.FirstName.RemoveAccentAndConvertToLower()} {user.LastName.RemoveAccentAndConvertToLower()}")
-                ) 
+                )
             ||
             names.Any(name => user.Email.Contains(name) || user.UserName.Contains(name)
-            || 
-            name.Contains(user.Email) || name.Contains(user.UserName))            
+            ||
+            name.Contains(user.Email) || name.Contains(user.UserName))
         ).ToList();
     }
 
