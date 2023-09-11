@@ -42,4 +42,11 @@ public interface IChatService
     /// <param name="chatId"></param>
     /// <returns></returns>
     Task<ObjectResult> GetMessagesByChatAsync(Guid chatId);
+
+    /// <summary>
+    /// Buscar mensagems pelo Id.
+    /// </summary>
+    /// <param name="chatId"></param>
+    /// <returns></returns>
+    Task<ObjectResult> GetMessageByIdAsync(Guid chatMessageId);
 }

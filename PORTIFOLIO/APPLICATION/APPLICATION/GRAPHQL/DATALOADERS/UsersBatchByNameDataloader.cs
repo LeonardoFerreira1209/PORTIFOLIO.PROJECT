@@ -1,7 +1,7 @@
 ﻿using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.USER;
 using APPLICATION.DOMAIN.ENTITY.USER;
 
-namespace APPLICATION.DOMAIN.GRAPHQL.DATALOADERS;
+namespace APPLICATION.APPLICATION.GRAPHQL.DATALOADERS;
 
 public class UsersBatchByNameDataloader
     : GroupedDataLoader<string, User>
@@ -30,7 +30,7 @@ public class UsersBatchByNameDataloader
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     protected override async Task<ILookup<string, User>> LoadGroupedBatchAsync(
-        IReadOnlyList<string> keys, 
+        IReadOnlyList<string> keys,
         CancellationToken cancellationToken)
     {
         var users = await _userRepository.GetByNamesAsync(keys.ToList());

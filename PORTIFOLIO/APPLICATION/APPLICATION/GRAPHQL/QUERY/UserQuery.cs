@@ -1,7 +1,7 @@
-﻿using APPLICATION.DOMAIN.ENTITY.USER;
-using APPLICATION.DOMAIN.GRAPHQL.DATALOADERS;
+﻿using APPLICATION.APPLICATION.GRAPHQL.DATALOADERS;
+using APPLICATION.DOMAIN.ENTITY.USER;
 
-namespace APPLICATION.DOMAIN.GRAPHQL.QUERY;
+namespace APPLICATION.APPLICATION.GRAPHQL.QUERY;
 
 /// <summary>
 /// Query de usuários.
@@ -26,7 +26,8 @@ public class UserQuery
     /// <param name="name"></param>
     /// <param name="usersBatchByNameDataloader"></param>
     /// <returns></returns>
-    [UsePaging][UseProjection]
+    [UsePaging]
+    [UseProjection]
     public async Task<IEnumerable<User>> GetUsersByNameAsync(
         string name,
         UsersBatchByNameDataloader usersBatchByNameDataloader)

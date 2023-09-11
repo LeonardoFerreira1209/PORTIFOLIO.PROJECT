@@ -146,11 +146,18 @@ public static class ExtensionsConfigurations
         services
             .AddDbContext<Context>(options =>
             {
-                options./*UseLazyLoadingProxies().*/UseSqlServer(configurations.GetValue<string>("ConnectionStrings:BaseDados")).LogTo(Console.WriteLine, LogLevel.None);
+                options.UseSqlServer(configurations.GetValue<string>("ConnectionStrings:BaseDados")).LogTo(Console.WriteLine, LogLevel.None);
 
                 options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
 
             }, ServiceLifetime.Scoped);
+
+        services
+           .AddDbContext<LazyLoadingContext>(options =>
+           {
+               options.UseLazyLoadingProxies().UseSqlServer(configurations.GetValue<string>("ConnectionStrings:BaseDados")).LogTo(Console.WriteLine, LogLevel.None);
+
+           }, ServiceLifetime.Scoped);
 
         return services;
     }
@@ -437,7 +444,8 @@ public static class ExtensionsConfigurations
             .AddScoped<IUserRepository, UserRepository>()
             // Infra
             .AddSingleton<IUserEmailServiceBusSenderProvider, UserEmailServiceBusSenderProvider>()
-            .AddSingleton<IUserEmailServiceBusReceiverProvider, UserEmailServiceBusReceiverProvider>();
+            .AddSingleton<IUserEmailServiceBusReceiverProvider, UserEmailServiceBusReceiverProvider>()
+            .AddScoped<LazyLoadingContext>();
 
         // AutoMapper
         services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());

@@ -78,7 +78,7 @@
 
   <ItemGroup>
     <Folder Include="DOMAIN\DTOS\MAIL\BASE\" />
-    <Folder Include="DOMAIN\GRAPHQL\QUERYTYPE\" />
+    <Folder Include="APPLICATION\GRAPHQL\QUERYTYPE\" />
     <Folder Include="DOMAIN\HANDLERS\" />
     <Folder Include="INFRAESTRUTURE\JOBS\QUEUED\" />
     <Folder Include="MIGRATIONS\" />

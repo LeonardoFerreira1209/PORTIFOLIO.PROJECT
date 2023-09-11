@@ -1,7 +1,7 @@
 ﻿using APPLICATION.APPLICATION.SERVICES.MAIL;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.MAIL;
 
-namespace APPLICATION.INFRAESTRUTURE.FACTORY.MAIL;
+namespace APPLICATION.DOMAIN.FACTORY.MAIL;
 
 /// <summary>
 /// Factory de e-mail padrão do sistema.
@@ -14,6 +14,6 @@ public class MailFactory : MailAbstractFactory
     /// <typeparam name="TRequest"></typeparam>
     /// <typeparam name="TResponse"></typeparam>
     /// <returns></returns>
-    public  override IMailService<TRequest, TResponse> CreateMailService<TRequest, TResponse>()
+    public override IMailService<TRequest, TResponse> CreateMailService<TRequest, TResponse>()
         => new MailService() as IMailService<TRequest, TResponse>;
 }

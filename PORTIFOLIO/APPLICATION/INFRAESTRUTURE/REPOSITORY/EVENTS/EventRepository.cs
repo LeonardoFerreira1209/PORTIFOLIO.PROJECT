@@ -6,7 +6,7 @@ namespace APPLICATION.INFRAESTRUTURE.REPOSITORY.EVENTS;
 
 public class EventRepository : GenericEntityCoreRepository<Event>, IEventRepository
 {
-    public EventRepository(Context context) : base(context)
+    public EventRepository(LazyLoadingContext lazyLoadingContext, Context context) : base(context, lazyLoadingContext)
     {
 
     }

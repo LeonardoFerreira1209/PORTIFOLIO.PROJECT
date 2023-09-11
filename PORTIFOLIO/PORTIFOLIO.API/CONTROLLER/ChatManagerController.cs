@@ -1,6 +1,7 @@
 ﻿using APPLICATION.APPLICATION.SIGNALR;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.CHAT;
 using APPLICATION.DOMAIN.DTOS.CHAT;
+using APPLICATION.DOMAIN.DTOS.RESPONSE.CHAT;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
 using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 using Microsoft.AspNetCore.Cors;
@@ -45,9 +46,9 @@ public class ChatManagerController : ControllerBase
     [HttpPost("create/chat")]
     //[CustomAuthorize(Claims.Role, "Delete")]
     [SwaggerOperation(Summary = "Recuperar dados do chat", Description = "Método responsável por recuperar dados do chat")]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(ApiResponse<ChatResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<ChatResponse>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<ChatResponse>), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CreateChatAsync(ChatRequest chatRequest)
     {
         using (LogContext.PushProperty("Controller", "ChatManagerController"))

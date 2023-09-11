@@ -1,8 +1,9 @@
 using APPLICATION.APPLICATION.CONFIGURATIONS;
+using APPLICATION.APPLICATION.GRAPHQL.QUERY;
 using APPLICATION.APPLICATION.SIGNALR;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.CUSTOMAUTHORIZE.FILTER;
-using APPLICATION.DOMAIN.GRAPHQL.QUERY;
+using APPLICATION.INFRAESTRUTURE.CONTEXTO;
 using APPLICATION.INFRAESTRUTURE.MIDDLEWARE;
 using Hangfire;
 using HotChocolate.Types.Pagination;
@@ -37,6 +38,7 @@ try
         .AddHttpContextAccessor()
             .Configure<AppSettings>(configurations)
                 .AddSingleton<AppSettings>()
+                   .AddScoped<LazyLoadingContext>()
                     .AddEndpointsApiExplorer()
                         .AddOptions()
                             .ConfigureLanguage()
@@ -110,6 +112,7 @@ try
                 .UseEndpoints(endpoints =>
                 {
                     endpoints.MapHub<HubNotifications>("/notifications");
+                    endpoints.MapHub<HubChats>("/chats");
                     endpoints.MapControllers();
                 })
                 .Seeds(applicationbuilder).Result.StartRecurrentJobs();

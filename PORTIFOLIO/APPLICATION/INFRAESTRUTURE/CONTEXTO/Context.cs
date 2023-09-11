@@ -40,7 +40,7 @@ public class Context : IdentityDbContext<User, Role, Guid>
     public DbSet<UserCode> AspNetUserCodes { get; set; }
 
     /// <summary>
-    /// Configrações fos datatypes.
+    /// Configrações dos datatypes.
     /// </summary>
     /// <param name="modelBuilder"></param>
     protected override void OnModelCreating(ModelBuilder modelBuilder)

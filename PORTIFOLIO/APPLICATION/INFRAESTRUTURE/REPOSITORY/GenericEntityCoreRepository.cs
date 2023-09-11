@@ -15,12 +15,15 @@ public class GenericEntityCoreRepository<T> : IGenerictEntityCoreRepository<T> w
 {
     private readonly Context _context;
 
+    private readonly LazyLoadingContext _lazyLoadingContext;
+
     /// <summary>
     /// Ctor
     /// </summary>
     public GenericEntityCoreRepository
-        (Context context) {
+        (Context context, LazyLoadingContext lazyLoadingContext) {
             _context = context;
+            _lazyLoadingContext = lazyLoadingContext;
     }
 
     /// <summary>
@@ -83,9 +86,10 @@ public class GenericEntityCoreRepository<T> : IGenerictEntityCoreRepository<T> w
     /// Recuperar por Id.
     /// </summary>
     /// <param name="id"></param>
+    /// <param name="laziLoading"></param>
     /// <returns></returns>
-    public Task<T> GetByIdAsync(Guid id)
-        => _context.Set<T>().FirstOrDefaultAsync(entity => entity.Id.Equals(id));
+    public Task<T> GetByIdAsync(Guid id, bool laziLoading)
+        => laziLoading ? _lazyLoadingContext.Set<T>().FirstOrDefaultAsync(entity => entity.Id.Equals(id))  : _context.Set<T>().FirstOrDefaultAsync(entity => entity.Id.Equals(id));
 
     /// <summary>
     /// Recupera todos os registros do tipo T. Um predicado opcional pode ser fornecido para filtrar os registros.

@@ -13,6 +13,11 @@ public class UserResponse
     public Guid Id { get; set; }
 
     /// <summary>
+    /// Nome de usuário.
+    /// </summary>
+    public string UserName { get; set; }
+
+    /// <summary>
     /// Primeiro nome.
     /// </summary>
     public string FirstName { get; set; }

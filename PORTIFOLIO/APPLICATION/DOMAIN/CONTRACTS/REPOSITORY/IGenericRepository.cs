@@ -48,8 +48,9 @@ public interface IGenericRepository<T> where T : Entity
     /// Recuperar por id.
     /// </summary>
     /// <param name="id"></param>
+    /// <param name="lazyLoading"></param>
     /// <returns></returns>
-    Task<T> GetByIdAsync(Guid id);
+    Task<T> GetByIdAsync(Guid id, bool lazyLoading = false);
 
     /// <summary>
     /// Recuperar todos.

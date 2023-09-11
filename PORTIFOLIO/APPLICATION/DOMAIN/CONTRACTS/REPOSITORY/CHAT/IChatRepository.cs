@@ -19,5 +19,12 @@ public interface IChatRepository : IGenerictEntityCoreRepository<Chat>
     /// </summary>
     /// <param name="chatId"></param>
     /// <returns></returns>
-    Task<IQueryable<ChatMessage>> GetMessagesByChatAsync(Guid chatId);
+    Task<ICollection<ChatMessage>> GetMessagesByChatAsync(Guid chatId);
+
+    /// <summary>
+    /// Buscar mensagems pelo Id.
+    /// </summary>
+    /// <param name="chatMessageId"></param>
+    /// <returns></returns>
+    Task<ChatMessage> GetMessageByIdAsync(Guid chatMessageId);
 }
