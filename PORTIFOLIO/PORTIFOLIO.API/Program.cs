@@ -69,7 +69,7 @@ try
     }
 
     builder.Services
-         .ConfigureSerilog(configurations)
+         //.ConfigureSerilog(configurations)
             .ConfigureHangFire(configurations)
                 .ConfigureFluentSchedulerJobs()
                     .ConfigureSubscribers()
