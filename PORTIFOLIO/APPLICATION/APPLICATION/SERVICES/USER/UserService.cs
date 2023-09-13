@@ -124,7 +124,7 @@ public class UserService : IUserService
                             return tokenJWT;
                         });
 
-                }).Result;
+                }).Unwrap();
 
             return new OkObjectResult(
                 new ApiResponse<TokenJWT>(
@@ -305,7 +305,7 @@ public class UserService : IUserService
 
                             }, new List<DadosNotificacao> { new DadosNotificacao("Usuário criado com sucesso.") }));
 
-                }).Result;
+                }).Unwrap();
         }
         catch (Exception exception)
         {
@@ -405,7 +405,7 @@ public class UserService : IUserService
                        true, HttpStatusCode.OK, userEntity.ToResponse(),
                        new List<DadosNotificacao> { new DadosNotificacao("Usuário atualizado com sucesso.") }));
 
-            }).Result;
+            }).Unwrap();
         }
         catch (Exception exception)
         {
@@ -466,7 +466,7 @@ public class UserService : IUserService
                         new ApiResponse<object>(
                             true, HttpStatusCode.OK, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário ativado com sucesso!") }));
 
-                }).Result;
+                }).Unwrap();
         }
         catch (Exception exception)
         {
@@ -537,7 +537,7 @@ public class UserService : IUserService
                                 }, new List<DadosNotificacao> { new DadosNotificacao($"Claim {claimRequest.Type} / {claimRequest.Value}, adicionada com sucesso ao usuário {username}.") }));
                     });
 
-            }).Result;
+            }).Unwrap();
         }
         catch (Exception exception)
         {
@@ -607,7 +607,7 @@ public class UserService : IUserService
                             }, new List<DadosNotificacao> { new DadosNotificacao($"Claim {claimRequest.Type} / {claimRequest.Value}, removida com sucesso ao usuário {username}.") }));
                 });
 
-            }).Result;
+            }).Unwrap();
         }
         catch (Exception exception)
         {
@@ -658,7 +658,7 @@ public class UserService : IUserService
                                 new List<DadosNotificacao> { new DadosNotificacao($"Role {userRoleRequest.RoleName}, adicionada com sucesso ao usuário {userRoleRequest.Username}.") }));
                     }).Result;
 
-                }).Result;
+                }).Unwrap();
 
             }).Unwrap();
         }
@@ -712,7 +712,7 @@ public class UserService : IUserService
                                 new List<DadosNotificacao> { new DadosNotificacao("Roles recuperadas com sucesso!") }));
                 });
 
-            }).Result;
+            }).Unwrap();
         }
         catch (Exception exception)
         {
@@ -754,7 +754,7 @@ public class UserService : IUserService
                             new List<DadosNotificacao> { new DadosNotificacao($"Role {roleName}, removida com sucesso do usuário {username}.") }));
                 });
 
-            }).Result;
+            }).Unwrap();
         }
         catch (Exception exception)
         {
@@ -849,7 +849,7 @@ public class UserService : IUserService
                             identityResult.Succeeded, HttpStatusCode.OK, roleRequest,
                             new List<DadosNotificacao> { new DadosNotificacao($"Role {roleRequest.Name}, Role criado com sucesso.") }));
 
-                }).Result;
+                }).Unwrap();
         }
         catch (Exception exception)
         {
@@ -909,7 +909,7 @@ public class UserService : IUserService
                             true, HttpStatusCode.OK, role,
                             new List<DadosNotificacao> { new DadosNotificacao($"Claims adicionada a Role {roleRequest.Name} com sucesso!") }));
 
-                 }).Result;
+                 }).Unwrap();
         }
         catch (Exception exception)
         {
@@ -943,7 +943,7 @@ public class UserService : IUserService
                            true, HttpStatusCode.OK, role,
                            new List<DadosNotificacao> { new DadosNotificacao($"Claims removidas da Role {roleRequest.Name} com sucesso!") }));
 
-                }).Result;
+                }).Unwrap();
         }
         catch (Exception exception)
         {
