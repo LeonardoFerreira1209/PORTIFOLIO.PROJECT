@@ -4,9 +4,10 @@ env:
   AZURE_WEBAPP_PACKAGE_PATH: '.'      # set this to the path to your web app project, defaults to the repository root
   DOTNET_VERSION: '7.x'                 # set this to the .NET Core version to use
 on:
-  create:
-     branches:
-      - '*release*'
+  release:
+    types: [created]
+    branches:
+      - master
   schedule:
     - cron: '38 14 * * 1'
 permissions:
