@@ -15,7 +15,7 @@ public static class EventExtensions
     /// <param name="eventName"></param>
     /// <param name="description"></param>
     /// <returns></returns>
-    public static EventEntity CreateMailEvent(
+    public static Event CreateMailEvent(
         string eventName, string description, object data) => new()
         {
             Name = eventName,

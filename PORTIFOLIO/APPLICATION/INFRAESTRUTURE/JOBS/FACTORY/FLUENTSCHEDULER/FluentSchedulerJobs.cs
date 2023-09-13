@@ -12,7 +12,7 @@ public class FluentSchedulerJobs : Registry, IFluentSchedulerJobs
     {
         try
         {
-           // NonReentrantAsDefault(); Schedule<IResendFailedMailsJob>().ToRunEvery(24).Hours();
+            // NonReentrantAsDefault(); Schedule<IResendFailedMailsJob>().ToRunEvery(24).Hours();
         }
         catch (Exception exception)
         {

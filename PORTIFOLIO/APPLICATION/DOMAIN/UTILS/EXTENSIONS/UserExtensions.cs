@@ -16,7 +16,7 @@ public static class UserExtensions
     /// </summary>
     /// <param name="userRequest"></param>
     /// <returns></returns>
-    public static UserEntity ToIdentityUser(this UserCreateRequest userRequest)
+    public static User ToIdentityUser(this UserCreateRequest userRequest)
         => new UserEntityBuilder()
                 .AddCredentials(userRequest.UserName, userRequest.Password)
                     .AddEmail(userRequest.Email)
@@ -34,7 +34,7 @@ public static class UserExtensions
     /// </summary>
     /// <param name="userUpdateRequest"></param>
     /// <returns></returns>
-    public static UserEntity TransformUserEntityFromUserUpdateRequest(this UserEntity userEntity, UserUpdateRequest userUpdateRequest)
+    public static User TransformUserEntityFromUserUpdateRequest(this User userEntity, UserUpdateRequest userUpdateRequest)
         => new UserEntityBuilder()
                 .AddCredentials(userEntity.UserName, userEntity.PasswordHash)
                     .AddEmail(userEntity.Email)
@@ -53,7 +53,7 @@ public static class UserExtensions
     /// </summary>
     /// <param name="user"></param>
     /// <returns></returns>
-    public static UserResponse ToResponse(this UserEntity user)
+    public static UserResponse ToResponse(this User user)
     {
         return new UserResponse
         {

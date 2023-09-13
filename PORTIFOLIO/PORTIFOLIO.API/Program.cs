@@ -1,9 +1,10 @@
 using APPLICATION.APPLICATION.CONFIGURATIONS;
+using APPLICATION.APPLICATION.GRAPHQL.QUERY;
+using APPLICATION.APPLICATION.SIGNALR;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.CUSTOMAUTHORIZE.FILTER;
-using APPLICATION.DOMAIN.GRAPHQL.QUERY;
+using APPLICATION.INFRAESTRUTURE.CONTEXTO;
 using APPLICATION.INFRAESTRUTURE.MIDDLEWARE;
-using APPLICATION.INFRAESTRUTURE.SIGNALR;
 using Hangfire;
 using HotChocolate.Types.Pagination;
 using Microsoft.AspNetCore.Builder;
@@ -37,6 +38,7 @@ try
         .AddHttpContextAccessor()
             .Configure<AppSettings>(configurations)
                 .AddSingleton<AppSettings>()
+                   .AddScoped<LazyLoadingContext>()
                     .AddEndpointsApiExplorer()
                         .AddOptions()
                             .ConfigureLanguage()
@@ -59,14 +61,15 @@ try
         }).AddProjections();
 
     if (
-        builder.Environment.IsProduction()) {
+        builder.Environment.IsProduction())
+    {
         builder.Services
             .ConfigureTelemetry(configurations)
                 .ConfigureApplicationInsights(configurations);
     }
 
     builder.Services
-        .ConfigureSerilog(configurations)
+         .ConfigureSerilog(configurations)
             .ConfigureHangFire(configurations)
                 .ConfigureFluentSchedulerJobs()
                     .ConfigureSubscribers()
@@ -80,7 +83,7 @@ try
 
         })
         .AddNewtonsoftJson(
-            options 
+            options
             => options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
 
     builder.Services.AddSignalR();
@@ -110,14 +113,15 @@ try
                 .UseEndpoints(endpoints =>
                 {
                     endpoints.MapHub<HubNotifications>("/notifications");
+                    endpoints.MapHub<HubChats>("/chats");
                     endpoints.MapControllers();
                 })
                 .Seeds(applicationbuilder).Result.StartRecurrentJobs();
 
-        applicationbuilder
-            .Lifetime.ApplicationStarted
-                .Register(() => Log.Debug(
-                        $"[LOG DEBUG] - Aplicação inicializada com sucesso: [PORTIFOLIO.API]\n"));
+    applicationbuilder
+        .Lifetime.ApplicationStarted
+            .Register(() => Log.Debug(
+                    $"[LOG DEBUG] - Aplicação inicializada com sucesso: [PORTIFOLIO.API]\n"));
 
     applicationbuilder.Run();
 }

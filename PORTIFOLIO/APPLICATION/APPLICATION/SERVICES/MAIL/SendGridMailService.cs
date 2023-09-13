@@ -3,8 +3,8 @@ using APPLICATION.DOMAIN.CONTRACTS.SERVICES.MAIL;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION;
 using APPLICATION.DOMAIN.DTOS.MAIL.REQUEST.SENDGRID;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
+using APPLICATION.DOMAIN.FACTORY.JOBS;
 using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
-using APPLICATION.INFRAESTRUTURE.FACTORY.JOBS;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using SendGrid;
@@ -30,10 +30,10 @@ public class SendGridMailService : IMailService<SendGridMailRequest, ApiResponse
     /// <param name="appsettings"></param>
     public SendGridMailService(
         IOptions<AppSettings> appsettings)
-        {
-            _sendGridClient = new SendGridClient(apiKey: appsettings.Value.Mail.ApiKey);
-            _jobsService = _hangfireJobFactory.CreateJobService();
-        }
+    {
+        _sendGridClient = new SendGridClient(apiKey: appsettings.Value.Mail.ApiKey);
+        _jobsService = _hangfireJobFactory.CreateJobService();
+    }
 
     /// <summary>
     /// Envie um único e-mail simples
@@ -61,7 +61,7 @@ public class SendGridMailService : IMailService<SendGridMailRequest, ApiResponse
                             response.IsSuccessStatusCode, response.StatusCode,
                                 JsonConvert.DeserializeObject(await response.Body.ReadAsStringAsync()));
 
-                    }).Result;
+                    }).Unwrap();
         }
         catch (Exception exception)
         {
@@ -94,7 +94,7 @@ public class SendGridMailService : IMailService<SendGridMailRequest, ApiResponse
                            response.IsSuccessStatusCode, response.StatusCode,
                                 JsonConvert.DeserializeObject(await response.Body.ReadAsStringAsync()));
 
-                    }).Result;
+                    }).Unwrap();
         }
         catch (Exception exception)
         {

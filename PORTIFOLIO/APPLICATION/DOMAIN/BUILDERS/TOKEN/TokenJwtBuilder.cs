@@ -144,7 +144,7 @@ public class TokenJwtBuilder
     /// Método que cria e retorna o token.
     /// </summary>
     /// <returns></returns>
-    public TokenJWT Builder(UserEntity userEntity)
+    public TokenJWT Builder(User userEntity)
     {
         Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(TokenJwtBuilder)} - METHOD {nameof(Builder)}\n");
 

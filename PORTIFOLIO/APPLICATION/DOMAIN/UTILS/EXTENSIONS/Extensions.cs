@@ -3,6 +3,7 @@ using APPLICATION.DOMAIN.ENUMS;
 using FluentValidation.Results;
 using Newtonsoft.Json;
 using System.ComponentModel;
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -153,6 +154,28 @@ public static class Extensions
         }
 
         return builder.ToString().ConvertToNumeric().TruncateNumericCode();
+    }
+
+    /// <summary>
+    /// Normaliza um texto removendo os acentos.
+    /// </summary>
+    /// <param name="text"></param>
+    /// <returns></returns>
+    public static string RemoveAccentAndConvertToLower(this string text)
+    {
+        var normalizedString = text.Normalize(NormalizationForm.FormD);
+        var stringBuilder = new StringBuilder();
+
+        foreach (var c in normalizedString)
+        {
+            var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
+            if (unicodeCategory != UnicodeCategory.NonSpacingMark)
+            {
+                stringBuilder.Append(c);
+            }
+        }
+
+        return stringBuilder.ToString().Normalize(NormalizationForm.FormC).ToLowerInvariant();
     }
 
     /// <summary>

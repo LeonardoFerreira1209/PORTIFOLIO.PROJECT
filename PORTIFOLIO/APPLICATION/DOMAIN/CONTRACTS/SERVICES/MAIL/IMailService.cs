@@ -7,7 +7,7 @@ namespace APPLICATION.DOMAIN.CONTRACTS.SERVICES.MAIL
     /// </summary>
     /// <typeparam name="TRequest"></typeparam>
     /// <typeparam name="TResponse"></typeparam>
-    public interface IMailService<TRequest, TResponse> 
+    public interface IMailService<TRequest, TResponse>
         where TRequest : MailRequestBase where TResponse : class
     {
         /// <summary>

@@ -28,7 +28,7 @@ public static class Seeds
         //    });
 
         //modelBuilder.Entity<Claims>().HasData(
-                
+
         //    )
 
         //// outras entidades e dados iniciais

@@ -24,7 +24,7 @@ public interface IJobsService
     /// <typeparam name="T"></typeparam>
     /// <param name="jobId"></param>
     /// <param name="expression"></param>
-    void CreateQueuedJobs<T>(string jobId, Expression<Action<T>> expression) 
+    void CreateQueuedJobs<T>(string jobId, Expression<Action<T>> expression)
         where T : IJobMethods;
 
     /// <summary>

@@ -93,7 +93,7 @@ public abstract class SubscriberBase : ISubscriberBase
     }
 
     public virtual async Task ProcessHandlerAsync(ProcessMessageEventArgs args) => await args.CompleteMessageAsync(args.Message);
-    
+
     public virtual async Task ProcessHandlerErrorAsync(ProcessErrorEventArgs args) => await Task.CompletedTask;
 
     public async Task StartProcessingAsync() => await _processor.StartProcessingAsync();

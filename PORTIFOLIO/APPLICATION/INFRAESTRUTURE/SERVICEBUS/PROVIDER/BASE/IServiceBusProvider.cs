@@ -44,7 +44,7 @@ public interface IServiceBusReceiverProvider
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    Task<MessageEntity<T>> GetMessageAsync<T>();
+    Task<Message<T>> GetMessageAsync<T>();
 
     /// <summary>
     /// Retorna mensagens por quantidade.
@@ -52,7 +52,7 @@ public interface IServiceBusReceiverProvider
     /// <typeparam name="T"></typeparam>
     /// <param name="quantity"></param>
     /// <returns></returns>
-    Task<List<MessageEntity<T>>> GetMessagesAsync<T>(int quantity);
+    Task<List<Message<T>>> GetMessagesAsync<T>(int quantity);
 
     /// <summary>
     /// Retorna mensagens recebidas por quantidade.

@@ -1,5 +1,4 @@
 ﻿using APPLICATION.DOMAIN.DTOS.REQUEST.USER;
-using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
 using Microsoft.AspNetCore.Mvc;
 
 namespace APPLICATION.DOMAIN.CONTRACTS.SERVICES.USER;
@@ -36,6 +35,13 @@ public interface IUserService
     /// <param name="userCreateRequest"></param>
     /// <returns></returns>
     Task<ObjectResult> CreateAsync(UserCreateRequest userCreateRequest);
+
+    /// <summary>
+    /// Método responsavel por buscar usuários através do nome.
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
+    Task<ObjectResult> GetUsersByNameAsync(string name);
 
     /// <summary>
     ///  Método responsável por atualizar um usuário.

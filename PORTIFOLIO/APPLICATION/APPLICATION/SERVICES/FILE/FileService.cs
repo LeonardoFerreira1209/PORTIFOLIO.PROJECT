@@ -51,7 +51,7 @@ public class FileService : IFileService
             Log.Information($"[LOG INFORMATION] - Imagem adicionada ao blob com sucesso, Url: {blobClient.Uri.AbsoluteUri}.\n");
 
             // Response error.
-            return new ApiResponse<object>(true, HttpStatusCode.OK, new FileResponse { FileUri = blobClient.Uri.AbsoluteUri } , new List<DadosNotificacao> { new DadosNotificacao($"Imagem adicionada ao blob com sucesso, Url: {blobClient.Uri.AbsoluteUri}.\n") });
+            return new ApiResponse<object>(true, HttpStatusCode.OK, new FileResponse { FileUri = blobClient.Uri.AbsoluteUri }, new List<DadosNotificacao> { new DadosNotificacao($"Imagem adicionada ao blob com sucesso, Url: {blobClient.Uri.AbsoluteUri}.\n") });
         }
         catch (Exception exception)
         {

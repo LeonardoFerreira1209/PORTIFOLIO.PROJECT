@@ -52,7 +52,7 @@ public class ErrorHandlerMiddleware
     {
         context.Response.ContentType = "application/json";
 
-        var (statusCode, json) = 
+        var (statusCode, json) =
             GenerateResponse(exception);
 
         context.Response.StatusCode = (int)statusCode;
@@ -71,7 +71,7 @@ public class ErrorHandlerMiddleware
             BaseException customEx => (customEx.Response.StatusCode,
                                                            JsonSerializer.Serialize(customEx.Response)),
 
-            _ => (HttpStatusCode.InternalServerError, JsonSerializer.Serialize(new 
+            _ => (HttpStatusCode.InternalServerError, JsonSerializer.Serialize(new
             {
                 StatusCode = HttpStatusCode.InternalServerError,
                 Sucesso = false,

@@ -1,7 +1,7 @@
 ﻿using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
 using System.Net;
 
-namespace APPLICATION.DOMAIN.EXCEPTIONS.USER;
+namespace APPLICATION.DOMAIN.EXCEPTIONS;
 
 /// <summary>
 /// Exception customizado.

@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Serilog;
 using System.Net;
-using StatusCodes = APPLICATION.DOMAIN.ENUMS.StatusCodes;
 
 namespace APPLICATION.INFRAESTRUTURE.FACADES;
 
@@ -14,9 +13,9 @@ public class UtilFacade : IUtilFacade
 {
     private readonly IExternalUtil _externalUtil;
 
-    public UtilFacade(IExternalUtil externalUtil)  
-    { 
-        _externalUtil = externalUtil; 
+    public UtilFacade(IExternalUtil externalUtil)
+    {
+        _externalUtil = externalUtil;
     }
 
     /// <summary>

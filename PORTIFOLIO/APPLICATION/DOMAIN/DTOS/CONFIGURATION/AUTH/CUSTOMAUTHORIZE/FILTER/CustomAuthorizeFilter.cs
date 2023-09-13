@@ -23,7 +23,7 @@ public class CustomAuthorizeFilter : IAuthorizationFilter
     /// <param name="context"></param>
     public void OnAuthorization(AuthorizationFilterContext context)
     {
-        var isAuthenticated = 
+        var isAuthenticated =
             context.HttpContext.User.Identity.IsAuthenticated;
 
         var claimsPrincipal =

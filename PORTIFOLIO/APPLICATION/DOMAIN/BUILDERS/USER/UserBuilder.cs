@@ -141,9 +141,9 @@ public sealed class UserEntityBuilder
     /// </summary>
     /// <param name="userEntity"></param>
     /// <returns></returns>
-    public UserEntity Builder(UserEntity userEntity = null)
+    public User Builder(User userEntity = null)
     {
-        userEntity ??= new UserEntity();
+        userEntity ??= new User();
 
         userEntity.FirstName = firstName;
         userEntity.LastName = lastName;

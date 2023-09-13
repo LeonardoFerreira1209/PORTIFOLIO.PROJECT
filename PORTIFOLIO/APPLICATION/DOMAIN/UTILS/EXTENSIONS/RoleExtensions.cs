@@ -7,9 +7,9 @@ namespace APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 
 public static class RoleExtensions
 {
-    public static RoleEntity ToIdentityRole(this RoleRequest roleRequest)
+    public static Role ToIdentityRole(this RoleRequest roleRequest)
     {
-        return new RoleEntity
+        return new Role
         {
             Name = roleRequest.Name,
             Created = DateTime.Now,
@@ -17,7 +17,7 @@ public static class RoleExtensions
         };
     }
 
-    public static RolesResponse ToResponse(this RoleEntity role)
+    public static RolesResponse ToResponse(this Role role)
     {
         return new RolesResponse
         {
