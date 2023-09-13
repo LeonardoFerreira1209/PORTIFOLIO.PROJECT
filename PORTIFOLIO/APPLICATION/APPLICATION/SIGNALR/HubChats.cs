@@ -9,10 +9,17 @@ using Serilog;
 
 namespace APPLICATION.APPLICATION.SIGNALR;
 
+/// <summary>
+/// Hub de chat.
+/// </summary>
 public class HubChats : HubBase
 {
     private readonly IChatService _chatService;
-
+    
+    /// <summary>
+    /// ctor
+    /// </summary>
+    /// <param name="chatService"></param>
     public HubChats(IChatService chatService)
         : base(GlobalData.HubChatConnections)
     {
@@ -20,7 +27,7 @@ public class HubChats : HubBase
     }
 
     /// <summary>
-    /// 
+    /// Enviar mensagem para usuário.
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="groupName"></param>
@@ -53,7 +60,7 @@ public class HubChats : HubBase
     }
 
     /// <summary>
-    /// 
+    /// Entrar em um grupo.
     /// </summary>
     /// <param name="chatId"></param>
     /// <returns></returns>

@@ -1,15 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace APPLICATION.Migrations
 {
     /// <inheritdoc />
-<<<<<<<< HEAD:PORTIFOLIO/APPLICATION/MIGRATIONS/20230904050418_INITIAL.cs
     public partial class INITIAL : Migration
-========
-    public partial class CHAT : Migration
->>>>>>>> 46f1cea (Ajustes):PORTIFOLIO/APPLICATION/MIGRATIONS/20230903032932_CHAT.cs
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -248,22 +245,12 @@ namespace APPLICATION.Migrations
                         name: "FK_Chats_AspNetUsers_FirstUserId",
                         column: x => x.FirstUserId,
                         principalTable: "AspNetUsers",
-<<<<<<<< HEAD:PORTIFOLIO/APPLICATION/MIGRATIONS/20230904050418_INITIAL.cs
                         principalColumn: "Id");
-========
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
->>>>>>>> 46f1cea (Ajustes):PORTIFOLIO/APPLICATION/MIGRATIONS/20230903032932_CHAT.cs
                     table.ForeignKey(
                         name: "FK_Chats_AspNetUsers_SecondUserId",
                         column: x => x.SecondUserId,
                         principalTable: "AspNetUsers",
-<<<<<<<< HEAD:PORTIFOLIO/APPLICATION/MIGRATIONS/20230904050418_INITIAL.cs
                         principalColumn: "Id");
-========
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
->>>>>>>> 46f1cea (Ajustes):PORTIFOLIO/APPLICATION/MIGRATIONS/20230903032932_CHAT.cs
                 });
 
             migrationBuilder.CreateTable(

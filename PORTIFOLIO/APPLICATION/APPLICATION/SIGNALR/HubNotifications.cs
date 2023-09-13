@@ -9,6 +9,9 @@ namespace APPLICATION.APPLICATION.SIGNALR;
 /// </summary>
 public class HubNotifications : HubBase
 {
+    /// <summary>
+    /// ctor
+    /// </summary>
     public HubNotifications()
         : base(GlobalData.HubNotifcationConnections) { }
 

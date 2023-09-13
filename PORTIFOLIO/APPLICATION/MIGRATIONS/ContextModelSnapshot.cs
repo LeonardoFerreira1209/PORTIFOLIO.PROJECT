@@ -441,19 +441,21 @@ namespace APPLICATION.Migrations
 
             modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.CHAT.ChatMessage", b =>
                 {
-                    b.HasOne("APPLICATION.DOMAIN.ENTITY.CHAT.Chat", null)
+                    b.HasOne("APPLICATION.DOMAIN.ENTITY.CHAT.Chat", "Chat")
                         .WithMany("Messages")
                         .HasForeignKey("ChatId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("APPLICATION.DOMAIN.ENTITY.USER.User", "User")
+                    b.HasOne("APPLICATION.DOMAIN.ENTITY.USER.User", "UserToSendMessage")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Chat");
+
+                    b.Navigation("UserToSendMessage");
                 });
 
             modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.USER.User", b =>
