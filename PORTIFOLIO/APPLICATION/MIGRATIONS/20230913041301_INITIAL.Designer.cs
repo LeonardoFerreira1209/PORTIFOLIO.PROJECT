@@ -12,13 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace APPLICATION.Migrations
 {
     [DbContext(typeof(Context))]
-<<<<<<<< HEAD:PORTIFOLIO/APPLICATION/MIGRATIONS/20230904050418_INITIAL.Designer.cs
-    [Migration("20230904050418_INITIAL")]
+    [Migration("20230913041301_INITIAL")]
     partial class INITIAL
-========
-    [Migration("20230903032932_CHAT")]
-    partial class CHAT
->>>>>>>> 46f1cea (Ajustes):PORTIFOLIO/APPLICATION/MIGRATIONS/20230903032932_CHAT.Designer.cs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -433,21 +428,13 @@ namespace APPLICATION.Migrations
                     b.HasOne("APPLICATION.DOMAIN.ENTITY.USER.User", "FirstUser")
                         .WithMany()
                         .HasForeignKey("FirstUserId")
-<<<<<<<< HEAD:PORTIFOLIO/APPLICATION/MIGRATIONS/20230904050418_INITIAL.Designer.cs
                         .OnDelete(DeleteBehavior.NoAction)
-========
-                        .OnDelete(DeleteBehavior.Cascade)
->>>>>>>> 46f1cea (Ajustes):PORTIFOLIO/APPLICATION/MIGRATIONS/20230903032932_CHAT.Designer.cs
                         .IsRequired();
 
                     b.HasOne("APPLICATION.DOMAIN.ENTITY.USER.User", "SecondUser")
                         .WithMany()
                         .HasForeignKey("SecondUserId")
-<<<<<<<< HEAD:PORTIFOLIO/APPLICATION/MIGRATIONS/20230904050418_INITIAL.Designer.cs
                         .OnDelete(DeleteBehavior.NoAction)
-========
-                        .OnDelete(DeleteBehavior.Cascade)
->>>>>>>> 46f1cea (Ajustes):PORTIFOLIO/APPLICATION/MIGRATIONS/20230903032932_CHAT.Designer.cs
                         .IsRequired();
 
                     b.Navigation("FirstUser");
@@ -457,19 +444,21 @@ namespace APPLICATION.Migrations
 
             modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.CHAT.ChatMessage", b =>
                 {
-                    b.HasOne("APPLICATION.DOMAIN.ENTITY.CHAT.Chat", null)
+                    b.HasOne("APPLICATION.DOMAIN.ENTITY.CHAT.Chat", "Chat")
                         .WithMany("Messages")
                         .HasForeignKey("ChatId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("APPLICATION.DOMAIN.ENTITY.USER.User", "User")
+                    b.HasOne("APPLICATION.DOMAIN.ENTITY.USER.User", "UserToSendMessage")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Chat");
+
+                    b.Navigation("UserToSendMessage");
                 });
 
             modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.USER.User", b =>
