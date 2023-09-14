@@ -1,4 +1,5 @@
 ﻿using Polly;
+using Serilog;
 
 namespace APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 
@@ -15,12 +16,15 @@ public static class RetryPolicy
     /// <returns></returns>
     public static async Task ExecuteAsync(Func<Task> method, int retryCount)
     {
-        var retryPolicy =
-            Policy.Handle<Exception>()
-                .RetryAsync(retryCount);
+        var retryPolicy = Policy.Handle<Exception>()
+                .RetryAsync(retryCount, (exception, retryCount) =>
+                {
+                    Log.Error($"Erro ao executar {method}\n");
 
-        await retryPolicy.ExecuteAsync(async ()
-            => await method());
+                    Log.Information($"Retentando executar método {nameof(method)}...\n");
+                });
+
+        await retryPolicy.ExecuteAsync(async () => await method());
     }
 
     /// <summary>
@@ -32,13 +36,14 @@ public static class RetryPolicy
     /// <returns></returns>
     public static async Task<T> ExecuteAsync<T>(this Func<Task<T>> method, int retryCount)
     {
-        var retryPolicy =
-            Policy.Handle<Exception>()
-                .RetryAsync(retryCount);
+        var retryPolicy = Policy.Handle<Exception>()
+            .RetryAsync(retryCount, (exception, retryCount) =>
+            {
+                Log.Error($"Erro ao executar {method}\n");
 
-        var result = await retryPolicy.ExecuteAsync(async ()
-            => await method());
+                Log.Information($"Retentando executar método {nameof(method)}...\n");
+            });
 
-        return result;
+        return await retryPolicy.ExecuteAsync(async () => await method());
     }
 }
