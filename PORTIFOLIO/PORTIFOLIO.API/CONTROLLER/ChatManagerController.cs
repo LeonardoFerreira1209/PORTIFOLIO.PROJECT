@@ -1,12 +1,10 @@
-﻿using APPLICATION.APPLICATION.SIGNALR;
-using APPLICATION.DOMAIN.CONTRACTS.SERVICES.CHAT;
+﻿using APPLICATION.DOMAIN.CONTRACTS.SERVICES.CHAT;
 using APPLICATION.DOMAIN.DTOS.CHAT;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.CHAT;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
 using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
 using Serilog.Context;
 using Swashbuckle.AspNetCore.Annotations;
@@ -24,7 +22,6 @@ namespace PORTIFOLIO.API.CONTROLLER;
 [EnableCors("CorsPolicy")]
 public class ChatManagerController : ControllerBase
 {
-    private readonly IHubContext<HubNotifications> _hubContext;
     private readonly IChatService _chatService;
 
     /// <summary>
@@ -32,14 +29,13 @@ public class ChatManagerController : ControllerBase
     /// </summary>
     /// <param name="hubContext"></param>
     public ChatManagerController(
-        IHubContext<HubNotifications> hubContext, IChatService chatService)
+        IChatService chatService)
     {
-        _hubContext = hubContext;
         _chatService = chatService;
     }
 
     /// <summary>
-    /// Cria um chat.
+    /// Endpoint responsável por criar um char entre dois usuários.
     /// </summary>
     /// <param name="chatRequest"></param>
     /// <returns></returns>
@@ -61,7 +57,7 @@ public class ChatManagerController : ControllerBase
     }
 
     /// <summary>
-    /// Cria e envia mensagem.
+    /// Endpoint responsável por criar uma nova mensagem no chat e enviar para o remetente.
     /// </summary>
     /// <param name="chatMessageRequest"></param>
     /// <returns></returns>
@@ -83,7 +79,7 @@ public class ChatManagerController : ControllerBase
     }
 
     /// <summary>
-    /// Recuperar dados do chat
+    /// Endpoint responsável por recuperar os dados de um chat através do Id usuário.
     /// </summary>
     /// <param name="userId"></param>
     /// <returns></returns>
@@ -105,7 +101,7 @@ public class ChatManagerController : ControllerBase
     }
 
     /// <summary>
-    /// Recuperar dados das mensagens do chat.
+    /// Endpoint responsável por recuperar todas as mensagens de um chat, pelo Id do chat.
     /// </summary>
     /// <param name="userId"></param>
     /// <returns></returns>

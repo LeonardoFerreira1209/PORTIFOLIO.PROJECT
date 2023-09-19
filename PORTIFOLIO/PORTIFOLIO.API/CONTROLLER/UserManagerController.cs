@@ -1,23 +1,22 @@
-﻿using APPLICATION.APPLICATION.SIGNALR;
+﻿using APPLICATION.DOMAIN.CONTRACTS.FEATUREFLAGS;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.USER;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.CUSTOMAUTHORIZE.ATTRIBUTE;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.TOKEN;
 using APPLICATION.DOMAIN.DTOS.REQUEST.USER;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.USER;
+using APPLICATION.DOMAIN.DTOS.RESPONSE.USER.ROLE;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
 using APPLICATION.DOMAIN.ENUMS;
-using APPLICATION.DOMAIN.HUB;
 using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
-using APPLICATION.DOMAIN.UTILS.GLOBAL;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
+using PORTIFOLIO.API.CONTROLLER.BASE;
 using Serilog.Context;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Threading.Tasks;
 using StatusCodes = Microsoft.AspNetCore.Http.StatusCodes;
 
@@ -29,50 +28,32 @@ namespace PORTIFOLIO.API.CONTROLLER;
 [ApiController]
 [Route("api/usermanager")]
 [EnableCors("CorsPolicy")]
-public class UserManagerController : ControllerBase
+public class UserManagerController : BaseControllercs
 {
     private readonly IUserService _userService;
-    private readonly IHubContext<HubNotifications> _hubContext;
 
     /// <summary>
     /// ctor
     /// </summary>
     /// <param name="userService"></param>
-    public UserManagerController(
-        IHubContext<HubNotifications> hubContext,
-        IUserService userService)
+    public UserManagerController(IFeatureFlags featureFlags,
+        IUserService userService) : base(featureFlags)
     {
         _userService = userService;
-        _hubContext = hubContext;
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> SendGlobalNotification(Notification notification, string id)
-    {
-        if (GlobalData.HubNotifcationConnections is not null)
-        {
-            var connectionIds = GlobalData.HubNotifcationConnections.Where(x => x.Key.Equals(id.ToLower())).Select(x => x.Value);
-
-            foreach (var connectionId in connectionIds)
-            {
-                await _hubContext.Clients.Client(connectionId).SendAsync("ReceberMensagem", notification);
-            }
-        }
-        return Ok();
     }
 
     /// <summary>
-    /// Método responsável por Ativar usuário.
+    /// Endpoint responsável por fazer a autenticação do usuário, é retornado um token JWT (Json Web Token).
     /// </summary>
     /// <param name="username"></param>
     /// <param name="password"></param>
     /// <returns></returns>
     [HttpGet("authetication")]
-    [SwaggerOperation(Summary = "Autenticação do usuário", Description = "Método responsável por Autenticar usuário")]
-    [ProducesResponseType(typeof(ApiResponse<TokenJWT>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status423Locked)]
+    [SwaggerOperation(Summary = "Autenticação do usuário", Description = "Endpoint responsável por fazer a autenticação do usuário, é retornado um token JWT (Json Web Token).")]
+    [ProducesResponseType(typeof(ApiResponse<TokenJWT>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse<LoginRequest>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<LoginRequest>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<LoginRequest>), StatusCodes.Status423Locked)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AuthenticationAsync([FromHeader][Required] string username, [FromHeader][Required] string password)
     {
@@ -80,22 +61,20 @@ public class UserManagerController : ControllerBase
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(new { username, password })))
         using (LogContext.PushProperty("Metodo", "Authentication"))
         {
-            return await Tracker.Time(()
-                => _userService.AuthenticationAsync(new LoginRequest(username, password)), "Autenticar usuário");
+            return await ExecuteAsync(nameof(AuthenticationAsync), 
+                () => _userService.AuthenticationAsync(new LoginRequest(username, password)), "Autenticar usuário");
         }
     }
 
     /// <summary>
-    /// Método responsável por gerar um novo tokenJwt.
+    /// Endpoint responsável por gerar um novo token de autenticação JWT (Json Web Token), baseado em um refresh Token.
     /// </summary>
     /// <param name="refreshToken"></param>
     /// <returns></returns>
     [HttpGet("refreshtoken")]
-    [SwaggerOperation(Summary = "Gerar token do usuário através de um refresh token", Description = "Método responsável por gerar um token de usuário através de um refresh token")]
-    [ProducesResponseType(typeof(ApiResponse<TokenJWT>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status423Locked)]
+    [SwaggerOperation(Summary = "Gerar token do usuário através de um refresh token", Description = "Endpoint responsável por gerar um novo token de autenticação JWT (Json Web Token), baseado em um refresh Token.")]
+    [ProducesResponseType(typeof(ApiResponse<TokenJWT>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> RefreshTokenAsync([FromHeader][Required] string refreshToken)
     {
@@ -104,20 +83,20 @@ public class UserManagerController : ControllerBase
         using (LogContext.PushProperty("Metodo", "RefreshToken"))
         {
             return await Tracker.Time(()
-                => _userService.RefreshTokenAsync(refreshToken), "Autenticar usuário");
+                => _userService.RefreshTokenAsync(refreshToken), "Gerar novo token através do Refresh Token");
         }
     }
 
     /// <summary>
-    /// Método responsável por adicionar um usuario.
+    /// Endpoint responsável por criar um novo usuário.
     /// </summary>
     /// <param name="userCreateRequest"></param>
     /// <returns></returns>
     [HttpPost("create/user")]
-    [SwaggerOperation(Summary = "Criar uauário.", Description = "Método responsavel por criar usuário")]
-    [ProducesResponseType(typeof(ApiResponse<UserResponse>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse<UserResponse>), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiResponse<UserResponse>), StatusCodes.Status500InternalServerError)]
+    [SwaggerOperation(Summary = "Criar uauário.", Description = "Endpoint responsável por criar um novo usuário.")]
+    [ProducesResponseType(typeof(ApiResponse<UserResponse>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse<UserCreateRequest>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CreateAsync([FromBody] UserCreateRequest userCreateRequest)
     {
         using (LogContext.PushProperty("Controller", "UserController"))
@@ -125,21 +104,23 @@ public class UserManagerController : ControllerBase
         using (LogContext.PushProperty("Metodo", "Create"))
         {
             return await Tracker.Time(()
-                => _userService.CreateAsync(userCreateRequest), "Criar usuário");
+                => _userService.CreateAsync(userCreateRequest), "Criar novo usuário");
         }
     }
 
     /// <summary>
-    /// Método responsável por buscar usuáruos pelo nome.
+    /// Endpoint responsável por localizar um registro de usuário através do nome.
     /// </summary>
     /// <param name="name"></param>
     /// <returns></returns>
     [HttpGet("get/users/by/name")]
     [CustomAuthorize(Claims.User, "Get")]
-    [SwaggerOperation(Summary = "Buscar uauários pelo nome.", Description = "Método responsavel por buscar usuários pelo nome.")]
-    [ProducesResponseType(typeof(ApiResponse<UserResponse>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse<UserResponse>), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiResponse<UserResponse>), StatusCodes.Status500InternalServerError)]
+    [SwaggerOperation(Summary = "Buscar uauários pelo nome.", Description = "Endpoint responsável por localizar um registro de usuário através do nome.")]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status423Locked)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetUsersByNameAsync(string name)
     {
         using (LogContext.PushProperty("Controller", "UserController"))
@@ -152,15 +133,18 @@ public class UserManagerController : ControllerBase
     }
 
     /// <summary>
-    /// Método responsável por atualizar um  usuario.
+    /// Endpoint responsável por atualizar os dados de um usuário.
     /// </summary>
     /// <param name="userUpdateRequest"></param>
     /// <returns></returns>
     [HttpPut("update/user")]
     [CustomAuthorize(Claims.User, "Put")]
-    [SwaggerOperation(Summary = "Atualizar uauário.", Description = "Método responsavel por atualizar usuário")]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [SwaggerOperation(Summary = "Atualizar uauário.", Description = "Endpoint responsável por atualizar os dados de um usuário.")]
+    [ProducesResponseType(typeof(ApiResponse<UserResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<UserUpdateRequest>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<UserUpdateRequest>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status423Locked)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> UpdateAsync([FromBody] UserUpdateRequest userUpdateRequest)
     {
@@ -174,15 +158,18 @@ public class UserManagerController : ControllerBase
     }
 
     /// <summary>
-    /// Recuperar um usuário.
+    /// Endpoint responsável por recuperar os dados de um usuário atraves do Id.
     /// </summary>
     /// <param name="userId"></param>
     /// <returns></returns>
     [HttpGet("get/user/userid/{userId}")]
     [CustomAuthorize(Claims.User, "Get")]
-    [SwaggerOperation(Summary = "Recuperar um usuário", Description = "Método responsável por Recuperar um usuário")]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [SwaggerOperation(Summary = "Recuperar um usuário", Description = "Endpoint responsável por recuperar os dados de um usuário atraves do Id.")]
+    [ProducesResponseType(typeof(ApiResponse<UserResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status423Locked)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetAsync(string userId)
     {
@@ -196,15 +183,18 @@ public class UserManagerController : ControllerBase
     }
 
     /// <summary>
-    /// Método responsável por Ativar usuário.
+    /// Endpoint responsável por ativar um usuário através do código de verificação.
     /// </summary>
     /// <param name="code"></param>
     /// <param name="userId"></param>
     /// <returns></returns>
     [HttpGet("activate/user/code/{code}/userid/{userId}")]
-    [SwaggerOperation(Summary = "Ativar usuário", Description = "Método responsável por Ativar usuário")]
+    [SwaggerOperation(Summary = "Ativar usuário", Description = "Endpoint responsável por ativar um usuário através do código de verificação.")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status423Locked)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> ActivateAsync(string code, Guid userId)
     {
@@ -218,22 +208,24 @@ public class UserManagerController : ControllerBase
     }
 
     /// <summary>
-    /// Método responsável por adicionar uma claim no usuário
+    /// Endpoint responsável por adicionar uma claim ao usuário.
     /// </summary>
     /// <param name="username"></param>
     /// <param name="claimRequest"></param>
     /// <returns></returns>
     [HttpPost("add/user/claim/username/{username}")]
     [CustomAuthorize(Claims.Claim, "Post")]
-    [SwaggerOperation(Summary = "Remover claim do usuário", Description = "Método responsável por Adicionar claim no usuário")]
+    [SwaggerOperation(Summary = "Remover claim do usuário", Description = "Endpoint responsável por adicionar uma claim ao usuário.")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status423Locked)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AddUserClaimAsync(string username, [FromBody] ClaimRequest claimRequest)
     {
         using (LogContext.PushProperty("Controller", "ClaimController"))
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(claimRequest)))
-        using (LogContext.PushProperty("Metodo", "AddClaim"))
+        using (LogContext.PushProperty("Metodo", "AddUserClaimAsync"))
         {
             return await Tracker.Time(()
                 => _userService.AddUserClaimAsync(username, claimRequest), "Adicionar claim no usuário.");
@@ -241,22 +233,24 @@ public class UserManagerController : ControllerBase
     }
 
     /// <summary>
-    /// Método responsável por remover um claim do usuário.
+    /// Endpoint responsável por remover uma claim ao usuário.
     /// </summary>
     /// <param name="username"></param>
     /// <param name="claimRequest"></param>
     /// <returns></returns>
     [HttpDelete("remove/user/claim/username/{username}")]
     [CustomAuthorize(Claims.Claim, "Delete")]
-    [SwaggerOperation(Summary = "Remover claim do usuário", Description = "Método responsável por Remover claim do usuário")]
+    [SwaggerOperation(Summary = "Remover claim do usuário", Description = "Endpoint responsável por remover uma claim ao usuário.")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status423Locked)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> RemoveUseClaimAsync([Required] string username, ClaimRequest claimRequest)
     {
         using (LogContext.PushProperty("Controller", "ClaimController"))
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(claimRequest)))
-        using (LogContext.PushProperty("Metodo", "RemoveClaim"))
+        using (LogContext.PushProperty("Metodo", "RemoveUseClaimAsync"))
         {
             return await Tracker.Time(()
                 => _userService.RemoveUserClaimAsync(username, claimRequest), "Remover claim do usuário.");
@@ -264,21 +258,24 @@ public class UserManagerController : ControllerBase
     }
 
     /// <summary>
-    /// Método responsável por recuperar roles do usuário.
+    /// Endpoint responsável por recuperar dados da role de um usuário.
     /// </summary>
     /// <param name="userId"></param>
     /// <returns></returns>
     [HttpGet("get/user/roles/userid/{userId}")]
     [CustomAuthorize(Claims.Role, "Get")]
-    [SwaggerOperation(Summary = "Recuperar roles do usuário", Description = "Método responsável por recuperar roles do usuário")]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [SwaggerOperation(Summary = "Recuperar roles do usuário", Description = "Endpoint responsável por recuperar dados da role de um usuário.")]
+    [ProducesResponseType(typeof(ApiResponse<List<RolesResponse>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status423Locked)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetUserRolesAsync(Guid userId)
     {
         using (LogContext.PushProperty("Controller", "RoleController"))
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(userId)))
-        using (LogContext.PushProperty("Metodo", "GetUserRoles"))
+        using (LogContext.PushProperty("Metodo", "GetUserRolesAsync"))
         {
             return await Tracker.Time(()
                 => _userService.GetUserRolesAsync(userId), "Recuperar roles do usuário.");
@@ -286,21 +283,23 @@ public class UserManagerController : ControllerBase
     }
 
     /// <summary>
-    /// Método responsável por adicionar uma role.
+    /// Endpoint responsável por adicionar uma nova role.
     /// </summary>
     /// <param name="roleRequest"></param>
     /// <returns></returns>
     [HttpPost("create/roles")]
     [CustomAuthorize(Claims.Role, "Post")]
-    [SwaggerOperation(Summary = "Adicionar role", Description = "Método responsável por Adicionar uma role")]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [SwaggerOperation(Summary = "Adicionar role", Description = "Endpoint responsável por adicionar uma nova role.")]
+    [ProducesResponseType(typeof(ApiResponse<RoleRequest>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<RoleRequest>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status423Locked)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
     public async Task<ObjectResult> CreateRoleAsync(RoleRequest roleRequest)
     {
         using (LogContext.PushProperty("Controller", "RoleController"))
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(roleRequest)))
-        using (LogContext.PushProperty("Metodo", "AddRole"))
+        using (LogContext.PushProperty("Metodo", "CreateRoleAsync"))
         {
             return await Tracker.Time(()
                 => _userService.CreateRoleAsync(roleRequest), "Adicionar role.");
@@ -308,19 +307,20 @@ public class UserManagerController : ControllerBase
     }
 
     /// <summary>
-    /// Método responsável por recuperar todas as roles.
+    /// Endpoint responsável por retornar os dados de todas as roles.
     /// </summary>
     /// <returns></returns>
     [HttpGet("get/roles")]
     [CustomAuthorize(Claims.Role, "Get")]
-    [SwaggerOperation(Summary = "Recuperar todas as roles", Description = "Método responsável por recuperar todas as roles")]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [SwaggerOperation(Summary = "Recuperar todas as roles", Description = "Endpoint responsável por retornar os dados de todas as roles.")]
+    [ProducesResponseType(typeof(ApiResponse<List<object>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status423Locked)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
     public async Task<ObjectResult> GetRolesAsync()
     {
         using (LogContext.PushProperty("Controller", "RoleController"))
-        using (LogContext.PushProperty("Metodo", "GetAll"))
+        using (LogContext.PushProperty("Metodo", "GetRolesAsync"))
         {
             return await Tracker.Time(()
                 => _userService.GetRolesAsync(), "Recuperar todas as roles.");
@@ -328,13 +328,13 @@ public class UserManagerController : ControllerBase
     }
 
     /// <summary>
-    /// Método responsável por adicionar uma lista de claims na role.
+    /// Endpoint responsável por adicionar uma lista de claims na role.
     /// </summary>
     /// <param name="roleRequest"></param>
     /// <returns></returns>
     [HttpPost("add/claims/role")]
     [CustomAuthorize(Claims.Role, "Post")]
-    [SwaggerOperation(Summary = "Adicionar uma lista de claims na role", Description = "Método responsável por adicionar uma lista de claims na role.")]
+    [SwaggerOperation(Summary = "Adicionar uma lista de claims na role", Description = "Endpoint responsável por adicionar uma lista de claims na role.")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
@@ -350,13 +350,13 @@ public class UserManagerController : ControllerBase
     }
 
     /// <summary>
-    ///  Método responsável por remover uma lista de claims na role.
+    /// Endpoint responsável por remover uma lista de claims na role.
     /// </summary>
     /// <param name="roleRequest"></param>
     /// <returns></returns>
     [HttpDelete("remove/claims/role")]
     [CustomAuthorize(Claims.Role, "Delete")]
-    [SwaggerOperation(Summary = "Remover uma lista de claims na role", Description = "Método responsável por Remover uma lista de claims na role")]
+    [SwaggerOperation(Summary = "Remover uma lista de claims na role", Description = "Endpoint responsável por remover uma lista de claims na role.")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
@@ -372,14 +372,14 @@ public class UserManagerController : ControllerBase
     }
 
     /// <summary>
-    /// Adicionar uma role mo usuário.
+    /// Endpoint responsável por adicionar uma nova role ao usuário.
     /// </summary>
     /// <param name="username"></param>
     /// <param name="roleName"></param>
     /// <returns></returns>
     [HttpPost("add/role/user/username/{username}/rolename/{roleName}")]
     [CustomAuthorize(Claims.Role, "Post")]
-    [SwaggerOperation(Summary = "Adicionar role no usuário", Description = "Método responsável por Adicionar uma role no usuário")]
+    [SwaggerOperation(Summary = "Adicionar role no usuário", Description = "Endpoint responsável por adicionar uma nova role ao usuário.")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
@@ -395,14 +395,14 @@ public class UserManagerController : ControllerBase
     }
 
     /// <summary>
-    /// Remover a role do usuário.
+    /// Endpoint responsável por emover uma role do usuário.
     /// </summary>
     /// <param name="username"></param>
     /// <param name="roleName"></param>
     /// <returns></returns>
     [HttpDelete("remove/user/{username}/role/{roleName}")]
     [CustomAuthorize(Claims.Role, "Delete")]
-    [SwaggerOperation(Summary = "Remover role do usuário", Description = "Método responsável por Remover uma role do usuário")]
+    [SwaggerOperation(Summary = "Remover role do usuário", Description = "Endpoint responsável por emover uma role do usuário.")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]

@@ -20,10 +20,7 @@ public class ApiResponse<T> : BaseApiResponse
     /// <param name="sucesso"></param>
     /// <param name="statusCode"></param>
     /// <param name="notificacoes"></param>
-    public ApiResponse(bool sucesso, HttpStatusCode statusCode, List<DadosNotificacao> notificacoes = null) : base(statusCode, sucesso, notificacoes)
-    {
-
-    }
+    public ApiResponse(bool sucesso, HttpStatusCode statusCode, List<DadosNotificacao> notificacoes = null) : base(statusCode, sucesso, notificacoes) { }
 
     /// <summary>
     /// Construtor que recebe todos os itens.
@@ -32,9 +29,5 @@ public class ApiResponse<T> : BaseApiResponse
     /// <param name="statusCode"></param>
     /// <param name="dados"></param>
     /// <param name="notificacoes"></param>
-    public ApiResponse(bool sucesso, HttpStatusCode statusCode, object dados = null, List<DadosNotificacao> notificacoes = null) : base(statusCode, sucesso, dados, notificacoes)
-    {
-
-    }
-
+    public ApiResponse(bool sucesso, HttpStatusCode statusCode, object dados = null, List<DadosNotificacao> notificacoes = null) : base(statusCode, sucesso, dados, notificacoes) { }
 }

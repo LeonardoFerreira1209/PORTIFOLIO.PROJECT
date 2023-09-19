@@ -9,6 +9,7 @@ using APPLICATION.DOMAIN.CONTRACTS.API;
 using APPLICATION.DOMAIN.CONTRACTS.CONFIGURATIONS;
 using APPLICATION.DOMAIN.CONTRACTS.CONFIGURATIONS.APPLICATIONINSIGHTS;
 using APPLICATION.DOMAIN.CONTRACTS.FACADE;
+using APPLICATION.DOMAIN.CONTRACTS.FEATUREFLAGS;
 using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY;
 using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.CHAT;
 using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.EVENTS;
@@ -25,6 +26,7 @@ using APPLICATION.DOMAIN.UTILS.GLOBAL;
 using APPLICATION.DOMAIN.UTILS.JOBMETHODS;
 using APPLICATION.INFRAESTRUTURE.CONTEXTO;
 using APPLICATION.INFRAESTRUTURE.FACADES;
+using APPLICATION.INFRAESTRUTURE.FEATUREFLAGS;
 using APPLICATION.INFRAESTRUTURE.JOBS.FACTORY.FLUENTSCHEDULER;
 using APPLICATION.INFRAESTRUTURE.JOBS.INTERFACES.BASE;
 using APPLICATION.INFRAESTRUTURE.REPOSITORY;
@@ -352,7 +354,10 @@ public static class ExtensionsConfigurations
     /// <returns></returns>
     public static IServiceCollection ConfigureSwagger(this IServiceCollection services, IConfiguration configurations)
     {
-        var apiVersion = configurations.GetValue<string>("SwaggerInfo:ApiVersion"); var apiDescription = configurations.GetValue<string>("SwaggerInfo:ApiDescription"); var uriMyGit = configurations.GetValue<string>("SwaggerInfo:UriMyGit");
+        var apiVersion = configurations.GetValue<string>("SwaggerInfo:ApiVersion"); 
+        var apiDescription = configurations.GetValue<string>("SwaggerInfo:ApiDescription"); 
+        var description = configurations.GetValue<string>("SwaggerInfo:Description"); 
+        var uriMyGit = configurations.GetValue<string>("SwaggerInfo:UriMyGit");
 
         services.AddSwaggerGen(swagger =>
         {
@@ -387,7 +392,7 @@ public static class ExtensionsConfigurations
             {
                 Version = apiVersion,
                 Title = $"{apiDescription} - {apiVersion}",
-                Description = apiDescription,
+                Description = description,
 
                 Contact = new OpenApiContact
                 {
@@ -445,7 +450,9 @@ public static class ExtensionsConfigurations
             // Infra
             .AddSingleton<IUserEmailServiceBusSenderProvider, UserEmailServiceBusSenderProvider>()
             .AddSingleton<IUserEmailServiceBusReceiverProvider, UserEmailServiceBusReceiverProvider>()
+            .AddScoped<IFeatureFlags, FeatureFlagsProvider>()
             .AddScoped<LazyLoadingContext>();
+            
 
         // AutoMapper
         services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());

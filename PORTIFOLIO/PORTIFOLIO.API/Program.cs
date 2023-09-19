@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.FeatureManagement;
 using Newtonsoft.Json;
 using Serilog;
 using System;
@@ -69,13 +70,16 @@ try
     }
 
     builder.Services
-         .ConfigureSerilog(configurations)
+            .ConfigureSerilog(configurations)
             .ConfigureHangFire(configurations)
                 .ConfigureFluentSchedulerJobs()
                     .ConfigureSubscribers()
                 .ConfigureHealthChecks(configurations)
-             .ConfigureCors()
-        .AddControllers(options =>
+             .ConfigureCors();
+
+    builder.Services.AddFeatureManagement();
+
+    builder.Services.AddControllers(options =>
         {
             options.EnableEndpointRouting = false;
 

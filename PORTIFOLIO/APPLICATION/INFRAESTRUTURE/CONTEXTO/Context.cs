@@ -24,6 +24,11 @@ public class Context : IdentityDbContext<User, Role, Guid>
     public DbSet<Chat> Chats { get; set; }
 
     /// <summary>
+    /// Tabela de FeatureFlags.
+    /// </summary>
+    public DbSet<FeatureFlags> FeatureFlags { get; set; }
+
+    /// <summary>
     /// Tabela de mensagens do chat.
     /// </summary>
     public DbSet<ChatMessage> ChatMessages { get; set; }
