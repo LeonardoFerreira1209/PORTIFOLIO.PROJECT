@@ -18,7 +18,17 @@ public class GenericEntityCoreRepository<T> : IGenerictEntityCoreRepository<T> w
     private readonly LazyLoadingContext _lazyLoadingContext;
 
     /// <summary>
-    /// Ctor
+    /// ctor
+    /// </summary>
+    /// <param name="context"></param>
+    public GenericEntityCoreRepository
+        (Context context)
+    {
+        _context = context;
+    }
+
+    /// <summary>
+    /// ctor
     /// </summary>
     public GenericEntityCoreRepository
         (Context context, LazyLoadingContext lazyLoadingContext)
@@ -26,6 +36,7 @@ public class GenericEntityCoreRepository<T> : IGenerictEntityCoreRepository<T> w
         _context = context;
         _lazyLoadingContext = lazyLoadingContext;
     }
+
 
     /// <summary>
     /// Criar.

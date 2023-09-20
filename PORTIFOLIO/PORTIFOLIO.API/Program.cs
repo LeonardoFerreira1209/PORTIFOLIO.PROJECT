@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.FeatureManagement;
 using Newtonsoft.Json;
 using Serilog;
 using System;
@@ -72,23 +71,21 @@ try
     builder.Services
             .ConfigureSerilog(configurations)
             .ConfigureHangFire(configurations)
-                .ConfigureFluentSchedulerJobs()
-                    .ConfigureSubscribers()
-                .ConfigureHealthChecks(configurations)
-             .ConfigureCors();
-
-    builder.Services.AddFeatureManagement();
+            .ConfigureFluentSchedulerJobs()
+            .ConfigureSubscribers()
+            .ConfigureHealthChecks(configurations)
+            .ConfigureCors();
 
     builder.Services.AddControllers(options =>
-        {
-            options.EnableEndpointRouting = false;
+    {
+        options.EnableEndpointRouting = false;
 
-            options.Filters.Add(new ProducesAttribute("application/json"));
+        options.Filters.Add(new ProducesAttribute("application/json"));
 
-        })
-        .AddNewtonsoftJson(
-            options
-            => options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
+    })
+    .AddNewtonsoftJson(
+        options
+        => options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
 
     builder.Services.AddSignalR();
 

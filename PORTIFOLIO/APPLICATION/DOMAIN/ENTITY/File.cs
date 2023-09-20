@@ -1,6 +1,6 @@
 ﻿using APPLICATION.DOMAIN.ENTITY.BASE;
 
-namespace APPLICATION.DOMAIN.ENTITY.FILE;
+namespace APPLICATION.DOMAIN.ENTITY;
 
 /// <summary>
 /// Entidade de arquivos.

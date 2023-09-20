@@ -1,11 +1,12 @@
-﻿using APPLICATION.DOMAIN.ENTITY;
+﻿using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY;
+using APPLICATION.DOMAIN.ENTITY;
 
 namespace APPLICATION.DOMAIN.CONTRACTS.FEATUREFLAGS;
 
 /// <summary>
 /// Interface de feature flags
 /// </summary>
-public interface IFeatureFlags
+public interface IFeatureFlags : IGenerictEntityCoreRepository<FeatureFlags>
 {
     /// <summary>
     /// 

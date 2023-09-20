@@ -1,6 +1,7 @@
 ﻿using APPLICATION.DOMAIN.CONTRACTS.FEATUREFLAGS;
 using APPLICATION.DOMAIN.ENTITY;
 using APPLICATION.INFRAESTRUTURE.CONTEXTO;
+using APPLICATION.INFRAESTRUTURE.REPOSITORY;
 using Microsoft.EntityFrameworkCore;
 
 namespace APPLICATION.INFRAESTRUTURE.FEATUREFLAGS;
@@ -8,7 +9,7 @@ namespace APPLICATION.INFRAESTRUTURE.FEATUREFLAGS;
 /// <summary>
 /// Feature flags provider
 /// </summary>
-public class FeatureFlagsProvider : IFeatureFlags
+public class FeatureFlagsProvider : GenericEntityCoreRepository<FeatureFlags>, IFeatureFlags
 {
     private readonly Context _context;
 
@@ -16,7 +17,7 @@ public class FeatureFlagsProvider : IFeatureFlags
     /// ctor
     /// </summary>
     public FeatureFlagsProvider(
-        Context context)
+        Context context) : base(context)
     {
         _context = context;
     }

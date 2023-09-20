@@ -1,6 +1,5 @@
 ﻿using APPLICATION.DOMAIN.ENTITY;
 using APPLICATION.DOMAIN.ENTITY.CHAT;
-using APPLICATION.DOMAIN.ENTITY.ROLE;
 using APPLICATION.DOMAIN.ENTITY.USER;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;

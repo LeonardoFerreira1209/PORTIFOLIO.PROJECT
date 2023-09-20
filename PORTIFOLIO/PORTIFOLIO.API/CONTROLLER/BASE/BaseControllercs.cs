@@ -1,5 +1,8 @@
 ﻿using APPLICATION.DOMAIN.CONTRACTS.FEATUREFLAGS;
+using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
+using APPLICATION.DOMAIN.ENTITY;
+using APPLICATION.DOMAIN.ENUMS;
 using APPLICATION.DOMAIN.EXCEPTIONS;
 using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +19,7 @@ namespace PORTIFOLIO.API.CONTROLLER.BASE;
 public class BaseControllercs : ControllerBase
 {
     private readonly IFeatureFlags _featureFlags;
+    private readonly IUnitOfWork _unitOfWork;
 
     /// <summary>
     /// ctor
@@ -23,9 +27,10 @@ public class BaseControllercs : ControllerBase
     /// <param name="featureFlags"></param>
     /// <param name=""></param>
     public BaseControllercs(
-        IFeatureFlags featureFlags)
+        IFeatureFlags featureFlags, IUnitOfWork unitOfWork)
     {
         _featureFlags = featureFlags;
+        _unitOfWork = unitOfWork;
     }
 
     /// <summary>
@@ -39,13 +44,28 @@ public class BaseControllercs : ControllerBase
     /// <exception cref="CustomException"></exception>
     protected async Task<T> ExecuteAsync<T>(string methodName, Func<Task<T>> method, string methodDescription)
     {
-        var featureFlag = await _featureFlags.GetFeatureDefinitionAsync(methodName);
+        var featureFlag
+            = await _featureFlags.GetFeatureDefinitionAsync(methodName)
+            ?? await _featureFlags.CreateAsync(new FeatureFlags
+            {
+                Name = methodName,
+                Created = DateTime.Now,
+                IsEnabled = true,
+                Status = Status.Active,
+            }).ContinueWith(async (taskResult) =>
+            {
+                await _unitOfWork.CommitAsync();
 
-        if (featureFlag.IsEnabled)
+                return taskResult.Result;
+
+            }).Result;
+
+        if (featureFlag.IsEnabled is false) 
             throw new CustomException(HttpStatusCode.NotImplemented, null, new List<DadosNotificacao> {
-                new DadosNotificacao("Método inativado!")
+                new DadosNotificacao($"Método {methodName} inativado!")
             });
 
-        return await Tracker.Time(() => method(), methodDescription);
+        return await Tracker.Time(
+            () => method(), methodDescription);
     }
 }

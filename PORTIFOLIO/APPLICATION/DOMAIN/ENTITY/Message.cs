@@ -1,6 +1,6 @@
 ﻿using Azure.Messaging.ServiceBus;
 
-namespace APPLICATION.DOMAIN.ENTITY.MESSAGE;
+namespace APPLICATION.DOMAIN.ENTITY;
 
 /// <summary>
 /// Classe de mensagem do serviceBus

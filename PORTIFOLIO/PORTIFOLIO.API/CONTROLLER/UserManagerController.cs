@@ -1,4 +1,5 @@
 ﻿using APPLICATION.DOMAIN.CONTRACTS.FEATUREFLAGS;
+using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.USER;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.CUSTOMAUTHORIZE.ATTRIBUTE;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.TOKEN;
@@ -7,7 +8,6 @@ using APPLICATION.DOMAIN.DTOS.RESPONSE.USER;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.USER.ROLE;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
 using APPLICATION.DOMAIN.ENUMS;
-using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -36,8 +36,8 @@ public class UserManagerController : BaseControllercs
     /// ctor
     /// </summary>
     /// <param name="userService"></param>
-    public UserManagerController(IFeatureFlags featureFlags,
-        IUserService userService) : base(featureFlags)
+    public UserManagerController(
+        IFeatureFlags featureFlags, IUserService userService, IUnitOfWork unitOfWork) : base(featureFlags, unitOfWork)
     {
         _userService = userService;
     }
@@ -61,7 +61,7 @@ public class UserManagerController : BaseControllercs
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(new { username, password })))
         using (LogContext.PushProperty("Metodo", "Authentication"))
         {
-            return await ExecuteAsync(nameof(AuthenticationAsync), 
+            return await ExecuteAsync(nameof(AuthenticationAsync),
                 () => _userService.AuthenticationAsync(new LoginRequest(username, password)), "Autenticar usuário");
         }
     }
@@ -82,8 +82,8 @@ public class UserManagerController : BaseControllercs
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(refreshToken)))
         using (LogContext.PushProperty("Metodo", "RefreshToken"))
         {
-            return await Tracker.Time(()
-                => _userService.RefreshTokenAsync(refreshToken), "Gerar novo token através do Refresh Token");
+            return await ExecuteAsync(nameof(RefreshTokenAsync),
+                 () => _userService.RefreshTokenAsync(refreshToken), "Gerar novo token através do Refresh Token");
         }
     }
 
@@ -103,8 +103,8 @@ public class UserManagerController : BaseControllercs
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(userCreateRequest)))
         using (LogContext.PushProperty("Metodo", "Create"))
         {
-            return await Tracker.Time(()
-                => _userService.CreateAsync(userCreateRequest), "Criar novo usuário");
+            return await ExecuteAsync(nameof(CreateAsync),
+                 () => _userService.CreateAsync(userCreateRequest), "Criar novo usuário");
         }
     }
 
@@ -127,8 +127,8 @@ public class UserManagerController : BaseControllercs
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(name)))
         using (LogContext.PushProperty("Metodo", "GetUsersByNameAsync"))
         {
-            return await Tracker.Time(()
-                => _userService.GetUsersByNameAsync(name), "Buscar usuários pelo nome");
+            return await ExecuteAsync(nameof(GetUsersByNameAsync),
+                  () => _userService.GetUsersByNameAsync(name), "Buscar usuários pelo nome");
         }
     }
 
@@ -152,8 +152,8 @@ public class UserManagerController : BaseControllercs
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(userUpdateRequest)))
         using (LogContext.PushProperty("Metodo", "UpdateAsync"))
         {
-            return await Tracker.Time(()
-                => _userService.UpdateAsync(userUpdateRequest), "Atualizar usuário");
+            return await ExecuteAsync(nameof(UpdateAsync),
+                 () => _userService.UpdateAsync(userUpdateRequest), "Atualizar usuário");
         }
     }
 
@@ -177,8 +177,8 @@ public class UserManagerController : BaseControllercs
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(userId)))
         using (LogContext.PushProperty("Metodo", "GetAsync"))
         {
-            return await Tracker.Time(()
-                => _userService.GetByIdAsync(Guid.Parse(userId)), "Recuperar um usuário");
+            return await ExecuteAsync(nameof(GetAsync),
+                 () => _userService.GetByIdAsync(Guid.Parse(userId)), "Recuperar um usuário");
         }
     }
 
@@ -202,8 +202,8 @@ public class UserManagerController : BaseControllercs
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(new { userId, code })))
         using (LogContext.PushProperty("Metodo", "ActivateAsync"))
         {
-            return await Tracker.Time(()
-                => _userService.ActivateUserAsync(userId, code), "Ativar usuário");
+            return await ExecuteAsync(nameof(ActivateAsync),
+                 () => _userService.ActivateUserAsync(userId, code), "Ativar usuário");
         }
     }
 
@@ -227,8 +227,8 @@ public class UserManagerController : BaseControllercs
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(claimRequest)))
         using (LogContext.PushProperty("Metodo", "AddUserClaimAsync"))
         {
-            return await Tracker.Time(()
-                => _userService.AddUserClaimAsync(username, claimRequest), "Adicionar claim no usuário.");
+            return await ExecuteAsync(nameof(AddUserClaimAsync),
+                  () => _userService.AddUserClaimAsync(username, claimRequest), "Adicionar claim no usuário.");
         }
     }
 
@@ -252,8 +252,8 @@ public class UserManagerController : BaseControllercs
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(claimRequest)))
         using (LogContext.PushProperty("Metodo", "RemoveUseClaimAsync"))
         {
-            return await Tracker.Time(()
-                => _userService.RemoveUserClaimAsync(username, claimRequest), "Remover claim do usuário.");
+            return await ExecuteAsync(nameof(RemoveUseClaimAsync),
+                  () => _userService.RemoveUserClaimAsync(username, claimRequest), "Remover claim do usuário.");
         }
     }
 
@@ -277,8 +277,8 @@ public class UserManagerController : BaseControllercs
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(userId)))
         using (LogContext.PushProperty("Metodo", "GetUserRolesAsync"))
         {
-            return await Tracker.Time(()
-                => _userService.GetUserRolesAsync(userId), "Recuperar roles do usuário.");
+            return await ExecuteAsync(nameof(GetUserRolesAsync),
+                 () => _userService.GetUserRolesAsync(userId), "Recuperar roles do usuário.");
         }
     }
 
@@ -301,8 +301,8 @@ public class UserManagerController : BaseControllercs
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(roleRequest)))
         using (LogContext.PushProperty("Metodo", "CreateRoleAsync"))
         {
-            return await Tracker.Time(()
-                => _userService.CreateRoleAsync(roleRequest), "Adicionar role.");
+            return await ExecuteAsync(nameof(CreateRoleAsync),
+                 () => _userService.CreateRoleAsync(roleRequest), "Adicionar role.");
         }
     }
 
@@ -322,8 +322,8 @@ public class UserManagerController : BaseControllercs
         using (LogContext.PushProperty("Controller", "RoleController"))
         using (LogContext.PushProperty("Metodo", "GetRolesAsync"))
         {
-            return await Tracker.Time(()
-                => _userService.GetRolesAsync(), "Recuperar todas as roles.");
+            return await ExecuteAsync(nameof(GetRolesAsync),
+                 () => _userService.GetRolesAsync(), "Recuperar todas as roles.");
         }
     }
 
@@ -344,8 +344,8 @@ public class UserManagerController : BaseControllercs
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(roleRequest)))
         using (LogContext.PushProperty("Metodo", "AddClaimsToRole"))
         {
-            return await Tracker.Time(()
-                => _userService.AddClaimsToRoleAsync(roleRequest), "Adicionar claims em uma role.");
+            return await ExecuteAsync(nameof(AddClaimsToRoleAsync),
+                 () => _userService.AddClaimsToRoleAsync(roleRequest), "Adicionar claims em uma role.");
         }
     }
 
@@ -366,8 +366,8 @@ public class UserManagerController : BaseControllercs
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(roleRequest)))
         using (LogContext.PushProperty("Metodo", "RemoverClaimToRole"))
         {
-            return await Tracker.Time(()
-                => _userService.RemoveClaimsToRoleAsync(roleRequest), "Remover claims em uma role.");
+            return await ExecuteAsync(nameof(RemoverClaimsToRoleAsync),
+                 () => _userService.RemoveClaimsToRoleAsync(roleRequest), "Remover claims em uma role.");
         }
     }
 
@@ -389,8 +389,8 @@ public class UserManagerController : BaseControllercs
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(new { username, roleName })))
         using (LogContext.PushProperty("Metodo", "AddRoleToUser"))
         {
-            return await Tracker.Time(()
-                => _userService.AddUserRoleAsync(new UserRoleRequest(username, roleName)), "Adicionar role no usuário.");
+            return await ExecuteAsync(nameof(AddRoleToUser),
+                 () => _userService.AddUserRoleAsync(new UserRoleRequest(username, roleName)), "Adicionar role no usuário.");
         }
     }
 
@@ -412,8 +412,8 @@ public class UserManagerController : BaseControllercs
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(roleName)))
         using (LogContext.PushProperty("Metodo", "RemoveRoleToUser"))
         {
-            return await Tracker.Time(()
-                => _userService.RemoveUserRoleAsync(username, roleName), "Remover role do usuário.");
+            return await ExecuteAsync(nameof(RemoveRoleToUser),
+                  () => _userService.RemoveUserRoleAsync(username, roleName), "Remover role do usuário.");
         }
     }
 }

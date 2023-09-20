@@ -1,7 +1,7 @@
 ﻿using APPLICATION.DOMAIN.ENUMS;
 using Microsoft.AspNetCore.Identity;
 
-namespace APPLICATION.DOMAIN.ENTITY.ROLE;
+namespace APPLICATION.DOMAIN.ENTITY;
 
 public class Role : IdentityRole<Guid>
 {

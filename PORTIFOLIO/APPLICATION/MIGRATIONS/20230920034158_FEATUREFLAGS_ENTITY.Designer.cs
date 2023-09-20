@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace APPLICATION.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20230919040602_FeatureFlag")]
-    partial class FeatureFlag
+    [Migration("20230920034158_FEATUREFLAGS_ENTITY")]
+    partial class FEATUREFLAGS_ENTITY
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -126,7 +126,33 @@ namespace APPLICATION.Migrations
                     b.ToTable("Events");
                 });
 
-            modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.FILE.File", b =>
+            modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.FeatureFlags", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("Updated")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("FeatureFlags");
+                });
+
+            modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.File", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -155,26 +181,7 @@ namespace APPLICATION.Migrations
                     b.ToTable("File");
                 });
 
-            modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.FeatureFlags", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("IsEnabled")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("FeatureFlags");
-                });
-
-            modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.ROLE.Role", b =>
+            modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.Role", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -482,7 +489,7 @@ namespace APPLICATION.Migrations
 
             modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.USER.User", b =>
                 {
-                    b.HasOne("APPLICATION.DOMAIN.ENTITY.FILE.File", "File")
+                    b.HasOne("APPLICATION.DOMAIN.ENTITY.File", "File")
                         .WithMany()
                         .HasForeignKey("FileId");
 
@@ -491,7 +498,7 @@ namespace APPLICATION.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
-                    b.HasOne("APPLICATION.DOMAIN.ENTITY.ROLE.Role", null)
+                    b.HasOne("APPLICATION.DOMAIN.ENTITY.Role", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -518,7 +525,7 @@ namespace APPLICATION.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
                 {
-                    b.HasOne("APPLICATION.DOMAIN.ENTITY.ROLE.Role", null)
+                    b.HasOne("APPLICATION.DOMAIN.ENTITY.Role", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)

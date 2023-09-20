@@ -1,11 +1,13 @@
-﻿using APPLICATION.DOMAIN.CONTRACTS.SERVICES.CHAT;
+﻿using APPLICATION.DOMAIN.CONTRACTS.FEATUREFLAGS;
+using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY;
+using APPLICATION.DOMAIN.CONTRACTS.SERVICES.CHAT;
 using APPLICATION.DOMAIN.DTOS.CHAT;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.CHAT;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
-using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using PORTIFOLIO.API.CONTROLLER.BASE;
 using Serilog.Context;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
@@ -20,7 +22,7 @@ namespace PORTIFOLIO.API.CONTROLLER;
 [ApiController]
 [Route("api/chatmanager")]
 [EnableCors("CorsPolicy")]
-public class ChatManagerController : ControllerBase
+public class ChatManagerController : BaseControllercs
 {
     private readonly IChatService _chatService;
 
@@ -29,7 +31,7 @@ public class ChatManagerController : ControllerBase
     /// </summary>
     /// <param name="hubContext"></param>
     public ChatManagerController(
-        IChatService chatService)
+        IChatService chatService, IFeatureFlags featureFlags, IUnitOfWork unitOfWork) : base(featureFlags, unitOfWork)
     {
         _chatService = chatService;
     }
@@ -51,8 +53,8 @@ public class ChatManagerController : ControllerBase
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(chatRequest)))
         using (LogContext.PushProperty("Metodo", "CreateChatAsync"))
         {
-            return await Tracker.Time(()
-                => _chatService.CreateChatAsync(chatRequest), "Criar chat");
+            return await ExecuteAsync(nameof(CreateChatAsync),
+                () => _chatService.CreateChatAsync(chatRequest), "Criar chat");
         }
     }
 
@@ -73,8 +75,8 @@ public class ChatManagerController : ControllerBase
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(chatMessageRequest)))
         using (LogContext.PushProperty("Metodo", "SendMessageAsync"))
         {
-            return await Tracker.Time(()
-                => _chatService.SendMessageAsync(chatMessageRequest), "Enviar mensagem");
+            return await ExecuteAsync(nameof(SendMessageAsync),
+               () => _chatService.SendMessageAsync(chatMessageRequest), "Enviar mensagem");
         }
     }
 
@@ -95,8 +97,8 @@ public class ChatManagerController : ControllerBase
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(userId)))
         using (LogContext.PushProperty("Metodo", "GetChatsByUser"))
         {
-            return await Tracker.Time(()
-                => _chatService.GetChatsByUserAsync(userId), "Recuperar chats por usuário");
+            return await ExecuteAsync(nameof(GetChatsByUserAsync),
+               () => _chatService.GetChatsByUserAsync(userId), "Recuperar chats por usuário");
         }
     }
 
@@ -117,8 +119,8 @@ public class ChatManagerController : ControllerBase
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(chatId)))
         using (LogContext.PushProperty("Metodo", "GetMessagesByChatAsync"))
         {
-            return await Tracker.Time(()
-                => _chatService.GetMessagesByChatAsync(chatId), "Recuperar mensagens por chat");
+            return await ExecuteAsync(nameof(GetMessagesByChatAsync),
+               () => _chatService.GetMessagesByChatAsync(chatId), "Recuperar mensagens por chat");
         }
     }
 }

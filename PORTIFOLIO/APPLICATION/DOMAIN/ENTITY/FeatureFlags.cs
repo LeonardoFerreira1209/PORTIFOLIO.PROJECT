@@ -1,14 +1,16 @@
-﻿namespace APPLICATION.DOMAIN.ENTITY;
+﻿using APPLICATION.DOMAIN.ENTITY.BASE;
+
+namespace APPLICATION.DOMAIN.ENTITY;
 
 /// <summary>
 /// Feature Flags entity
 /// </summary>
-public class FeatureFlags
+public class FeatureFlags : Entity
 {
     /// <summary>
     /// Id
     /// </summary>
-    public int Id { get; set; }
+    public Guid Id { get; set; }
 
     /// <summary>
     /// Nome
