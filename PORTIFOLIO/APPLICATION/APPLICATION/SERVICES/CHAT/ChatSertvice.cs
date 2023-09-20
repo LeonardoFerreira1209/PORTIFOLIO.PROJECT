@@ -7,7 +7,6 @@ using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
 using APPLICATION.DOMAIN.ENTITY.CHAT;
 using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Serilog;
 using System.Net;
@@ -44,19 +43,21 @@ public class ChatSertvice : IChatService
 
         try
         {
-            return await _chatRepository.CreateAsync(chatRequest.AsEntity())
+           return await RetryPolicy.ExecuteAsync<ObjectResult>(
+               async () => await _chatRepository.CreateAsync(chatRequest.AsEntity())
                 .ContinueWith(async taskResult =>
-                 {
-                     await _unitOfWork.CommitAsync();
+                {
+                    await _unitOfWork.CommitAsync();
 
-                     var chat = taskResult.Result;
+                    var chat = taskResult.Result;
 
-                     return new OkObjectResult(
-                         new ApiResponse<ChatResponse>(
-                             true, HttpStatusCode.Created, chat, new List<DadosNotificacao>  {
+                    return new OkObjectResult(
+                        new ApiResponse<ChatResponse>(
+                            true, HttpStatusCode.Created, chat, new List<DadosNotificacao>  {
                                     new DadosNotificacao("Chat criado com sucesso!")
-                             }));
-                 }).Result;
+                            }));
+
+                }).Result, 3);
         }
         catch (Exception exception)
         {
@@ -106,18 +107,19 @@ public class ChatSertvice : IChatService
 
         try
         {
-            return await _chatRepository.GetAllAsync(
+            return await _chatRepository.GetAllAsync(true, 
                 chat => chat.FirstUserId.Equals(userId) || chat.SecondUserId.Equals(userId)).ContinueWith(taskResult =>
                 {
                     var chats
-                        = taskResult.Result
-                            .Include(u => u.FirstUser)
-                            .Include(u => u.SecondUser)
-                            .Include(x => x.Messages).ToList();
+                        = taskResult.Result;
+                    var orderedChatResponse = chats.Select(chat => chat.ToResponse())
+                        .OrderByDescending(chat => chat?.Messages?
+                            .DefaultIfEmpty(new ChatMessageResponse { Created = DateTime.MinValue })
+                                .Max(message => message.Created)).ToList();
 
                     return new OkObjectResult(
                         new ApiResponse<ICollection<ChatMessage>>(
-                            true, HttpStatusCode.OK, chats.Select(chat => chat.ToResponse()), new List<DadosNotificacao>  {
+                            true, HttpStatusCode.OK, orderedChatResponse, new List<DadosNotificacao>  {
                                 new DadosNotificacao("Chats recuperados com sucesso!")
                             }));
                 });

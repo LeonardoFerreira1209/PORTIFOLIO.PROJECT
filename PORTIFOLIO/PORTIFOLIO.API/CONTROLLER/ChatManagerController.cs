@@ -1,13 +1,13 @@
-﻿using APPLICATION.APPLICATION.SIGNALR;
+﻿using APPLICATION.DOMAIN.CONTRACTS.FEATUREFLAGS;
+using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.CHAT;
 using APPLICATION.DOMAIN.DTOS.CHAT;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.CHAT;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
-using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
+using PORTIFOLIO.API.CONTROLLER.BASE;
 using Serilog.Context;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
@@ -22,9 +22,8 @@ namespace PORTIFOLIO.API.CONTROLLER;
 [ApiController]
 [Route("api/chatmanager")]
 [EnableCors("CorsPolicy")]
-public class ChatManagerController : ControllerBase
+public class ChatManagerController : BaseControllercs
 {
-    private readonly IHubContext<HubNotifications> _hubContext;
     private readonly IChatService _chatService;
 
     /// <summary>
@@ -32,14 +31,13 @@ public class ChatManagerController : ControllerBase
     /// </summary>
     /// <param name="hubContext"></param>
     public ChatManagerController(
-        IHubContext<HubNotifications> hubContext, IChatService chatService)
+        IChatService chatService, IFeatureFlags featureFlags, IUnitOfWork unitOfWork) : base(featureFlags, unitOfWork)
     {
-        _hubContext = hubContext;
         _chatService = chatService;
     }
 
     /// <summary>
-    /// Cria um chat.
+    /// Endpoint responsável por criar um char entre dois usuários.
     /// </summary>
     /// <param name="chatRequest"></param>
     /// <returns></returns>
@@ -55,13 +53,13 @@ public class ChatManagerController : ControllerBase
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(chatRequest)))
         using (LogContext.PushProperty("Metodo", "CreateChatAsync"))
         {
-            return await Tracker.Time(()
-                => _chatService.CreateChatAsync(chatRequest), "Criar chat");
+            return await ExecuteAsync(nameof(CreateChatAsync),
+                () => _chatService.CreateChatAsync(chatRequest), "Criar chat");
         }
     }
 
     /// <summary>
-    /// Cria e envia mensagem.
+    /// Endpoint responsável por criar uma nova mensagem no chat e enviar para o remetente.
     /// </summary>
     /// <param name="chatMessageRequest"></param>
     /// <returns></returns>
@@ -77,13 +75,13 @@ public class ChatManagerController : ControllerBase
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(chatMessageRequest)))
         using (LogContext.PushProperty("Metodo", "SendMessageAsync"))
         {
-            return await Tracker.Time(()
-                => _chatService.SendMessageAsync(chatMessageRequest), "Enviar mensagem");
+            return await ExecuteAsync(nameof(SendMessageAsync),
+               () => _chatService.SendMessageAsync(chatMessageRequest), "Enviar mensagem");
         }
     }
 
     /// <summary>
-    /// Recuperar dados do chat
+    /// Endpoint responsável por recuperar os dados de um chat através do Id usuário.
     /// </summary>
     /// <param name="userId"></param>
     /// <returns></returns>
@@ -99,13 +97,13 @@ public class ChatManagerController : ControllerBase
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(userId)))
         using (LogContext.PushProperty("Metodo", "GetChatsByUser"))
         {
-            return await Tracker.Time(()
-                => _chatService.GetChatsByUserAsync(userId), "Recuperar chats por usuário");
+            return await ExecuteAsync(nameof(GetChatsByUserAsync),
+               () => _chatService.GetChatsByUserAsync(userId), "Recuperar chats por usuário");
         }
     }
 
     /// <summary>
-    /// Recuperar dados das mensagens do chat.
+    /// Endpoint responsável por recuperar todas as mensagens de um chat, pelo Id do chat.
     /// </summary>
     /// <param name="userId"></param>
     /// <returns></returns>
@@ -121,8 +119,8 @@ public class ChatManagerController : ControllerBase
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(chatId)))
         using (LogContext.PushProperty("Metodo", "GetMessagesByChatAsync"))
         {
-            return await Tracker.Time(()
-                => _chatService.GetMessagesByChatAsync(chatId), "Recuperar mensagens por chat");
+            return await ExecuteAsync(nameof(GetMessagesByChatAsync),
+               () => _chatService.GetMessagesByChatAsync(chatId), "Recuperar mensagens por chat");
         }
     }
 }

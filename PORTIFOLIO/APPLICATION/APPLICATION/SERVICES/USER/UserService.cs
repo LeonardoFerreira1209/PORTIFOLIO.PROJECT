@@ -14,7 +14,7 @@ using APPLICATION.DOMAIN.DTOS.REQUEST.USER;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.USER;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.USER.ROLE;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
-using APPLICATION.DOMAIN.ENTITY.ROLE;
+using APPLICATION.DOMAIN.ENTITY;
 using APPLICATION.DOMAIN.ENTITY.USER;
 using APPLICATION.DOMAIN.ENUMS;
 using APPLICATION.DOMAIN.EXCEPTIONS;
@@ -94,8 +94,7 @@ public class UserService : IUserService
                 {
                     var validation = validationTask.Result;
 
-                    if (validation.IsValid is false)
-                        await validation.GetValidationErrors();
+                    if (validation.IsValid is false) await validation.GetValidationErrors();
 
                 }).Unwrap();
 
@@ -228,15 +227,15 @@ public class UserService : IUserService
 
                     return new OkObjectResult(
                         new ApiResponse<List<UserResponse>>(
-                            true, HttpStatusCode.OK, new { users = usersResponse }, new List<DadosNotificacao> { new DadosNotificacao("Usuarios recuperados com sucesso.") })
+                            true, HttpStatusCode.OK, usersResponse, new List<DadosNotificacao> { new DadosNotificacao("Usuarios recuperados com sucesso.") })
                         );
                 });
             }
             else
             {
                 return new OkObjectResult(
-                        new ApiResponse<List<UserResponse>>(
-                            true, HttpStatusCode.OK, new { users = Enumerable.Empty<UserResponse>() }, new List<DadosNotificacao> { new DadosNotificacao("Usuarios recuperados com sucesso.") })
+                        new ApiResponse<List<object>>(
+                            true, HttpStatusCode.BadRequest, null, new List<DadosNotificacao> { new DadosNotificacao("O nome do usuário é nulo, envie um nome válido!") })
                         );
             }
         }
@@ -288,8 +287,9 @@ public class UserService : IUserService
                 {
                     var identityResult = identityResultTask.Result;
 
-                    if (identityResult.Succeeded is false) throw new CustomException(
-                        HttpStatusCode.BadRequest, userCreateRequest, identityResult.Errors.Select((e) => new DadosNotificacao(e.Code.CustomExceptionMessage())).ToList());
+                    if (identityResult.Succeeded is false) 
+                        throw new CustomException(
+                            HttpStatusCode.BadRequest, userCreateRequest, identityResult.Errors.Select((e) => new DadosNotificacao(e.Code.CustomExceptionMessage())).ToList());
 
                     var userEntity =
                         await _userRepository.GetWithUsernameAsync(userCreateRequest.UserName);
@@ -305,7 +305,7 @@ public class UserService : IUserService
 
                             }, new List<DadosNotificacao> { new DadosNotificacao("Usuário criado com sucesso.") }));
 
-                }).Unwrap();
+                }).Result;
         }
         catch (Exception exception)
         {
@@ -332,7 +332,7 @@ public class UserService : IUserService
                   var validation = validationTask.Result;
 
                   if (validation.IsValid is false)
-                      await validation.GetValidationErrors();
+                      await validation.GetValidationErrors(userUpdateRequest);
 
               }).Unwrap();
 
@@ -432,8 +432,7 @@ public class UserService : IUserService
                     var userCode =
                         codeTask.Result ?? throw new IncorrectConfirmationCodeAuthenticationException(new { userId, code });
 
-                    if (userCode.Status is Status.Inactive)
-                        throw new IncorrectConfirmationCodeAuthenticationException(new { userId, code });
+                    if (userCode.Status is Status.Inactive) throw new IncorrectConfirmationCodeAuthenticationException(new { userId, code });
 
                     await _userRepository.GetByIdAsync(userCode.UserId).ContinueWith(
                         async (userEntityTask) =>
@@ -466,7 +465,7 @@ public class UserService : IUserService
                         new ApiResponse<object>(
                             true, HttpStatusCode.OK, null, new List<DadosNotificacao> { new DadosNotificacao("Usuário ativado com sucesso!") }));
 
-                }).Unwrap();
+                }).Result;
         }
         catch (Exception exception)
         {
@@ -498,7 +497,7 @@ public class UserService : IUserService
                          new List<DadosNotificacao> { new DadosNotificacao("Campo username deve ter um valor!") });
 
                   if (validation.IsValid is false)
-                      await validation.GetValidationErrors();
+                      await validation.GetValidationErrors(claimRequest);
 
               }).Unwrap();
 
@@ -569,7 +568,7 @@ public class UserService : IUserService
                            new List<DadosNotificacao> { new DadosNotificacao("Campo username deve ter um valor!") });
 
                     if (validation.IsValid is false)
-                        await validation.GetValidationErrors();
+                        await validation.GetValidationErrors(claimRequest);
 
                 }).Unwrap();
 
@@ -707,12 +706,12 @@ public class UserService : IUserService
                     });
 
                     return new OkObjectResult(
-                        new ApiResponse<object>(
+                        new ApiResponse<List<RolesResponse>>(
                             true, HttpStatusCode.OK, roles,
                                 new List<DadosNotificacao> { new DadosNotificacao("Roles recuperadas com sucesso!") }));
                 });
 
-            }).Unwrap();
+            }).Result;
         }
         catch (Exception exception)
         {

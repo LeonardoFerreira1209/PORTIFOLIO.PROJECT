@@ -69,22 +69,23 @@ try
     }
 
     builder.Services
-         //.ConfigureSerilog(configurations)
+            .ConfigureSerilog(configurations)
             .ConfigureHangFire(configurations)
-                .ConfigureFluentSchedulerJobs()
-                    .ConfigureSubscribers()
-                .ConfigureHealthChecks(configurations)
-             .ConfigureCors()
-        .AddControllers(options =>
-        {
-            options.EnableEndpointRouting = false;
+            .ConfigureFluentSchedulerJobs()
+            .ConfigureSubscribers()
+            .ConfigureHealthChecks(configurations)
+            .ConfigureCors();
 
-            options.Filters.Add(new ProducesAttribute("application/json"));
+    builder.Services.AddControllers(options =>
+    {
+        options.EnableEndpointRouting = false;
 
-        })
-        .AddNewtonsoftJson(
-            options
-            => options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
+        options.Filters.Add(new ProducesAttribute("application/json"));
+
+    })
+    .AddNewtonsoftJson(
+        options
+        => options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
 
     builder.Services.AddSignalR();
 

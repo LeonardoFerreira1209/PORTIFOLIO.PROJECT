@@ -1,6 +1,5 @@
 ﻿using APPLICATION.DOMAIN.ENTITY;
 using APPLICATION.DOMAIN.ENTITY.CHAT;
-using APPLICATION.DOMAIN.ENTITY.ROLE;
 using APPLICATION.DOMAIN.ENTITY.USER;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +21,11 @@ public class Context : IdentityDbContext<User, Role, Guid>
     /// Tabela de Chat.
     /// </summary>
     public DbSet<Chat> Chats { get; set; }
+
+    /// <summary>
+    /// Tabela de FeatureFlags.
+    /// </summary>
+    public DbSet<FeatureFlags> FeatureFlags { get; set; }
 
     /// <summary>
     /// Tabela de mensagens do chat.

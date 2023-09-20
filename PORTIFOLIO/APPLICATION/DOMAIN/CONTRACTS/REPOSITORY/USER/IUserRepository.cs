@@ -1,4 +1,4 @@
-﻿using APPLICATION.DOMAIN.ENTITY.ROLE;
+﻿using APPLICATION.DOMAIN.ENTITY;
 using APPLICATION.DOMAIN.ENTITY.USER;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;

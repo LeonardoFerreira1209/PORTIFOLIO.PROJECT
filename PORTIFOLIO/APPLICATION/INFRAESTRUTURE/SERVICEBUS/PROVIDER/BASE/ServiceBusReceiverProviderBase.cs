@@ -1,4 +1,4 @@
-﻿using APPLICATION.DOMAIN.ENTITY.MESSAGE;
+﻿using APPLICATION.DOMAIN.ENTITY;
 using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
 using Newtonsoft.Json;

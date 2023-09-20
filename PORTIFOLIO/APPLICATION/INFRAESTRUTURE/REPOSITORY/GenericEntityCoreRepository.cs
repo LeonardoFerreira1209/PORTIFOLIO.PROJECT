@@ -18,7 +18,17 @@ public class GenericEntityCoreRepository<T> : IGenerictEntityCoreRepository<T> w
     private readonly LazyLoadingContext _lazyLoadingContext;
 
     /// <summary>
-    /// Ctor
+    /// ctor
+    /// </summary>
+    /// <param name="context"></param>
+    public GenericEntityCoreRepository
+        (Context context)
+    {
+        _context = context;
+    }
+
+    /// <summary>
+    /// ctor
     /// </summary>
     public GenericEntityCoreRepository
         (Context context, LazyLoadingContext lazyLoadingContext)
@@ -26,6 +36,7 @@ public class GenericEntityCoreRepository<T> : IGenerictEntityCoreRepository<T> w
         _context = context;
         _lazyLoadingContext = lazyLoadingContext;
     }
+
 
     /// <summary>
     /// Criar.
@@ -97,13 +108,13 @@ public class GenericEntityCoreRepository<T> : IGenerictEntityCoreRepository<T> w
     /// </summary>
     /// <param name="predicate">Um predicado opcional para filtrar os registros recuperados.</param>
     /// <returns>Uma tarefa que representa a operação de recuperação. O valor da tarefa é uma IQueryable<T> contendo todos os registros ou registros filtrados baseados no predicado.</returns>
-    public Task<IQueryable<T>> GetAllAsync(Expression<Func<T, bool>> predicate = null)
+    public async Task<IEnumerable<T>> GetAllAsync(bool laziLoading, Expression<Func<T, bool>> predicate = null)
     {
-        IQueryable<T> query = _context.Set<T>();
+        IQueryable<T> query = laziLoading ? _lazyLoadingContext.Set<T>() : _context.Set<T>();
 
         if (predicate != null) query = query.Where(predicate);
 
-        return Task.FromResult(query);
+        return await query.ToListAsync();
     }
 
 
