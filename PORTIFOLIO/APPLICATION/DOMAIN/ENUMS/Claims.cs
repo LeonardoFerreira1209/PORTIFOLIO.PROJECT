@@ -15,5 +15,8 @@ namespace APPLICATION.DOMAIN.ENUMS
 
         [Description("Accesso á Roles.")]
         Role = 4,
+
+        [Description("Accesso á Chats.")]
+        Chat = 5,
     }
 }
