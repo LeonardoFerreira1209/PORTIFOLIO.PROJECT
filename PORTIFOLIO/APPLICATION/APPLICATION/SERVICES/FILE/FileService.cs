@@ -1,64 +1,102 @@
 ﻿using APPLICATION.DOMAIN.CONTRACTS.SERVICES.FILE;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION;
-using APPLICATION.DOMAIN.DTOS.RESPONSE.FILE;
-using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
-using APPLICATION.DOMAIN.VALIDATORS;
 using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using Serilog;
-using System.Net;
+using static APPLICATION.DOMAIN.EXCEPTIONS.FILE.CustomFileException;
 
 namespace APPLICATION.APPLICATION.SERVICES.FILE;
 
+/// <summary>
+/// Serviço de Arquivos
+/// </summary>
 public class FileService : IFileService
 {
-    private readonly IOptions<AppSettings> _appsettings;
-
-    public FileService(IOptions<AppSettings> appsettings) { _appsettings = appsettings; }
+    private readonly BlobContainerClient _blobContainerClient;
 
     /// <summary>
-    /// Gravar um arquivo no azure blob storage e retorna sua URL.
+    /// ctor
+    /// </summary>
+    /// <param name="appsettings"></param>
+    public FileService(
+        IOptions<AppSettings> appsettings)
+    {
+        _blobContainerClient = new BlobContainerClient(
+            appsettings.Value.ConnectionStrings.AzureBlobStorage, appsettings.Value.AzureBlobStorage.Container);
+    }
+
+    /// <summary>
+    /// Método de upload de arquivo.
     /// </summary>
     /// <param name="formFile"></param>
     /// <returns></returns>
-    public async Task<ApiResponse<object>> InviteFileToAzureBlobStorageAndReturnUri(IFormFile formFile)
+    /// <exception cref="ConflictFileException"></exception>
+    public async Task<BlobClient> UploadAsync(IFormFile formFile)
     {
-        Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(FileService)} - METHOD {nameof(InviteFileToAzureBlobStorageAndReturnUri)}\n");
+        Log.Information(
+           $"[LOG INFORMATION] - SET TITLE {nameof(FileService)} - METHOD {nameof(UploadAsync)}\n");
 
         try
         {
-            Log.Information($"[LOG INFORMATION] - Adicionando imagem no azure blob storage.\n");
+            var blobStorage
+                = _blobContainerClient.GetBlobClient(formFile.FileName);
 
-            // Validade formFile.
-            var validation = await new ImageUploadValidator().ValidateAsync(formFile); //if (validation.IsValid is false) return validation.CarregarErrosValidator();
+            return await blobStorage.ExistsAsync().ContinueWith(
+                async (taskResult) =>
+                {
+                    var azureResponse =
+                            taskResult.Result;
 
-            // Declare a memory stream.
-            var memoryStream = new MemoryStream();
+                    if (azureResponse.Value)
+                        throw new ConflictFileException(formFile.FileName);
 
-            // Copy formFile to memoryStream.
-            await formFile.CopyToAsync(memoryStream);
+                    await blobStorage.UploadAsync(
+                        formFile.OpenReadStream());
 
-            // Create a azure blob client.
-            var blobClient = new BlobClient(_appsettings.Value.AzureStorage.ConnectionStringAzureStorageKey, _appsettings.Value.AzureStorage.Container, formFile.FileName);
+                    Log.Information(
+                         $"[LOG INFORMATION] - Arquivo enviado para o blob com sucesso {formFile.FileName}\n");
 
-            if (!await blobClient.ExistsAsync())
-            {
-                // Upload file in azure blob storage.
-                await blobClient.UploadAsync(formFile.OpenReadStream());
-            }
+                    return blobStorage;
 
-            Log.Information($"[LOG INFORMATION] - Imagem adicionada ao blob com sucesso, Url: {blobClient.Uri.AbsoluteUri}.\n");
-
-            // Response error.
-            return new ApiResponse<object>(true, HttpStatusCode.OK, new FileResponse { FileUri = blobClient.Uri.AbsoluteUri }, new List<DadosNotificacao> { new DadosNotificacao($"Imagem adicionada ao blob com sucesso, Url: {blobClient.Uri.AbsoluteUri}.\n") });
+                }).Result;
         }
         catch (Exception exception)
         {
-            Log.Error($"[LOG ERROR] - {exception.Message}\n");
+            Log.Error($"[LOG ERROR] - Exception:{exception.Message} - {JsonConvert.SerializeObject(exception)}\n"); throw;
+        }
+    }
 
-            // Error response.
-            return new ApiResponse<object>(false, HttpStatusCode.InternalServerError, null, new List<DadosNotificacao> { new DadosNotificacao(exception.Message) });
+    /// <summary>
+    /// Metodo que recupera os dados de um blob pelo nome.
+    /// </summary>
+    /// <param name="blobName"></param>
+    /// <returns></returns>
+    public async Task<BlobClient> GetBlobByName(string blobName)
+    {
+        Log.Information(
+           $"[LOG INFORMATION] - SET TITLE {nameof(FileService)} - METHOD {nameof(GetBlobByName)}\n");
+
+        try
+        {
+            var blobStorage
+                = _blobContainerClient.GetBlobClient(blobName);
+
+            return await blobStorage.ExistsAsync().ContinueWith(taskResult =>
+            {
+                if (taskResult.Result.Value is false)
+                    throw new NotFoundFileException<string>(blobName);
+
+                Log.Information(
+                     $"[LOG INFORMATION] - Blob recuperado com sucesso {JsonConvert.SerializeObject(blobStorage)}\n");
+
+                return blobStorage;
+            });
+        }
+        catch (Exception exception)
+        {
+            Log.Error($"[LOG ERROR] - Exception:{exception.Message} - {JsonConvert.SerializeObject(exception)}\n"); throw;
         }
     }
 }

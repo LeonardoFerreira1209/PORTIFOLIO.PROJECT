@@ -1,6 +1,5 @@
 ﻿using APPLICATION.DOMAIN.ENUMS;
 using Microsoft.AspNetCore.Identity;
-using File = APPLICATION.DOMAIN.ENTITY.File;
 
 namespace APPLICATION.DOMAIN.ENTITY.USER;
 

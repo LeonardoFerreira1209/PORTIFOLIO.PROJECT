@@ -11,9 +11,9 @@ using APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.TOKEN;
 using APPLICATION.DOMAIN.DTOS.MAIL.REQUEST;
 using APPLICATION.DOMAIN.DTOS.MAIL.REQUEST.SENDGRID;
 using APPLICATION.DOMAIN.DTOS.REQUEST.USER;
+using APPLICATION.DOMAIN.DTOS.RESPONSE.BASE;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.USER;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.USER.ROLE;
-using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
 using APPLICATION.DOMAIN.ENTITY;
 using APPLICATION.DOMAIN.ENTITY.USER;
 using APPLICATION.DOMAIN.ENUMS;
@@ -85,7 +85,8 @@ public class UserService : IUserService
     /// <exception cref="NotFoundUserException"></exception>
     public async Task<ObjectResult> AuthenticationAsync(LoginRequest loginRequest)
     {
-        Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(AuthenticationAsync)}\n");
+        Log.Information(
+            $"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(AuthenticationAsync)}\n");
 
         try
         {
@@ -113,12 +114,18 @@ public class UserService : IUserService
                             if (signInResult.Succeeded is false) ThrownAuthorizationException(signInResult, loginRequest);
                         });
 
+                    Log.Information(
+                        $"[LOG INFORMATION] - Usuário autenticado com sucesso!\n");
+
                     return await GenerateTokenJwtAsync(loginRequest).ContinueWith(
                         (tokenJwtTask) =>
                         {
                             var tokenJWT =
                                 tokenJwtTask.Result
                                 ?? throw new TokenJwtException(null);
+
+                            Log.Information(
+                                $"[LOG INFORMATION] - Token gerado com sucesso {JsonConvert.SerializeObject(tokenJWT)}!\n");
 
                             return tokenJWT;
                         });
@@ -641,7 +648,7 @@ public class UserService : IUserService
                             new DadosNotificacao("Role não foi encontrada!")
                         });
 
-                    return _userRepository.AddToUserRoleAsync(userEntity, userRoleRequest.RoleName).ContinueWith(identityResultTask =>
+                    return await _userRepository.AddToUserRoleAsync(userEntity, userRoleRequest.RoleName).ContinueWith(identityResultTask =>
                     {
                         var identityResult
                             = identityResultTask.Result;
@@ -655,7 +662,7 @@ public class UserService : IUserService
                             new ApiResponse<object>(
                                 identityResult.Succeeded, HttpStatusCode.OK, userRoleRequest,
                                 new List<DadosNotificacao> { new DadosNotificacao($"Role {userRoleRequest.RoleName}, adicionada com sucesso ao usuário {userRoleRequest.Username}.") }));
-                    }).Result;
+                    });
 
                 }).Unwrap();
 

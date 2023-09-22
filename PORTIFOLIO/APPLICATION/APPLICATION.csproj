@@ -7,10 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="DOMAIN\HANDLERS\**" />
     <Compile Remove="DOMAIN\UTILS\AUTH\**" />
     <Compile Remove="INFRAESTRUTURE\CONTEXTO\CONFIGUREDATATYPES\**" />
+    <EmbeddedResource Remove="DOMAIN\HANDLERS\**" />
     <EmbeddedResource Remove="DOMAIN\UTILS\AUTH\**" />
     <EmbeddedResource Remove="INFRAESTRUTURE\CONTEXTO\CONFIGUREDATATYPES\**" />
+    <None Remove="DOMAIN\HANDLERS\**" />
     <None Remove="DOMAIN\UTILS\AUTH\**" />
     <None Remove="INFRAESTRUTURE\CONTEXTO\CONFIGUREDATATYPES\**" />
   </ItemGroup>
@@ -77,9 +80,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="APPLICATION\HANDLER\" />
     <Folder Include="DOMAIN\DTOS\MAIL\BASE\" />
     <Folder Include="APPLICATION\GRAPHQL\QUERYTYPE\" />
-    <Folder Include="DOMAIN\HANDLERS\" />
     <Folder Include="INFRAESTRUTURE\JOBS\QUEUED\" />
     <Folder Include="MIGRATIONS\" />
   </ItemGroup>
