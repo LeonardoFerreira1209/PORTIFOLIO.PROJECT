@@ -985,7 +985,7 @@ public class UserService : IUserService
 
         }).ContinueWith(async (mailResultTask) =>
         {
-            if (mailResultTask.Result.Sucesso is false)
+            if (mailResultTask.Result.Sucesso is true)
                 await _eventRepository.CreateAsync(EventExtensions.CreateMailEvent(
                     "FailedToSendConfirmationMail", "Reenvio de e-mail de confirmação de usuário.", new
                     {

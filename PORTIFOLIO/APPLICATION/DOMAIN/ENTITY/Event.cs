@@ -52,5 +52,5 @@ public class Event : Entity
     /// <summary>
     /// Status do evento.
     /// </summary>
-    public new EventStatus Status { get; set; }
+    public override EventStatus Status { get; set; }
 }

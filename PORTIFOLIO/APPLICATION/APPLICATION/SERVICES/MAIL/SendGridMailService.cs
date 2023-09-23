@@ -1,9 +1,7 @@
-﻿using APPLICATION.DOMAIN.CONTRACTS.SERVICES.JOBS;
-using APPLICATION.DOMAIN.CONTRACTS.SERVICES.MAIL;
+﻿using APPLICATION.DOMAIN.CONTRACTS.SERVICES.MAIL;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION;
 using APPLICATION.DOMAIN.DTOS.MAIL.REQUEST.SENDGRID;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.BASE;
-using APPLICATION.DOMAIN.FACTORY.JOBS;
 using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -21,9 +19,6 @@ public class SendGridMailService : IMailService<SendGridMailRequest, ApiResponse
 {
     private readonly SendGridClient _sendGridClient;
 
-    private readonly HangfireJobFactory _hangfireJobFactory = new();
-    private readonly IJobsService _jobsService;
-
     /// <summary>
     /// ctor.
     /// </summary>
@@ -32,7 +27,6 @@ public class SendGridMailService : IMailService<SendGridMailRequest, ApiResponse
         IOptions<AppSettings> appsettings)
     {
         _sendGridClient = new SendGridClient(apiKey: appsettings.Value.Mail.ApiKey);
-        _jobsService = _hangfireJobFactory.CreateJobService();
     }
 
     /// <summary>
@@ -61,7 +55,7 @@ public class SendGridMailService : IMailService<SendGridMailRequest, ApiResponse
                             response.IsSuccessStatusCode, response.StatusCode,
                                 JsonConvert.DeserializeObject(await response.Body.ReadAsStringAsync()));
 
-                    }).Unwrap();
+                    }).Result;
         }
         catch (Exception exception)
         {
@@ -94,7 +88,7 @@ public class SendGridMailService : IMailService<SendGridMailRequest, ApiResponse
                            response.IsSuccessStatusCode, response.StatusCode,
                                 JsonConvert.DeserializeObject(await response.Body.ReadAsStringAsync()));
 
-                    }).Unwrap();
+                    }).Result;
         }
         catch (Exception exception)
         {
