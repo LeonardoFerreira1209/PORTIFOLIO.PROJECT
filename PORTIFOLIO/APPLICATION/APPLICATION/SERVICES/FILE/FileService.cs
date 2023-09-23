@@ -73,17 +73,18 @@ public class FileService : IFileService
     /// </summary>
     /// <param name="blobName"></param>
     /// <returns></returns>
-    public async Task<BlobClient> GetBlobByName(string blobName)
+    public async Task<BlobClient> GetBlobByNameAsync(string blobName)
     {
         Log.Information(
-           $"[LOG INFORMATION] - SET TITLE {nameof(FileService)} - METHOD {nameof(GetBlobByName)}\n");
+           $"[LOG INFORMATION] - SET TITLE {nameof(FileService)} - METHOD {nameof(GetBlobByNameAsync)}\n");
 
         try
         {
             var blobStorage
                 = _blobContainerClient.GetBlobClient(blobName);
 
-            return await blobStorage.ExistsAsync().ContinueWith(taskResult =>
+            return await blobStorage.ExistsAsync().ContinueWith(
+                taskResult =>
             {
                 if (taskResult.Result.Value is false)
                     throw new NotFoundFileException<string>(blobName);
@@ -92,6 +93,31 @@ public class FileService : IFileService
                      $"[LOG INFORMATION] - Blob recuperado com sucesso {JsonConvert.SerializeObject(blobStorage)}\n");
 
                 return blobStorage;
+            });
+        }
+        catch (Exception exception)
+        {
+            Log.Error($"[LOG ERROR] - Exception:{exception.Message} - {JsonConvert.SerializeObject(exception)}\n"); throw;
+        }
+    }
+
+    /// <summary>
+    /// Método responsável por deletar um blob pelon nome.
+    /// </summary>
+    /// <param name="blobName"></param>
+    /// <returns></returns>
+    public async Task DeleteBlobByNameAsync(string blobName)
+    {
+        Log.Information(
+           $"[LOG INFORMATION] - SET TITLE {nameof(FileService)} - METHOD {nameof(DeleteBlobByNameAsync)}\n");
+
+        try
+        {
+            await _blobContainerClient.DeleteBlobIfExistsAsync(blobName).ContinueWith(
+                taskResult =>
+            {
+                Log.Information(
+                 $"[LOG INFORMATION] - Blob {blobName} deletado com sucesso!\n");
             });
         }
         catch (Exception exception)

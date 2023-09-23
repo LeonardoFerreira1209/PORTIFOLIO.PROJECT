@@ -11,5 +11,5 @@ public enum EventStatus
     Unprocessed = 2,
 
     [Description("Failed")]
-    Failed = 2
+    Failed = 3
 }

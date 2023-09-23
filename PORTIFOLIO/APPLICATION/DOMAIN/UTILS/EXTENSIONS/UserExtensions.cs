@@ -34,14 +34,14 @@ public static class UserExtensions
     /// </summary>
     /// <param name="userUpdateRequest"></param>
     /// <returns></returns>
-    public static User TransformUserEntityFromUserUpdateRequest(this User userEntity, UserUpdateRequest userUpdateRequest)
+    public static User TransformUserEntityFromUserUpdateRequest(this User userEntity, UserUpdateRequest userUpdateRequest, bool emailConfirmed)
         => new UserEntityBuilder()
                 .AddCredentials(userEntity.UserName, userEntity.PasswordHash)
                     .AddEmail(userEntity.Email)
                         .AddPhoneNumber(userEntity.PhoneNumber)
                             .AddDocuments(userUpdateRequest.RG, userUpdateRequest.CPF)
                                .AddCompleteName(userUpdateRequest.FirstName, userUpdateRequest.LastName)
-                                  .AddEmail(userEntity.Email)
+                                  .AddEmail(userEntity.Email, emailConfirmed)
                                      .AddGender(userUpdateRequest.Gender)
                                         .AddCreatedDate(userEntity.Created)
                                            .AddUpdatedDate(DateTime.Now)
@@ -58,6 +58,7 @@ public static class UserExtensions
         return new UserResponse
         {
             Id = user.Id,
+            UserName = user.UserName,
             FirstName = user.FirstName,
             LastName = user.LastName,
             Email = user.Email,

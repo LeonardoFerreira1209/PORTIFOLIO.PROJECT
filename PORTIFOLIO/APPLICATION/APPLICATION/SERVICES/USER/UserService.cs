@@ -50,8 +50,6 @@ public class UserService : IUserService
     private readonly IOptions<AppSettings> _appsettings;
     private readonly ITokenService _tokenService;
     private readonly IUtilFacade _utilFacade;
-
-    private readonly SendGridMailFactory _sendGridMailFactory;
     private readonly IMailService<SendGridMailRequest, ApiResponse<object>> _mailService;
 
     /// <summary>
@@ -71,10 +69,9 @@ public class UserService : IUserService
         _tokenService = tokenService;
         _utilFacade = utilFacade;
 
-        _sendGridMailFactory = new(appsettings);
-
+        SendGridMailFactory sendGridMailFactory = new(appsettings);
         _mailService =
-            _sendGridMailFactory.CreateMailService<SendGridMailRequest, ApiResponse<object>>();
+            sendGridMailFactory.CreateMailService<SendGridMailRequest, ApiResponse<object>>();
     }
 
     /// <summary>
@@ -294,7 +291,7 @@ public class UserService : IUserService
                 {
                     var identityResult = identityResultTask.Result;
 
-                    if (identityResult.Succeeded is false) 
+                    if (identityResult.Succeeded is false)
                         throw new CustomException(
                             HttpStatusCode.BadRequest, userCreateRequest, identityResult.Errors.Select((e) => new DadosNotificacao(e.Code.CustomExceptionMessage())).ToList());
 
@@ -375,19 +372,21 @@ public class UserService : IUserService
                         });
                 }
 
+                var emailConfirmed = true;
                 if (userUpdateRequest.Email.Equals(userEntity.Email) is false)
                 {
                     await _userRepository.SetEmailAsync(
-                        userEntity, userUpdateRequest.Email).ContinueWith(identityResultTask =>
+                        userEntity, userUpdateRequest.Email).ContinueWith(async (identityResultTask) =>
                         {
                             var identityResult = identityResultTask.Result;
+
+                            emailConfirmed = false;
+                            await SendConfirmationEmailCode(userEntity);
 
                             if (identityResult.Succeeded is false)
                                 throw new CustomException(HttpStatusCode.BadRequest, userUpdateRequest,
                                     new List<DadosNotificacao> { new DadosNotificacao(identityResult.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) });
-                        });
-
-                    await SendConfirmationEmailCode(userEntity);
+                        }).Result;
                 }
 
                 if (userUpdateRequest.PhoneNumber.Equals(userEntity.PhoneNumber) is false)
@@ -405,7 +404,7 @@ public class UserService : IUserService
 
                 await _userRepository.UpdateUserAsync(
                         userEntity.TransformUserEntityFromUserUpdateRequest(
-                            userUpdateRequest));
+                            userUpdateRequest, emailConfirmed));
 
                 return new OkObjectResult(
                    new ApiResponse<object>(

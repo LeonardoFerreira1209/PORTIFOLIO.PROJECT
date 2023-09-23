@@ -271,7 +271,6 @@ public static class ExtensionsConfigurations
     /// Configuração da authorização do sistema.
     /// </summary>
     /// <param name="services"></param>
-    /// <param name="configurations"></param>
     /// <returns></returns>
     public static IServiceCollection ConfigureAuthorization(this IServiceCollection services)
     {
@@ -592,21 +591,6 @@ public static class ExtensionsConfigurations
 
         return application;
     }
-
-    /// <summary>
-    /// Coniguras os endpoints & Hubs
-    /// </summary>
-    /// <param name="application"></param>
-    /// <returns></returns>
-    //public static IApplicationBuilder UseEndpoints(this IApplicationBuilder application)
-    //{
-    //    application.UseEndpoints(endpoints =>
-    //    {
-    //        endpoints.MapHub<HubPerson>("/person");
-    //    });
-
-    //    return application;
-    //}
 
     /// <summary>
     /// Configuração de uso do swagger do sistema.

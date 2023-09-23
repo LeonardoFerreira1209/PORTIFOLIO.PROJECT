@@ -20,5 +20,12 @@ public interface IFileService
     /// </summary>
     /// <param name="blobName"></param>
     /// <returns></returns>
-    Task<BlobClient> GetBlobByName(string blobName);
+    Task<BlobClient> GetBlobByNameAsync(string blobName);
+
+    /// <summary>
+    /// Método responsável por deletar um blob pelon nome.
+    /// </summary>
+    /// <param name="blobName"></param>
+    /// <returns></returns>
+    Task DeleteBlobByNameAsync(string blobName);
 }

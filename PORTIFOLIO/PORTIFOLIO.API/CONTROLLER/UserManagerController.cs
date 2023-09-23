@@ -1,6 +1,5 @@
 ﻿using APPLICATION.DOMAIN.CONTRACTS.FEATUREFLAGS;
 using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY;
-using APPLICATION.DOMAIN.CONTRACTS.SERVICES.FILE;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES.USER;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.CUSTOMAUTHORIZE.ATTRIBUTE;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.TOKEN;
@@ -10,7 +9,6 @@ using APPLICATION.DOMAIN.DTOS.RESPONSE.USER;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.USER.ROLE;
 using APPLICATION.DOMAIN.ENUMS;
 using Microsoft.AspNetCore.Cors;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using PORTIFOLIO.API.CONTROLLER.BASE;
@@ -33,30 +31,15 @@ namespace PORTIFOLIO.API.CONTROLLER;
 public class UserManagerController : BaseControllercs
 {
     private readonly IUserService _userService;
-    private readonly IFileService _file;
 
     /// <summary>
     /// ctor
     /// </summary>
     /// <param name="userService"></param>
     public UserManagerController(
-        IFeatureFlags featureFlags, IUserService userService, IFileService fileService, IUnitOfWork unitOfWork) : base(featureFlags, unitOfWork)
+        IFeatureFlags featureFlags, IUserService userService, IUnitOfWork unitOfWork) : base(featureFlags, unitOfWork)
     {
         _userService = userService;
-        _file = fileService;
-    }
-
-
-    [HttpPost]
-    public async Task<IActionResult> Teste(IFormFile formFile)
-    {
-        return new ObjectResult(await _file.UploadAsync(formFile));
-    }
-
-    [HttpGet]
-    public async Task<IActionResult> TesteB(string blobName)
-    {
-        return new ObjectResult(await _file.GetBlobByName(blobName));
     }
 
     /// <summary>
