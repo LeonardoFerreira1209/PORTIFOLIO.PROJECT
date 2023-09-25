@@ -963,7 +963,10 @@ public class UserService : IUserService
     /// <returns></returns>
     private async Task SendConfirmationEmailCode(User user)
     {
-        var confirmationCodeIdentity = await _userRepository.GenerateEmailConfirmationTokenAsync(user);
+        Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(SendConfirmationEmailCode)}\n");
+
+        var confirmationCodeIdentity
+            = await _userRepository.GenerateEmailConfirmationTokenAsync(user);
 
         var userCodeEntity = await _userRepository.AddUserConfirmationCode(
             new UserCode
@@ -986,20 +989,31 @@ public class UserService : IUserService
         }).ContinueWith(async (mailResultTask) =>
         {
             if (mailResultTask.Result.Sucesso is false)
-                await _eventRepository.CreateAsync(EventExtensions.CreateMailEvent(
-                    "FailedToSendConfirmationMail", "Reenvio de e-mail de confirmação de usuário.", new
-                    {
-                        From = new EmailAddress(),
-                        To = new EmailAddress(user.FirstName, user.Email),
-                        TemplateId = "d-a5a2d227be3a491ea863112e28b2ae84",
-                        DynamicTemplateData = new
-                        {
-                            Name = user.FirstName,
-                            Code = userCodeEntity.NumberCode
-                        }
-                    }));
+            {
+                var eventFail = await _eventRepository.CreateAsync(EventExtensions.CreateMailEvent(
+                   "FailedToSendConfirmationMail", "Reenvio de e-mail de confirmação de usuário.", new
+                   {
+                       From = new EmailAddress(),
+                       To = new EmailAddress(user.FirstName, user.Email),
+                       TemplateId = "d-a5a2d227be3a491ea863112e28b2ae84",
+                       DynamicTemplateData = new
+                       {
+                           Name = user.FirstName,
+                           Code = userCodeEntity.NumberCode
+                       }
+                   }));
 
-            await _unitOfWork.CommitAsync();
+                await _unitOfWork.CommitAsync();
+
+                Log.Information(
+                    $@"[LOG INFORMATION] - Envio de e-mail falhou,
+                    evento {JsonConvert.SerializeObject(eventFail)}, de reenvio de e-mail criado com sucesso!\n");
+            }
+            else
+            {
+                Log.Information(
+                    $"[LOG INFORMATION] - E-mail de confirmação enviado com sucesso!\n");
+            }
 
         }).Unwrap();
     }
