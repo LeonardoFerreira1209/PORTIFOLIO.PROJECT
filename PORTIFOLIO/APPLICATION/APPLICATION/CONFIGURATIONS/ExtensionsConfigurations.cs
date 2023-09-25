@@ -712,13 +712,19 @@ public static class ExtensionsConfigurations
     /// <returns></returns>
     public static IApplicationBuilder StartRecurrentJobs(this IApplicationBuilder application)
     {
+        Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(ExtensionsConfigurations)} - METHOD {nameof(StartRecurrentJobs)}\n");
+
         try
         {
+            Log.Information($"[LOG INFORMATION] - Inicializando Jobs recorrentes.\n");
+
             string EveryThreeMinutes = "0 */3 * ? * *";
 
             RecurringJob.AddOrUpdate<JobMethods>(
                         "resend-failed-mail-recurrent-job", jobMethods
                             => jobMethods.ResendFailedMailsAsync(), EveryThreeMinutes);
+
+            Log.Information($"[LOG INFORMATION] - Jobs recorrentes inicializados com sucesso!\n");
         }
         catch (Exception exception)
         {

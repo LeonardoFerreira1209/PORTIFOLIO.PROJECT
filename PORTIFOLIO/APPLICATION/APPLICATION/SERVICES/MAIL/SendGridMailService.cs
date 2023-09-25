@@ -84,6 +84,9 @@ public class SendGridMailService : IMailService<SendGridMailRequest, ApiResponse
                     {
                         var response = responseTask.Result;
 
+                        Log.Information(
+                               $"[LOG INFORMATION] - E-mail para {to.Name}/{to.Email} enviado com {(response.IsSuccessStatusCode ? "sucesso" : "falha")}!\n");
+
                         return new ApiResponse<object>(
                            response.IsSuccessStatusCode, response.StatusCode,
                                 JsonConvert.DeserializeObject(await response.Body.ReadAsStringAsync()));
