@@ -130,7 +130,7 @@ public class CustomUserException
         {
             Response = new ErrorResponse
                (HttpStatusCode.Unauthorized, dados, new List<DadosNotificacao>() {
-                   new DadosNotificacao("Usuário não está habilitado, confirme o e-mail ou celular!")
+                   new DadosNotificacao("Usuário não está habilitado, confirme o e-mail!")
                });
         }
 

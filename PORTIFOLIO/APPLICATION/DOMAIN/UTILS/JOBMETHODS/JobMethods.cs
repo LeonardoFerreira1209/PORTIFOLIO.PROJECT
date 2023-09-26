@@ -45,12 +45,12 @@ public class JobMethods : IJobMethods
 
         await _eventRepository.GetAllAsync(false,
             even => even.Type == EventType.Mail
-                && (even.Status == EventStatus.Failed || even.Status == EventStatus.Unprocessed)).ContinueWith(
+                && (even.Status == EventStatus.Failed || even.Status == EventStatus.Unprocessed) && even.Retry).ContinueWith(
                     async (taskResult) =>
                     {
                         var events = taskResult.Result.ToList();
 
-                        Log.Information($"[LOG INFORMATION] - Forma encontrados o total de {events.Count} evento(s).\n");
+                        Log.Information($"[LOG INFORMATION] - Foram encontrados o total de {events.Count} evento(s).\n");
 
                         events.ForEach(async (even) =>
                         {
@@ -65,7 +65,7 @@ public class JobMethods : IJobMethods
                                  data.TemplateId,
                                  new { name = data.DynamicTemplateData.Name, code = data.DynamicTemplateData.Code });
 
-                            even.Status = response.Sucesso ? EventStatus.Processed : EventStatus.Failed;
+                            even.Status = EventStatus.Failed;
                             even.Updated = DateTime.Now;
                             even.Retries++;
                         });

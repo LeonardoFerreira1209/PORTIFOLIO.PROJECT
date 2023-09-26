@@ -108,7 +108,7 @@ public class UserService : IUserService
                         {
                             var signInResult = signInResultTask.Result;
 
-                            if (signInResult.Succeeded is false) ThrownAuthorizationException(signInResult, loginRequest);
+                            if (signInResult.Succeeded is false) ThrownAuthorizationException(signInResult, userEntity.Id, loginRequest);
                         });
 
                     Log.Information(
@@ -238,9 +238,9 @@ public class UserService : IUserService
             else
             {
                 return new OkObjectResult(
-                        new ApiResponse<List<object>>(
-                            true, HttpStatusCode.BadRequest, null, new List<DadosNotificacao> { new DadosNotificacao("O nome do usuário é nulo, envie um nome válido!") })
-                        );
+                    new ApiResponse<List<object>>(
+                        true, HttpStatusCode.BadRequest, null, new List<DadosNotificacao> { new DadosNotificacao("O nome do usuário é nulo, envie um nome válido!") })
+                    );
             }
         }
         catch (Exception exception)
@@ -771,13 +771,12 @@ public class UserService : IUserService
     /// Método responsável por tratar os erros de autenticação.
     /// </summary>
     /// <param name="signInResult"></param>
-    /// <param name="loginRequest"></param>
     /// <returns></returns>
     /// <exception cref="LockedOutAuthenticationException"></exception>
     /// <exception cref="IsNotAllowedAuthenticationException"></exception>
     /// <exception cref="RequiresTwoFactorAuthenticationException"></exception>
     /// <exception cref="InvalidUserAuthenticationException"></exception>
-    private static void ThrownAuthorizationException(SignInResult signInResult, LoginRequest loginRequest)
+    private static void ThrownAuthorizationException(SignInResult signInResult, Guid userId, LoginRequest loginRequest)
     {
         if (signInResult.IsLockedOut)
         {
@@ -789,7 +788,12 @@ public class UserService : IUserService
         {
             Log.Information($"[LOG INFORMATION] - Falha ao recuperar usuário, não está confirmado.\n");
 
-            throw new IsNotAllowedAuthenticationException(loginRequest);
+            throw new IsNotAllowedAuthenticationException(new
+            {
+                userId,
+                isNotAllowed = true,
+                loginRequest
+            });
         }
         else if (signInResult.RequiresTwoFactor)
         {
@@ -1002,8 +1006,6 @@ public class UserService : IUserService
                        }
                    }));
 
-                await _unitOfWork.CommitAsync();
-
                 Log.Information(
                     $"[LOG INFORMATION] - Envio de e-mail falhou, evento {JsonConvert.SerializeObject(eventFail)}, de reenvio de e-mail criado com sucesso!\n");
             }
@@ -1012,6 +1014,8 @@ public class UserService : IUserService
                 Log.Information(
                     $"[LOG INFORMATION] - E-mail de confirmação enviado com sucesso!\n");
             }
+
+            await _unitOfWork.CommitAsync();
 
         }).Unwrap();
     }

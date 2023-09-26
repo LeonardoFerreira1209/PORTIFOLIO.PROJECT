@@ -34,9 +34,7 @@ public class Event : Entity
     public bool Retry
     {
         get => _retry;
-
-        private set
-            => _retry = value && Retries < 3;
+        private set => _retry = value;
     }
 
     /// <summary>
@@ -45,9 +43,22 @@ public class Event : Entity
     public EventType Type { get; set; }
 
     /// <summary>
+    /// _retries private.
+    /// </summary>
+    private int _retries;
+
+    /// <summary>
     /// Retentativas.
     /// </summary>
-    public int Retries { get; set; }
+    public int Retries 
+    {
+        get => _retries;
+        set
+        {
+            _retries = value;
+            _retry = _retries < 3;
+        }
+    }
 
     /// <summary>
     /// Status do evento.
