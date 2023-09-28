@@ -138,25 +138,6 @@ public static class Extensions
     }
 
     /// <summary>
-    /// Transforma código em números
-    /// </summary>
-    /// <param name="code"></param>
-    /// <returns></returns>
-    public static string HashCode(this string code)
-    {
-        byte[] bytes = SHA256.HashData(Encoding.UTF8.GetBytes(code));
-
-        StringBuilder builder = new();
-
-        for (int i = 0; i < bytes.Length; i++)
-        {
-            builder.Append(bytes[i].ToString("X2"));
-        }
-
-        return builder.ToString().ConvertToNumeric().TruncateNumericCode();
-    }
-
-    /// <summary>
     /// Normaliza um texto removendo os acentos.
     /// </summary>
     /// <param name="text"></param>
@@ -170,12 +151,27 @@ public static class Extensions
         {
             var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
             if (unicodeCategory != UnicodeCategory.NonSpacingMark)
-            {
                 stringBuilder.Append(c);
-            }
         }
 
         return stringBuilder.ToString().Normalize(NormalizationForm.FormC).ToLowerInvariant();
+    }
+
+    /// <summary>
+    /// Transforma código em números
+    /// </summary>
+    /// <param name="code"></param>
+    /// <returns></returns>
+    public static string HashCode(this string code)
+    {
+        byte[] bytes = SHA256.HashData(Encoding.UTF8.GetBytes(code));
+
+        StringBuilder builder = new();
+
+        for (int i = 0; i < bytes.Length; i++)
+            builder.Append(bytes[i].ToString("X2"));
+
+        return builder.ToString().ConvertToNumeric().TruncateNumericCode();
     }
 
     /// <summary>
@@ -188,11 +184,9 @@ public static class Extensions
         long numericCode = 0;
 
         foreach (char c in hashedCode)
-        {
-            numericCode += (long)c;
-        }
+            numericCode += c;
 
-        return numericCode;
+        return numericCode * new Random().NextInt64(1, 9999);
     }
 
     /// <summary>
@@ -204,9 +198,9 @@ public static class Extensions
     {
         string limitedCode = numericCode.ToString();
 
-        if (limitedCode.Length > 6)
+        if (limitedCode.Length > 4)
         {
-            limitedCode = limitedCode.Substring(0, 6);
+            limitedCode = limitedCode.Substring(0, 4);
         }
 
         return limitedCode;

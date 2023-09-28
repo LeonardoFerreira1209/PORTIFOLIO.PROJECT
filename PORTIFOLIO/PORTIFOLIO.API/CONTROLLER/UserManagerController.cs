@@ -9,6 +9,7 @@ using APPLICATION.DOMAIN.DTOS.RESPONSE.USER;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.USER.ROLE;
 using APPLICATION.DOMAIN.ENUMS;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using PORTIFOLIO.API.CONTROLLER.BASE;
@@ -156,6 +157,29 @@ public class UserManagerController : BaseControllercs
                  () => _userService.UpdateAsync(userUpdateRequest), "Atualizar usuário");
         }
     }
+
+    ///// <summary>
+    ///// Endpoint responsável por atualizar a imagem de um usuário.
+    ///// </summary>
+    ///// <param name="formFile"></param>
+    ///// <returns></returns>
+    //[HttpPatch("update/user/image/{userId}")]
+    //[CustomAuthorize(Claims.User, "Patch")]
+    //[SwaggerOperation(Summary = "Atualizar imagem do uauário.", Description = "Endpoint responsável por atualizar a imagem de um usuário.")]
+    //[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    //[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    //[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status423Locked)]
+    //[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+    //public async Task<IActionResult> UpdateImageAsync(IFormFile formFile)
+    //{
+    //    using (LogContext.PushProperty("Controller", "UserController"))
+    //    using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(formFile)))
+    //    using (LogContext.PushProperty("Metodo", "UpdateImageAsync"))
+    //    {
+    //        return await ExecuteAsync(nameof(UpdateImageAsync),
+    //             () => _userService.UpdateAsync(userUpdateRequest), "Atualizar usuário");
+    //    }
+    //}
 
     /// <summary>
     /// Endpoint responsável por recuperar os dados de um usuário atraves do Id.
