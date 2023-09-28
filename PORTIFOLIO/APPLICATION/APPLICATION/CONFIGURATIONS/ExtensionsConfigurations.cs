@@ -30,9 +30,7 @@ using APPLICATION.INFRAESTRUTURE.FEATUREFLAGS;
 using APPLICATION.INFRAESTRUTURE.JOBS.FACTORY.FLUENTSCHEDULER;
 using APPLICATION.INFRAESTRUTURE.JOBS.INTERFACES.BASE;
 using APPLICATION.INFRAESTRUTURE.REPOSITORY;
-using APPLICATION.INFRAESTRUTURE.REPOSITORY.CHAT;
-using APPLICATION.INFRAESTRUTURE.REPOSITORY.EVENTS;
-using APPLICATION.INFRAESTRUTURE.REPOSITORY.USER;
+using APPLICATION.INFRAESTRUTURE.REPOSITORY.BASE;
 using APPLICATION.INFRAESTRUTURE.SERVICEBUS.PROVIDER.USER;
 using APPLICATION.INFRAESTRUTURE.SERVICEBUS.SUBSCRIBER.USER;
 using Hangfire;
@@ -273,7 +271,6 @@ public static class ExtensionsConfigurations
     /// Configuração da authorização do sistema.
     /// </summary>
     /// <param name="services"></param>
-    /// <param name="configurations"></param>
     /// <returns></returns>
     public static IServiceCollection ConfigureAuthorization(this IServiceCollection services)
     {
@@ -596,21 +593,6 @@ public static class ExtensionsConfigurations
     }
 
     /// <summary>
-    /// Coniguras os endpoints & Hubs
-    /// </summary>
-    /// <param name="application"></param>
-    /// <returns></returns>
-    //public static IApplicationBuilder UseEndpoints(this IApplicationBuilder application)
-    //{
-    //    application.UseEndpoints(endpoints =>
-    //    {
-    //        endpoints.MapHub<HubPerson>("/person");
-    //    });
-
-    //    return application;
-    //}
-
-    /// <summary>
     /// Configuração de uso do swagger do sistema.
     /// </summary>
     /// <param name="application"></param>
@@ -730,13 +712,19 @@ public static class ExtensionsConfigurations
     /// <returns></returns>
     public static IApplicationBuilder StartRecurrentJobs(this IApplicationBuilder application)
     {
+        Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(ExtensionsConfigurations)} - METHOD {nameof(StartRecurrentJobs)}\n");
+
         try
         {
+            Log.Information($"[LOG INFORMATION] - Inicializando Jobs recorrentes.\n");
+
             string EveryThreeMinutes = "0 */3 * ? * *";
 
             RecurringJob.AddOrUpdate<JobMethods>(
                         "resend-failed-mail-recurrent-job", jobMethods
                             => jobMethods.ResendFailedMailsAsync(), EveryThreeMinutes);
+
+            Log.Information($"[LOG INFORMATION] - Jobs recorrentes inicializados com sucesso!\n");
         }
         catch (Exception exception)
         {

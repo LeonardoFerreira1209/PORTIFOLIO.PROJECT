@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
+namespace APPLICATION.DOMAIN.DTOS.RESPONSE.BASE;
 
 /// <summary>
 /// Retorno das APIS.

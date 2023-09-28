@@ -1,7 +1,7 @@
 ﻿using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY;
 using APPLICATION.INFRAESTRUTURE.CONTEXTO;
 
-namespace APPLICATION.INFRAESTRUTURE.REPOSITORY;
+namespace APPLICATION.INFRAESTRUTURE.REPOSITORY.BASE;
 
 /// <summary>
 /// Unidade de trabalho de banco de daods e controle de transações.

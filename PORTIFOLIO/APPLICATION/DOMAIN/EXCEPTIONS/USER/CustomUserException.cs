@@ -1,4 +1,4 @@
-﻿using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
+﻿using APPLICATION.DOMAIN.DTOS.RESPONSE.BASE;
 using System.Net;
 
 namespace APPLICATION.DOMAIN.EXCEPTIONS.USER;
@@ -130,7 +130,7 @@ public class CustomUserException
         {
             Response = new ErrorResponse
                (HttpStatusCode.Unauthorized, dados, new List<DadosNotificacao>() {
-                   new DadosNotificacao("Usuário não está habilitado, confirme o e-mail ou celular!")
+                   new DadosNotificacao("Usuário não está habilitado, confirme o e-mail!")
                });
         }
 

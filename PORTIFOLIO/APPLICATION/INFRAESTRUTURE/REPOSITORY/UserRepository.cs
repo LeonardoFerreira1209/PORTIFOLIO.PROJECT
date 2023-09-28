@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
-namespace APPLICATION.INFRAESTRUTURE.REPOSITORY.USER;
+namespace APPLICATION.INFRAESTRUTURE.REPOSITORY;
 
 /// <summary>
 /// Repositório do usuário.

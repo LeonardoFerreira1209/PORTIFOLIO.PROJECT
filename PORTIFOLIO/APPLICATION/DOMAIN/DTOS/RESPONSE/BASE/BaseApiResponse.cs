@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.Net;
 
-namespace APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
+namespace APPLICATION.DOMAIN.DTOS.RESPONSE.BASE;
 
 /// <summary>
 /// Dados a ser retornado em uma notificação do sistema.

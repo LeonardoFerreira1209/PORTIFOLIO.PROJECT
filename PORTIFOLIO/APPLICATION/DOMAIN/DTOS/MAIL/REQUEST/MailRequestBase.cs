@@ -41,7 +41,7 @@ public abstract class MailRequestBase
 /// </summary>
 /// <param name="Name"></param>
 /// <param name="Email"></param>
-public record EmailAddress(string Name = "HYPER.IO (LEO)", string Email = "Leo.Ferreira30@outlook.com");
+public record EmailAddress(string Name = "HYPER.IO", string Email = "HYPER.IO@outlook.com");
 
 /// <summary>
 /// Record de transporte de dados de Content.

@@ -11,9 +11,9 @@ using APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.TOKEN;
 using APPLICATION.DOMAIN.DTOS.MAIL.REQUEST;
 using APPLICATION.DOMAIN.DTOS.MAIL.REQUEST.SENDGRID;
 using APPLICATION.DOMAIN.DTOS.REQUEST.USER;
+using APPLICATION.DOMAIN.DTOS.RESPONSE.BASE;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.USER;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.USER.ROLE;
-using APPLICATION.DOMAIN.DTOS.RESPONSE.UTILS;
 using APPLICATION.DOMAIN.ENTITY;
 using APPLICATION.DOMAIN.ENTITY.USER;
 using APPLICATION.DOMAIN.ENUMS;
@@ -50,8 +50,6 @@ public class UserService : IUserService
     private readonly IOptions<AppSettings> _appsettings;
     private readonly ITokenService _tokenService;
     private readonly IUtilFacade _utilFacade;
-
-    private readonly SendGridMailFactory _sendGridMailFactory;
     private readonly IMailService<SendGridMailRequest, ApiResponse<object>> _mailService;
 
     /// <summary>
@@ -71,10 +69,9 @@ public class UserService : IUserService
         _tokenService = tokenService;
         _utilFacade = utilFacade;
 
-        _sendGridMailFactory = new(appsettings);
-
+        SendGridMailFactory sendGridMailFactory = new(appsettings);
         _mailService =
-            _sendGridMailFactory.CreateMailService<SendGridMailRequest, ApiResponse<object>>();
+            sendGridMailFactory.CreateMailService<SendGridMailRequest, ApiResponse<object>>();
     }
 
     /// <summary>
@@ -85,7 +82,8 @@ public class UserService : IUserService
     /// <exception cref="NotFoundUserException"></exception>
     public async Task<ObjectResult> AuthenticationAsync(LoginRequest loginRequest)
     {
-        Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(AuthenticationAsync)}\n");
+        Log.Information(
+            $"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(AuthenticationAsync)}\n");
 
         try
         {
@@ -110,8 +108,11 @@ public class UserService : IUserService
                         {
                             var signInResult = signInResultTask.Result;
 
-                            if (signInResult.Succeeded is false) ThrownAuthorizationException(signInResult, loginRequest);
+                            if (signInResult.Succeeded is false) ThrownAuthorizationException(signInResult, userEntity.Id, loginRequest);
                         });
+
+                    Log.Information(
+                        $"[LOG INFORMATION] - Usuário autenticado com sucesso!\n");
 
                     return await GenerateTokenJwtAsync(loginRequest).ContinueWith(
                         (tokenJwtTask) =>
@@ -119,6 +120,9 @@ public class UserService : IUserService
                             var tokenJWT =
                                 tokenJwtTask.Result
                                 ?? throw new TokenJwtException(null);
+
+                            Log.Information(
+                                $"[LOG INFORMATION] - Token gerado com sucesso {JsonConvert.SerializeObject(tokenJWT)}!\n");
 
                             return tokenJWT;
                         });
@@ -234,9 +238,9 @@ public class UserService : IUserService
             else
             {
                 return new OkObjectResult(
-                        new ApiResponse<List<object>>(
-                            true, HttpStatusCode.BadRequest, null, new List<DadosNotificacao> { new DadosNotificacao("O nome do usuário é nulo, envie um nome válido!") })
-                        );
+                    new ApiResponse<List<object>>(
+                        true, HttpStatusCode.BadRequest, null, new List<DadosNotificacao> { new DadosNotificacao("O nome do usuário é nulo, envie um nome válido!") })
+                    );
             }
         }
         catch (Exception exception)
@@ -287,7 +291,7 @@ public class UserService : IUserService
                 {
                     var identityResult = identityResultTask.Result;
 
-                    if (identityResult.Succeeded is false) 
+                    if (identityResult.Succeeded is false)
                         throw new CustomException(
                             HttpStatusCode.BadRequest, userCreateRequest, identityResult.Errors.Select((e) => new DadosNotificacao(e.Code.CustomExceptionMessage())).ToList());
 
@@ -368,19 +372,21 @@ public class UserService : IUserService
                         });
                 }
 
+                var emailConfirmed = true;
                 if (userUpdateRequest.Email.Equals(userEntity.Email) is false)
                 {
                     await _userRepository.SetEmailAsync(
-                        userEntity, userUpdateRequest.Email).ContinueWith(identityResultTask =>
+                        userEntity, userUpdateRequest.Email).ContinueWith(async (identityResultTask) =>
                         {
                             var identityResult = identityResultTask.Result;
+
+                            emailConfirmed = false;
+                            await SendConfirmationEmailCode(userEntity);
 
                             if (identityResult.Succeeded is false)
                                 throw new CustomException(HttpStatusCode.BadRequest, userUpdateRequest,
                                     new List<DadosNotificacao> { new DadosNotificacao(identityResult.Errors.FirstOrDefault()?.Code.CustomExceptionMessage()) });
-                        });
-
-                    await SendConfirmationEmailCode(userEntity);
+                        }).Result;
                 }
 
                 if (userUpdateRequest.PhoneNumber.Equals(userEntity.PhoneNumber) is false)
@@ -398,7 +404,7 @@ public class UserService : IUserService
 
                 await _userRepository.UpdateUserAsync(
                         userEntity.TransformUserEntityFromUserUpdateRequest(
-                            userUpdateRequest));
+                            userUpdateRequest, emailConfirmed));
 
                 return new OkObjectResult(
                    new ApiResponse<object>(
@@ -641,7 +647,7 @@ public class UserService : IUserService
                             new DadosNotificacao("Role não foi encontrada!")
                         });
 
-                    return _userRepository.AddToUserRoleAsync(userEntity, userRoleRequest.RoleName).ContinueWith(identityResultTask =>
+                    return await _userRepository.AddToUserRoleAsync(userEntity, userRoleRequest.RoleName).ContinueWith(identityResultTask =>
                     {
                         var identityResult
                             = identityResultTask.Result;
@@ -655,7 +661,7 @@ public class UserService : IUserService
                             new ApiResponse<object>(
                                 identityResult.Succeeded, HttpStatusCode.OK, userRoleRequest,
                                 new List<DadosNotificacao> { new DadosNotificacao($"Role {userRoleRequest.RoleName}, adicionada com sucesso ao usuário {userRoleRequest.Username}.") }));
-                    }).Result;
+                    });
 
                 }).Unwrap();
 
@@ -765,13 +771,12 @@ public class UserService : IUserService
     /// Método responsável por tratar os erros de autenticação.
     /// </summary>
     /// <param name="signInResult"></param>
-    /// <param name="loginRequest"></param>
     /// <returns></returns>
     /// <exception cref="LockedOutAuthenticationException"></exception>
     /// <exception cref="IsNotAllowedAuthenticationException"></exception>
     /// <exception cref="RequiresTwoFactorAuthenticationException"></exception>
     /// <exception cref="InvalidUserAuthenticationException"></exception>
-    private static void ThrownAuthorizationException(SignInResult signInResult, LoginRequest loginRequest)
+    private static void ThrownAuthorizationException(SignInResult signInResult, Guid userId, LoginRequest loginRequest)
     {
         if (signInResult.IsLockedOut)
         {
@@ -783,7 +788,12 @@ public class UserService : IUserService
         {
             Log.Information($"[LOG INFORMATION] - Falha ao recuperar usuário, não está confirmado.\n");
 
-            throw new IsNotAllowedAuthenticationException(loginRequest);
+            throw new IsNotAllowedAuthenticationException(new
+            {
+                userId,
+                isNotAllowed = true,
+                loginRequest
+            });
         }
         else if (signInResult.RequiresTwoFactor)
         {
@@ -957,7 +967,10 @@ public class UserService : IUserService
     /// <returns></returns>
     private async Task SendConfirmationEmailCode(User user)
     {
-        var confirmationCodeIdentity = await _userRepository.GenerateEmailConfirmationTokenAsync(user);
+        Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(SendConfirmationEmailCode)}\n");
+
+        var confirmationCodeIdentity
+            = await _userRepository.GenerateEmailConfirmationTokenAsync(user);
 
         var userCodeEntity = await _userRepository.AddUserConfirmationCode(
             new UserCode
@@ -979,19 +992,28 @@ public class UserService : IUserService
 
         }).ContinueWith(async (mailResultTask) =>
         {
-            if (mailResultTask.Result.Sucesso is false)
-                await _eventRepository.CreateAsync(EventExtensions.CreateMailEvent(
-                    "FailedToSendConfirmationMail", "Reenvio de e-mail de confirmação de usuário.", new
-                    {
-                        From = new EmailAddress(),
-                        To = new EmailAddress(user.FirstName, user.Email),
-                        TemplateId = "d-a5a2d227be3a491ea863112e28b2ae84",
-                        DynamicTemplateData = new
-                        {
-                            Name = user.FirstName,
-                            Code = userCodeEntity.NumberCode
-                        }
-                    }));
+            if (mailResultTask.Result.Sucesso is false) {
+                var eventFail = await _eventRepository.CreateAsync(EventExtensions.CreateMailEvent(
+                   "FailedToSendConfirmationMail", "Reenvio de e-mail de confirmação de usuário.", new
+                   {
+                       From = new EmailAddress(),
+                       To = new EmailAddress(user.FirstName, user.Email),
+                       TemplateId = "d-a5a2d227be3a491ea863112e28b2ae84",
+                       DynamicTemplateData = new
+                       {
+                           Name = user.FirstName,
+                           Code = userCodeEntity.NumberCode
+                       }
+                   }));
+
+                Log.Information(
+                    $"[LOG INFORMATION] - Envio de e-mail falhou, evento {JsonConvert.SerializeObject(eventFail)}, de reenvio de e-mail criado com sucesso!\n");
+            }
+            else
+            {
+                Log.Information(
+                    $"[LOG INFORMATION] - E-mail de confirmação enviado com sucesso!\n");
+            }
 
             await _unitOfWork.CommitAsync();
 

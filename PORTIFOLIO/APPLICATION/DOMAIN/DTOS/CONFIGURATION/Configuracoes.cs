@@ -10,7 +10,7 @@ public class AppSettings
     public Configuracoes Configuracoes { get; set; }
     public RetryPolicy RetryPolicy { get; set; }
     public Auth Auth { get; set; }
-    public AzureStorage AzureStorage { get; set; }
+    public AzureBlobStorage AzureBlobStorage { get; set; }
     public ServiceBus ServiceBus { get; set; }
     public Mail Mail { get; set; }
 }
@@ -32,6 +32,7 @@ public class ConnectionStrings
 {
     public string BaseDados { get; set; }
     public string ServiceBus { get; set; }
+    public string AzureBlobStorage { get; set; }
 }
 
 /// <summary>
@@ -67,9 +68,8 @@ public class Auth
 /// <summary>
 /// Classe de config do blob storage.
 /// </summary>
-public class AzureStorage
+public class AzureBlobStorage
 {
-    public string ConnectionStringAzureStorageKey { get; set; }
     public string Container { get; set; }
 }
 

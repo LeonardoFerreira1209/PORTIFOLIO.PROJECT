@@ -5,7 +5,7 @@ using EFCore.BulkExtensions;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
-namespace APPLICATION.INFRAESTRUTURE.REPOSITORY;
+namespace APPLICATION.INFRAESTRUTURE.REPOSITORY.BASE;
 
 /// <summary>
 /// Repositório genérico com Entity.

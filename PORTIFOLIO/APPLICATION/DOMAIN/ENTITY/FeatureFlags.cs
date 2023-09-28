@@ -8,11 +8,6 @@ namespace APPLICATION.DOMAIN.ENTITY;
 public class FeatureFlags : Entity
 {
     /// <summary>
-    /// Id
-    /// </summary>
-    public Guid Id { get; set; }
-
-    /// <summary>
     /// Nome
     /// </summary>
     public string Name { get; set; }
