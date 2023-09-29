@@ -1,6 +1,6 @@
 ﻿using APPLICATION.DOMAIN.CONTRACTS.FEATUREFLAGS;
-using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY;
-using APPLICATION.DOMAIN.CONTRACTS.SERVICES.USER;
+using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.BASE;
+using APPLICATION.DOMAIN.CONTRACTS.SERVICES;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.CUSTOMAUTHORIZE.ATTRIBUTE;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.TOKEN;
 using APPLICATION.DOMAIN.DTOS.REQUEST.USER;
@@ -158,28 +158,28 @@ public class UserManagerController : BaseControllercs
         }
     }
 
-    ///// <summary>
-    ///// Endpoint responsável por atualizar a imagem de um usuário.
-    ///// </summary>
-    ///// <param name="formFile"></param>
-    ///// <returns></returns>
-    //[HttpPatch("update/user/image/{userId}")]
-    //[CustomAuthorize(Claims.User, "Patch")]
-    //[SwaggerOperation(Summary = "Atualizar imagem do uauário.", Description = "Endpoint responsável por atualizar a imagem de um usuário.")]
-    //[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    //[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
-    //[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status423Locked)]
-    //[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-    //public async Task<IActionResult> UpdateImageAsync(IFormFile formFile)
-    //{
-    //    using (LogContext.PushProperty("Controller", "UserController"))
-    //    using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(formFile)))
-    //    using (LogContext.PushProperty("Metodo", "UpdateImageAsync"))
-    //    {
-    //        return await ExecuteAsync(nameof(UpdateImageAsync),
-    //             () => _userService.UpdateAsync(userUpdateRequest), "Atualizar usuário");
-    //    }
-    //}
+    /// <summary>
+    /// Endpoint responsável por inserir imagem do usuário.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    [HttpPatch("user/imagem/userid/{userId}")]
+    [CustomAuthorize(Claims.User, "Patch")]
+    [SwaggerOperation(Summary = "Adicionar imagem no usuário", Description = "Endpoint responsável por adicionar imagem de perfil do usuário.")]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UpdateImageAsync(string userId, IFormFile file)
+    {
+        using (LogContext.PushProperty("Controller", "UserController"))
+        using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(file)))
+        using (LogContext.PushProperty("Metodo", "UpdateImageAsync"))
+        {
+            return await ExecuteAsync(nameof(UpdateImageAsync),
+                 () => _userService.UpdateImageAsync(Guid.Parse(userId), file), "Atualizar imagem do usuário");
+        }
+    }
 
     /// <summary>
     /// Endpoint responsável por recuperar os dados de um usuário atraves do Id.

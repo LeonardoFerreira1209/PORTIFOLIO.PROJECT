@@ -1,6 +1,6 @@
 ﻿using APPLICATION.DOMAIN.DTOS.MAIL.REQUEST;
 
-namespace APPLICATION.DOMAIN.CONTRACTS.SERVICES.MAIL
+namespace APPLICATION.DOMAIN.CONTRACTS.SERVICES
 {
     /// <summary>
     /// Serviço de envio de e-mails usando o SendGrid.

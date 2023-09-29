@@ -1,7 +1,8 @@
 ﻿using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Http;
+using File = APPLICATION.DOMAIN.ENTITY.File;
 
-namespace APPLICATION.DOMAIN.CONTRACTS.SERVICES.FILE;
+namespace APPLICATION.DOMAIN.CONTRACTS.SERVICES;
 
 /// <summary>
 /// Interface de Serviço de arquvios.
@@ -13,7 +14,7 @@ public interface IFileService
     /// </summary>
     /// <param name="formFile"></param>
     /// <returns></returns>
-    Task<BlobClient> UploadAsync(IFormFile formFile);
+    Task<File> UploadAsync(Guid userId, IFormFile formFile);
 
     /// <summary>
     /// étodo de upload de arquivo.

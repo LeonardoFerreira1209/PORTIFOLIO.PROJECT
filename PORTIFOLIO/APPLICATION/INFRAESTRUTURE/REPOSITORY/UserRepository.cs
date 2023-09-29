@@ -1,4 +1,4 @@
-﻿using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.USER;
+﻿using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY;
 using APPLICATION.DOMAIN.ENTITY;
 using APPLICATION.DOMAIN.ENTITY.USER;
 using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
@@ -64,7 +64,8 @@ public class UserRepository : IUserRepository
     /// <param name="userId"></param>
     /// <returns></returns>
     public async Task<User> GetByIdAsync(Guid userId)
-        => await _userManager.FindByIdAsync(userId.ToString());
+        => await _userManager.Users
+                    .Include(user => user.File).FirstAsync(user => user.Id.Equals(userId));
 
     /// <summary>
     /// Método responsável por recuperar vários usuários por id.

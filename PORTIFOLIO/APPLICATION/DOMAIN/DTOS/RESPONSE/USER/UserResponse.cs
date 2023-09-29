@@ -1,4 +1,5 @@
-﻿using APPLICATION.DOMAIN.ENUMS;
+﻿using APPLICATION.DOMAIN.DTOS.RESPONSE.FILE;
+using APPLICATION.DOMAIN.ENUMS;
 
 namespace APPLICATION.DOMAIN.DTOS.RESPONSE.USER;
 
@@ -11,6 +12,16 @@ public class UserResponse
     /// Id do usuário.
     /// </summary>
     public Guid Id { get; set; }
+
+    /// <summary>
+    /// Id do arquivo de imagem.
+    /// </summary>
+    public Guid? FileId { get; set; }
+
+    /// <summary>
+    /// Dados do arquivo.
+    /// </summary>
+    public FileResponse File { get; set; }
 
     /// <summary>
     /// Nome de usuário.

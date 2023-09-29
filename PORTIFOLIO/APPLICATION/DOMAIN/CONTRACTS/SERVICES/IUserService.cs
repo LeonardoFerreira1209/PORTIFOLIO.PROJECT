@@ -1,7 +1,8 @@
 ﻿using APPLICATION.DOMAIN.DTOS.REQUEST.USER;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace APPLICATION.DOMAIN.CONTRACTS.SERVICES.USER;
+namespace APPLICATION.DOMAIN.CONTRACTS.SERVICES;
 
 /// <summary>
 /// Interface de UserService
@@ -42,6 +43,13 @@ public interface IUserService
     /// <param name="name"></param>
     /// <returns></returns>
     Task<ObjectResult> GetUsersByNameAsync(string name);
+
+    /// <summary>
+    /// Método responsável por atualizar imagem do usuário.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="formFile"></param>
+    Task<ObjectResult> UpdateImageAsync(Guid userId, IFormFile formFile);
 
     /// <summary>
     ///  Método responsável por atualizar um usuário.

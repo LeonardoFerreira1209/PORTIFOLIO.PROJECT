@@ -1,6 +1,6 @@
 ﻿using APPLICATION.DOMAIN.DTOS.RESPONSE.BASE;
 
-namespace APPLICATION.DOMAIN.EXCEPTIONS;
+namespace APPLICATION.DOMAIN.EXCEPTIONS.BASE;
 
 /// <summary>
 /// Classe base de exceptions tratados.

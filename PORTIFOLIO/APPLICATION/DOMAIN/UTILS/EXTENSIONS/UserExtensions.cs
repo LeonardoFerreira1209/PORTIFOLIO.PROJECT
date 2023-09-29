@@ -58,6 +58,8 @@ public static class UserExtensions
         return new UserResponse
         {
             Id = user.Id,
+            FileId = user.FileId,
+            File = user.File?.ToResponse(),
             UserName = user.UserName,
             FirstName = user.FirstName,
             LastName = user.LastName,

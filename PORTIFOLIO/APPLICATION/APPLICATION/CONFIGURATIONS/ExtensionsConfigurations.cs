@@ -11,14 +11,8 @@ using APPLICATION.DOMAIN.CONTRACTS.CONFIGURATIONS.APPLICATIONINSIGHTS;
 using APPLICATION.DOMAIN.CONTRACTS.FACADE;
 using APPLICATION.DOMAIN.CONTRACTS.FEATUREFLAGS;
 using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY;
-using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.CHAT;
-using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.EVENTS;
-using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.USER;
-using APPLICATION.DOMAIN.CONTRACTS.SERVICES.CHAT;
-using APPLICATION.DOMAIN.CONTRACTS.SERVICES.FILE;
-using APPLICATION.DOMAIN.CONTRACTS.SERVICES.JOBS;
-using APPLICATION.DOMAIN.CONTRACTS.SERVICES.TOKEN;
-using APPLICATION.DOMAIN.CONTRACTS.SERVICES.USER;
+using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.BASE;
+using APPLICATION.DOMAIN.CONTRACTS.SERVICES;
 using APPLICATION.DOMAIN.ENTITY;
 using APPLICATION.DOMAIN.ENTITY.USER;
 using APPLICATION.DOMAIN.ENUMS;
@@ -60,7 +54,7 @@ using System.Globalization;
 using System.Net.Mime;
 using System.Security.Claims;
 using System.Text;
-using static APPLICATION.DOMAIN.EXCEPTIONS.USER.CustomUserException;
+using static APPLICATION.DOMAIN.EXCEPTIONS.CustomUserException;
 
 namespace APPLICATION.APPLICATION.CONFIGURATIONS;
 
@@ -442,6 +436,7 @@ public static class ExtensionsConfigurations
             .AddScoped<IUnitOfWork, UnitOfWork>()
             .AddScoped(typeof(IGenerictEntityCoreRepository<>), typeof(GenericEntityCoreRepository<>))
             .AddScoped<IEventRepository, EventRepository>()
+            .AddScoped<IFileRepository, FileRepository>()
             .AddScoped<IChatRepository, ChatRepository>()
             .AddScoped<IUserRepository, UserRepository>()
             // Infra

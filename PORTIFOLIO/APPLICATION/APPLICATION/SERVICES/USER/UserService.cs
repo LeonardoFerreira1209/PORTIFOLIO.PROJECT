@@ -1,11 +1,8 @@
 ﻿using APPLICATION.APPLICATION.CONFIGURATIONS;
 using APPLICATION.DOMAIN.CONTRACTS.FACADE;
 using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY;
-using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.EVENTS;
-using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.USER;
-using APPLICATION.DOMAIN.CONTRACTS.SERVICES.MAIL;
-using APPLICATION.DOMAIN.CONTRACTS.SERVICES.TOKEN;
-using APPLICATION.DOMAIN.CONTRACTS.SERVICES.USER;
+using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.BASE;
+using APPLICATION.DOMAIN.CONTRACTS.SERVICES;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.TOKEN;
 using APPLICATION.DOMAIN.DTOS.MAIL.REQUEST;
@@ -17,13 +14,14 @@ using APPLICATION.DOMAIN.DTOS.RESPONSE.USER.ROLE;
 using APPLICATION.DOMAIN.ENTITY;
 using APPLICATION.DOMAIN.ENTITY.USER;
 using APPLICATION.DOMAIN.ENUMS;
-using APPLICATION.DOMAIN.EXCEPTIONS;
+using APPLICATION.DOMAIN.EXCEPTIONS.BASE;
 using APPLICATION.DOMAIN.FACTORY.MAIL;
 using APPLICATION.DOMAIN.UTILS.Extensions;
 using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 using APPLICATION.DOMAIN.VALIDATORS;
 using FluentValidation;
 using FluentValidation.Results;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -33,7 +31,7 @@ using Serilog;
 using System.Data;
 using System.Net;
 using System.Security.Claims;
-using static APPLICATION.DOMAIN.EXCEPTIONS.USER.CustomUserException;
+using static APPLICATION.DOMAIN.EXCEPTIONS.CustomUserException;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
 namespace APPLICATION.APPLICATION.SERVICES.USER;
@@ -51,6 +49,7 @@ public class UserService : IUserService
     private readonly ITokenService _tokenService;
     private readonly IUtilFacade _utilFacade;
     private readonly IMailService<SendGridMailRequest, ApiResponse<object>> _mailService;
+    private readonly IFileService _fileService;
 
     /// <summary>
     /// Construtor.
@@ -59,7 +58,11 @@ public class UserService : IUserService
     /// <param name="appsettings"></param>
     /// <param name="tokenService"></param>
     /// <param name="utilFacade"></param>
-    public UserService(IUnitOfWork unitOfWork, IUserRepository userRepository, IEventRepository eventRepository, RoleManager<Role> roleManager, IOptions<AppSettings> appsettings, ITokenService tokenService, IUtilFacade utilFacade)
+    public UserService(
+        IUnitOfWork unitOfWork, IUserRepository userRepository, 
+        IEventRepository eventRepository, RoleManager<Role> roleManager, 
+        IOptions<AppSettings> appsettings, ITokenService tokenService, 
+        IUtilFacade utilFacade, IFileService fileService)
     {
         _unitOfWork = unitOfWork;
         _userRepository = userRepository;
@@ -68,6 +71,7 @@ public class UserService : IUserService
         _appsettings = appsettings;
         _tokenService = tokenService;
         _utilFacade = utilFacade;
+        _fileService = fileService;
 
         SendGridMailFactory sendGridMailFactory = new(appsettings);
         _mailService =
@@ -197,6 +201,49 @@ public class UserService : IUserService
                         true, HttpStatusCode.OK, userResponse, new List<DadosNotificacao> { new DadosNotificacao("Usuario recuperado com sucesso.") })
                     );
             });
+        }
+        catch (Exception exception)
+        {
+            Log.Error($"[LOG ERROR] - Exception:{exception.Message} - {JsonConvert.SerializeObject(exception)}\n"); throw;
+        }
+    }
+
+    /// <summary>
+    /// Método responsável por recuperar um usuário.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    /// <exception cref="NotFoundUserException"></exception>
+    public async Task<ObjectResult> UpdateImageAsync(Guid userId, IFormFile formFile)
+    {
+        Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(UserService)} - METHOD {nameof(UpdateImageAsync)}\n");
+
+        try
+        {
+            return await _userRepository.GetByIdAsync(userId).ContinueWith(
+                async (userEntityTask) =>
+                {
+                    var userEntity =
+                        userEntityTask.Result
+                        ?? throw new NotFoundUserException(userId);
+
+                    return await _fileService.UploadAsync(userId, formFile).ContinueWith(
+                        async (taskFileResult) =>
+                        {
+                            var file = taskFileResult.Result;
+
+                            userEntity.FileId = file.Id;
+
+                            await _userRepository.UpdateUserAsync(userEntity);
+
+                            return new OkObjectResult(
+                                new ApiResponse<UserResponse>(
+                                    true, HttpStatusCode.OK, userEntity.ToResponse(), new List<DadosNotificacao> { new DadosNotificacao("Imagenm do usu com sucesso.") })
+                                );
+
+                        }).Result;
+
+                }).Result;
         }
         catch (Exception exception)
         {

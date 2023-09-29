@@ -1,6 +1,6 @@
 ﻿using APPLICATION.DOMAIN.ENTITY.BASE;
 
-namespace APPLICATION.DOMAIN.CONTRACTS.REPOSITORY;
+namespace APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.BASE;
 
 public interface IGenerictEntityCoreRepository<T> : IGenericRepository<T> where T : Entity
 {
