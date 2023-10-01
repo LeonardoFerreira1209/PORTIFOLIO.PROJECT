@@ -1,11 +1,15 @@
-﻿using APPLICATION.DOMAIN.CONTRACTS.SERVICES.FILE;
+﻿using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY;
+using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.BASE;
+using APPLICATION.DOMAIN.CONTRACTS.SERVICES;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION;
+using APPLICATION.DOMAIN.ENUMS;
 using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Serilog;
-using static APPLICATION.DOMAIN.EXCEPTIONS.FILE.CustomFileException;
+using static APPLICATION.DOMAIN.EXCEPTIONS.CustomFileException;
+using File = APPLICATION.DOMAIN.ENTITY.File;
 
 namespace APPLICATION.APPLICATION.SERVICES.FILE;
 
@@ -14,6 +18,8 @@ namespace APPLICATION.APPLICATION.SERVICES.FILE;
 /// </summary>
 public class FileService : IFileService
 {
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IFileRepository _fileRepository;
     private readonly BlobContainerClient _blobContainerClient;
 
     /// <summary>
@@ -21,8 +27,10 @@ public class FileService : IFileService
     /// </summary>
     /// <param name="appsettings"></param>
     public FileService(
-        IOptions<AppSettings> appsettings)
+        IOptions<AppSettings> appsettings, IUnitOfWork unitOfWork, IFileRepository fileRepository)
     {
+        _unitOfWork = unitOfWork;
+        _fileRepository = fileRepository;
         _blobContainerClient = new BlobContainerClient(
             appsettings.Value.ConnectionStrings.AzureBlobStorage, appsettings.Value.AzureBlobStorage.Container);
     }
@@ -33,15 +41,18 @@ public class FileService : IFileService
     /// <param name="formFile"></param>
     /// <returns></returns>
     /// <exception cref="ConflictFileException"></exception>
-    public async Task<BlobClient> UploadAsync(IFormFile formFile)
+    public async Task<File> UploadAsync(Guid userId, IFormFile formFile)
     {
         Log.Information(
            $"[LOG INFORMATION] - SET TITLE {nameof(FileService)} - METHOD {nameof(UploadAsync)}\n");
 
         try
         {
+            var fileName 
+                = $"{userId}_{formFile.FileName}";
+
             var blobStorage
-                = _blobContainerClient.GetBlobClient(formFile.FileName);
+                = _blobContainerClient.GetBlobClient(fileName);
 
             return await blobStorage.ExistsAsync().ContinueWith(
                 async (taskResult) =>
@@ -49,16 +60,31 @@ public class FileService : IFileService
                     var azureResponse =
                             taskResult.Result;
 
-                    if (azureResponse.Value)
-                        throw new ConflictFileException(formFile.FileName);
+                    if(await blobStorage.ExistsAsync()) await blobStorage.DeleteAsync();
 
                     await blobStorage.UploadAsync(
                         formFile.OpenReadStream());
 
-                    Log.Information(
-                         $"[LOG INFORMATION] - Arquivo enviado para o blob com sucesso {formFile.FileName}\n");
+                    return await _fileRepository.CreateAsync(new File
+                    {
+                        ContentType = formFile.ContentType,
+                        Created = DateTime.Now,
+                        Name = formFile.Name,
+                        Status = Status.Active,
+                        Url = blobStorage.Uri.ToString()
 
-                    return blobStorage;
+                    }).ContinueWith(async (taskResult) =>
+                    {
+                        var file = taskResult.Result;
+
+                        await _unitOfWork.CommitAsync();
+
+                        Log.Information(
+                         $"[LOG INFORMATION] - Arquivo enviado para o blob com sucesso {fileName}\n");
+
+                        return file;
+
+                    }).Unwrap();
 
                 }).Result;
         }
@@ -115,10 +141,10 @@ public class FileService : IFileService
         {
             await _blobContainerClient.DeleteBlobIfExistsAsync(blobName).ContinueWith(
                 taskResult =>
-            {
-                Log.Information(
-                 $"[LOG INFORMATION] - Blob {blobName} deletado com sucesso!\n");
-            });
+                {
+                    Log.Information(
+                     $"[LOG INFORMATION] - Blob {blobName} deletado com sucesso!\n");
+                });
         }
         catch (Exception exception)
         {

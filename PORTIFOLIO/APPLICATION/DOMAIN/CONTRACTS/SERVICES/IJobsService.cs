@@ -1,7 +1,7 @@
 ﻿using APPLICATION.DOMAIN.UTILS.JOBMETHODS;
 using System.Linq.Expressions;
 
-namespace APPLICATION.DOMAIN.CONTRACTS.SERVICES.JOBS;
+namespace APPLICATION.DOMAIN.CONTRACTS.SERVICES;
 
 /// <summary>
 /// Interface de serviço de Jobs.

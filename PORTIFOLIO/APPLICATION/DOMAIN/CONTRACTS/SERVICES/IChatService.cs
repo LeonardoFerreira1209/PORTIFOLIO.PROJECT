@@ -1,7 +1,7 @@
 ﻿using APPLICATION.DOMAIN.DTOS.CHAT;
 using Microsoft.AspNetCore.Mvc;
 
-namespace APPLICATION.DOMAIN.CONTRACTS.SERVICES.CHAT;
+namespace APPLICATION.DOMAIN.CONTRACTS.SERVICES;
 
 /// <summary>
 /// Interface de ChatService

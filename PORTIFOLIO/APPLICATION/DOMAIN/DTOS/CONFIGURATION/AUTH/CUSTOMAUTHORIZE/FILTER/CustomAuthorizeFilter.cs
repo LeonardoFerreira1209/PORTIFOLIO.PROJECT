@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc.Filters;
+﻿using APPLICATION.DOMAIN.UTILS.GLOBAL;
+using Microsoft.AspNetCore.Mvc.Filters;
 using System.Security.Claims;
-using static APPLICATION.DOMAIN.EXCEPTIONS.USER.CustomUserException;
+using static APPLICATION.DOMAIN.EXCEPTIONS.CustomUserException;
 
 namespace APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.CUSTOMAUTHORIZE.FILTER;
 
@@ -30,6 +31,10 @@ public class CustomAuthorizeFilter : IAuthorizationFilter
             context.HttpContext.User;
 
         if ((isAuthenticated && HasClaims(claimsPrincipal)) is false) throw new UnauthorizedUserException(null);
+
+        GlobalData.GlobalUser.Id
+            = Guid.Parse(claimsPrincipal.Claims
+                .FirstOrDefault(claim => claim.Type == "id").Value);
     }
 
     /// <summary>

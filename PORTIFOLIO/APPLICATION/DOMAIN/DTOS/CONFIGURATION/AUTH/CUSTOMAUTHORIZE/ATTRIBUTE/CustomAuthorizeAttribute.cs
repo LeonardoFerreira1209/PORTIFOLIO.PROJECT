@@ -14,6 +14,8 @@ public class CustomAuthorizeAttribute : TypeFilterAttribute
     /// <param name="values"></param>
     public CustomAuthorizeAttribute(Claims claim, params string[] values) : base(typeof(CustomAuthorizeFilter))
     {
-        Arguments = new object[] { values.Select(value => new Claim(claim.ToString(), value)).ToList() };
+        Arguments = new object[] { 
+            values.Select(value => new Claim(claim.ToString(), value)).ToList() 
+        };
     }
 }

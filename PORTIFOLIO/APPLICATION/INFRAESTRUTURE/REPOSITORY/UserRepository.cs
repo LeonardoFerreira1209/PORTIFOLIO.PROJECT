@@ -1,10 +1,13 @@
-﻿using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.USER;
+﻿using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY;
+using APPLICATION.DOMAIN.DTOS.CONFIGURATION;
 using APPLICATION.DOMAIN.ENTITY;
 using APPLICATION.DOMAIN.ENTITY.USER;
 using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 using APPLICATION.INFRAESTRUTURE.CONTEXTO;
+using APPLICATION.INFRAESTRUTURE.REPOSITORY.BASE;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using System.Security.Claims;
 
 namespace APPLICATION.INFRAESTRUTURE.REPOSITORY;
@@ -12,17 +15,17 @@ namespace APPLICATION.INFRAESTRUTURE.REPOSITORY;
 /// <summary>
 /// Repositório do usuário.
 /// </summary>
-public class UserRepository : IUserRepository
+public class UserRepository : BaseRepository, IUserRepository
 {
     private readonly Context _context;
     private readonly SignInManager<User> _signInManager;
     private readonly UserManager<User> _userManager;
     private readonly RoleManager<Role> _roleManager;
 
-    public UserRepository(SignInManager<User> signInManager,
+    public UserRepository(IOptions<AppSettings> options, SignInManager<User> signInManager,
         Context context,
         UserManager<User> userManager,
-        RoleManager<Role> roleManager)
+        RoleManager<Role> roleManager) : base(options)
     {
         _context = context;
         _signInManager = signInManager;
@@ -64,7 +67,8 @@ public class UserRepository : IUserRepository
     /// <param name="userId"></param>
     /// <returns></returns>
     public async Task<User> GetByIdAsync(Guid userId)
-        => await _userManager.FindByIdAsync(userId.ToString());
+        => await _userManager.Users
+                    .Include(user => user.File).FirstAsync(user => user.Id.Equals(userId));
 
     /// <summary>
     /// Método responsável por recuperar vários usuários por id.

@@ -3,6 +3,7 @@ using APPLICATION.DOMAIN.ENTITY.CHAT;
 using APPLICATION.DOMAIN.ENTITY.USER;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using File = APPLICATION.DOMAIN.ENTITY.File;
 
 namespace APPLICATION.INFRAESTRUTURE.CONTEXTO;
 
@@ -38,8 +39,12 @@ public class Context : IdentityDbContext<User, Role, Guid>
     public DbSet<Event> Events { get; set; }
 
     /// <summary>
+    /// Tabela de Arquivos.
+    /// </summary>
+    public DbSet<File> Files { get; set; }
+
+    /// <summary>
     /// Tabela de códigos de confirmação de usuários.
-    /// 
     /// </summary>
     public DbSet<UserCode> AspNetUserCodes { get; set; }
 

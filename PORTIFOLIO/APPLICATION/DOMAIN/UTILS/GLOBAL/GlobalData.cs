@@ -7,5 +7,5 @@ public static class GlobalData
 {
     public static ConcurrentDictionary<string, string> HubNotifcationConnections { get; set; } = new ConcurrentDictionary<string, string>();
     public static ConcurrentDictionary<string, string> HubChatConnections { get; set; } = new ConcurrentDictionary<string, string>();
-    public static UserData GlobalUser { get; set; }
+    public static UserData GlobalUser { get; set; } = new UserData();
 }

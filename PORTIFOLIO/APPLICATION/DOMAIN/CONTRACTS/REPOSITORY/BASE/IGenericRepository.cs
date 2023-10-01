@@ -1,7 +1,7 @@
 ﻿using APPLICATION.DOMAIN.ENTITY.BASE;
 using System.Linq.Expressions;
 
-namespace APPLICATION.DOMAIN.CONTRACTS.REPOSITORY;
+namespace APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.BASE;
 
 /// <summary>
 /// Repositório genérico.

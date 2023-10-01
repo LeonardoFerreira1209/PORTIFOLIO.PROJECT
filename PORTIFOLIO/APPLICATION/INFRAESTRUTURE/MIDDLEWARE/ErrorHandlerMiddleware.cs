@@ -1,5 +1,5 @@
 ﻿using APPLICATION.DOMAIN.DTOS.RESPONSE.BASE;
-using APPLICATION.DOMAIN.EXCEPTIONS;
+using APPLICATION.DOMAIN.EXCEPTIONS.BASE;
 using Microsoft.AspNetCore.Http;
 using System.Net;
 using System.Text.Json;
