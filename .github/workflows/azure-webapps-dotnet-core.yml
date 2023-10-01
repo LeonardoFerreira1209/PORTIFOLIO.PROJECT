@@ -39,6 +39,7 @@ jobs:
           files: '${{env.DOTNET_ROOT}}/myapp/appsettings.json'
         env:
           ConnectionStrings.BaseDados: ${{ secrets.__CONNECTION_STRING_DATABASE__ }}
+          ConnectionStrings.AzureBlobStorage: ${{ secrets.__CONNECTION_STRING_AZUREBLOBSTORAGE__ }}
           ConnectionStrings.ServiceBus: ${{ secrets.__CONNECTION_STRING_SERVICEBUS__ }}
           ApplicationInsights.InstrumentationKey: ${{ secrets.__APPINSIGHTS_INSTRUMENTATION_KEY__ }}
           ApplicationInsights.ConnectionStringApplicationInsightsKey: ${{ secrets.__CONNECTION_STRING_APPLICATION_INSIGHTS_KEY__ }}
@@ -49,6 +50,7 @@ jobs:
           Auth.ExpiresIn: ${{ secrets.__SECURITY_TOKEN_EXPIRES_IN__ }}
           ServiceBus.QueueEmail: ${{ secrets.__QUEUE_EMAIL__ }}
           Mail.ApiKey: ${{ secrets.__SENDGRID_APIKEY__ }}
+          AzureBlobStorage.Container: ${{ secrets.__AZUREBLOB_CONTAINER__ }}
           
       - name: Set up dependency caching for faster builds
         uses: actions/cache@v3
