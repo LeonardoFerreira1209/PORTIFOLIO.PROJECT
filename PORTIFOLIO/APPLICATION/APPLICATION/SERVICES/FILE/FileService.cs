@@ -3,7 +3,6 @@ using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.BASE;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION;
 using APPLICATION.DOMAIN.ENUMS;
-using APPLICATION.DOMAIN.UTILS.GLOBAL;
 using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
@@ -61,7 +60,7 @@ public class FileService : IFileService
                     var azureResponse =
                             taskResult.Result;
 
-                    await blobStorage.DeleteAsync();
+                    if(await blobStorage.ExistsAsync()) await blobStorage.DeleteAsync();
 
                     await blobStorage.UploadAsync(
                         formFile.OpenReadStream());
@@ -85,7 +84,7 @@ public class FileService : IFileService
 
                         return file;
 
-                    }).Result;
+                    }).Unwrap();
 
                 }).Result;
         }
@@ -142,10 +141,10 @@ public class FileService : IFileService
         {
             await _blobContainerClient.DeleteBlobIfExistsAsync(blobName).ContinueWith(
                 taskResult =>
-            {
-                Log.Information(
-                 $"[LOG INFORMATION] - Blob {blobName} deletado com sucesso!\n");
-            });
+                {
+                    Log.Information(
+                     $"[LOG INFORMATION] - Blob {blobName} deletado com sucesso!\n");
+                });
         }
         catch (Exception exception)
         {

@@ -232,7 +232,7 @@ public class UserService : IUserService
                         {
                             var file = taskFileResult.Result;
 
-                            userEntity.FileId = file.Id;
+                            userEntity.File = file;
 
                             await _userRepository.UpdateUserAsync(userEntity);
 
@@ -241,7 +241,7 @@ public class UserService : IUserService
                                     true, HttpStatusCode.OK, userEntity.ToResponse(), new List<DadosNotificacao> { new DadosNotificacao("Imagenm do usu com sucesso.") })
                                 );
 
-                        }).Result;
+                        }).Unwrap();
 
                 }).Result;
         }
