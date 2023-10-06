@@ -51,6 +51,8 @@ jobs:
           ServiceBus.QueueEmail: ${{ secrets.__QUEUE_EMAIL__ }}
           Mail.ApiKey: ${{ secrets.__SENDGRID_APIKEY__ }}
           AzureBlobStorage.Container: ${{ secrets.__AZUREBLOB_CONTAINER__ }}
+          OpenAI.BaseUrl: ${{ secrets.__OPENAIBASEURL__ }}
+          OpenAI.ApiKey: ${{ secrets.__OPENAIAPIKEY__ }}
           
       - name: Set up dependency caching for faster builds
         uses: actions/cache@v3
