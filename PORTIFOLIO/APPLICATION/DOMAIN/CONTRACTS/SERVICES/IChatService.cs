@@ -1,4 +1,4 @@
-﻿using APPLICATION.DOMAIN.DTOS.CHAT;
+﻿using APPLICATION.DOMAIN.DTOS.REQUEST.CHAT;
 using Microsoft.AspNetCore.Mvc;
 
 namespace APPLICATION.DOMAIN.CONTRACTS.SERVICES;
@@ -27,7 +27,7 @@ public interface IChatService
     /// </summary>
     /// <param name="userId"></param>
     /// <returns></returns>
-    Task<ObjectResult> GetChatsByUserAsync(Guid userId);
+    Task<ObjectResult> GetChatsByUserAsync(Guid userId, bool ordered);
 
     /// <summary>
     /// Método responsável por retornar dados de um chat.

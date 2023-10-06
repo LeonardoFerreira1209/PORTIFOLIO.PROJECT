@@ -1,7 +1,7 @@
 ﻿using APPLICATION.DOMAIN.ENUMS;
 using System.Security.Claims;
 
-namespace APPLICATION.DOMAIN.DTOS.RESPONSE.USER.ROLE;
+namespace APPLICATION.DOMAIN.DTOS.RESPONSE;
 
 public class RolesResponse
 {

@@ -1,6 +1,6 @@
-﻿using APPLICATION.DOMAIN.DTOS.MAIL.REQUEST;
+﻿using APPLICATION.DOMAIN.DTOS.REQUEST.MAIL.BASE;
 
-namespace APPLICATION.DOMAIN.DTOS.MAIL;
+namespace APPLICATION.DOMAIN.DTOS.REQUEST.MAIL;
 
 /// <summary>
 /// Dto de eventos de reenvio de e-mails.

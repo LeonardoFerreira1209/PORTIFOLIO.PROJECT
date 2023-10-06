@@ -1,16 +1,14 @@
 ﻿using APPLICATION.APPLICATION.CONFIGURATIONS;
-using APPLICATION.DOMAIN.CONTRACTS.FACADE;
 using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY;
 using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.BASE;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.TOKEN;
-using APPLICATION.DOMAIN.DTOS.MAIL.REQUEST;
-using APPLICATION.DOMAIN.DTOS.MAIL.REQUEST.SENDGRID;
+using APPLICATION.DOMAIN.DTOS.REQUEST.MAIL.BASE;
+using APPLICATION.DOMAIN.DTOS.REQUEST.MAIL.SENDGRID;
 using APPLICATION.DOMAIN.DTOS.REQUEST.USER;
+using APPLICATION.DOMAIN.DTOS.RESPONSE;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.BASE;
-using APPLICATION.DOMAIN.DTOS.RESPONSE.USER;
-using APPLICATION.DOMAIN.DTOS.RESPONSE.USER.ROLE;
 using APPLICATION.DOMAIN.ENTITY;
 using APPLICATION.DOMAIN.ENTITY.USER;
 using APPLICATION.DOMAIN.ENUMS;
@@ -47,7 +45,6 @@ public class UserService : IUserService
     private readonly RoleManager<Role> _roleManager;
     private readonly IOptions<AppSettings> _appsettings;
     private readonly ITokenService _tokenService;
-    private readonly IUtilFacade _utilFacade;
     private readonly IMailService<SendGridMailRequest, ApiResponse<object>> _mailService;
     private readonly IFileService _fileService;
 
@@ -57,12 +54,11 @@ public class UserService : IUserService
     /// <param name="userRepository"></param>
     /// <param name="appsettings"></param>
     /// <param name="tokenService"></param>
-    /// <param name="utilFacade"></param>
     public UserService(
         IUnitOfWork unitOfWork, IUserRepository userRepository, 
         IEventRepository eventRepository, RoleManager<Role> roleManager, 
         IOptions<AppSettings> appsettings, ITokenService tokenService, 
-        IUtilFacade utilFacade, IFileService fileService)
+        IFileService fileService)
     {
         _unitOfWork = unitOfWork;
         _userRepository = userRepository;
@@ -70,7 +66,6 @@ public class UserService : IUserService
         _roleManager = roleManager;
         _appsettings = appsettings;
         _tokenService = tokenService;
-        _utilFacade = utilFacade;
         _fileService = fileService;
 
         SendGridMailFactory sendGridMailFactory = new(appsettings);

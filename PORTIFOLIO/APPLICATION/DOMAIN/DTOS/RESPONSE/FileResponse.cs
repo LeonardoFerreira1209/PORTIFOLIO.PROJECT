@@ -1,6 +1,6 @@
 ﻿using APPLICATION.DOMAIN.ENUMS;
 
-namespace APPLICATION.DOMAIN.DTOS.RESPONSE.FILE;
+namespace APPLICATION.DOMAIN.DTOS.RESPONSE;
 
 public class FileResponse
 {

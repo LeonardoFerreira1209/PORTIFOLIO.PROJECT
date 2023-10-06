@@ -1,0 +1,8 @@
+﻿using APPLICATION.DOMAIN.DTOS.REQUEST.MAIL.BASE;
+
+namespace APPLICATION.DOMAIN.DTOS.REQUEST.MAIL.LOCALMAIL;
+
+public class MailRequest : MailRequestBase
+{
+
+}

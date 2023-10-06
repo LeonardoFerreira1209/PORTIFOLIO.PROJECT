@@ -13,6 +13,7 @@ public class AppSettings
     public AzureBlobStorage AzureBlobStorage { get; set; }
     public ServiceBus ServiceBus { get; set; }
     public Mail Mail { get; set; }
+    public OpenAi OpenAi { get; set; }
 }
 
 /// <summary>
@@ -100,6 +101,22 @@ public class Mail
 {
     /// <summary>
     /// Chave da API.
+    /// </summary>
+    public string ApiKey { get; set; }
+}
+
+/// <summary>
+/// Config da API do OpenAi.
+/// </summary>
+public class OpenAi
+{
+    /// <summary>
+    /// Url base.
+    /// </summary>
+    public string BaseUrl { get; set; }
+
+    /// <summary>
+    /// Chave de API.
     /// </summary>
     public string ApiKey { get; set; }
 }

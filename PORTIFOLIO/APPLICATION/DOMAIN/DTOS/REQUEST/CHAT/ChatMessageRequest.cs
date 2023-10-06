@@ -1,4 +1,4 @@
-﻿namespace APPLICATION.DOMAIN.DTOS.CHAT;
+﻿namespace APPLICATION.DOMAIN.DTOS.REQUEST.CHAT;
 
 /// <summary>
 /// Classe de criação de mensagem do chat.
@@ -19,4 +19,19 @@ public class ChatMessageRequest
     /// Id do chat em que a mensagem está vinculada.
     /// </summary>
     public Guid ChatId { get; set; }
+
+    /// <summary>
+    /// Se a mensagem tem um commando.
+    /// </summary>
+    public bool HasCommand { get; set; }
+
+    /// <summary>
+    /// Comandos de interação.
+    /// </summary>
+    public string Command { get; set; }
+
+    /// <summary>
+    /// A mensagem foi gerada por um chatBot. 
+    /// </summary>
+    public bool IsChatBot { get; set; }
 }
