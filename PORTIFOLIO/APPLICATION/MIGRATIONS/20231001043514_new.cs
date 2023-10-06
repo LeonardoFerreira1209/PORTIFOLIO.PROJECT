@@ -10,29 +10,29 @@ namespace APPLICATION.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            //migrationBuilder.DropForeignKey(
-            //    name: "FK_AspNetUsers_File_FileId",
-            //    table: "AspNetUsers");
+            migrationBuilder.DropForeignKey(
+                name: "FK_AspNetUsers_File_FileId",
+                table: "AspNetUsers");
 
-            //migrationBuilder.DropPrimaryKey(
-            //    name: "PK_File",
-            //    table: "File");
+            migrationBuilder.DropPrimaryKey(
+                name: "PK_File",
+                table: "File");
 
-            //migrationBuilder.RenameTable(
-            //    name: "File",
-            //    newName: "Files");
+            migrationBuilder.RenameTable(
+                name: "File",
+                newName: "Files");
 
-            //migrationBuilder.AddPrimaryKey(
-            //    name: "PK_Files",
-            //    table: "Files",
-            //    column: "Id");
+            migrationBuilder.AddPrimaryKey(
+                name: "PK_Files",
+                table: "Files",
+                column: "Id");
 
-            //migrationBuilder.AddForeignKey(
-            //    name: "FK_AspNetUsers_Files_FileId",
-            //    table: "AspNetUsers",
-            //    column: "FileId",
-            //    principalTable: "Files",
-            //    principalColumn: "Id");
+            migrationBuilder.AddForeignKey(
+                name: "FK_AspNetUsers_Files_FileId",
+                table: "AspNetUsers",
+                column: "FileId",
+                principalTable: "Files",
+                principalColumn: "Id");
         }
 
         /// <inheritdoc />
