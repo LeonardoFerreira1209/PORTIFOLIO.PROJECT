@@ -1,4 +1,4 @@
-﻿namespace APPLICATION.DOMAIN.DTOS.CHAT;
+﻿namespace APPLICATION.DOMAIN.DTOS.REQUEST.CHAT;
 
 /// <summary>
 /// Classe de criação de chat.

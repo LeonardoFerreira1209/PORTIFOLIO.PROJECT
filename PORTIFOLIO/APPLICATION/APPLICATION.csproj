@@ -81,7 +81,6 @@
 
   <ItemGroup>
     <Folder Include="APPLICATION\HANDLER\" />
-    <Folder Include="DOMAIN\DTOS\MAIL\BASE\" />
     <Folder Include="APPLICATION\GRAPHQL\QUERYTYPE\" />
     <Folder Include="INFRAESTRUTURE\JOBS\QUEUED\" />
     <Folder Include="MIGRATIONS\" />

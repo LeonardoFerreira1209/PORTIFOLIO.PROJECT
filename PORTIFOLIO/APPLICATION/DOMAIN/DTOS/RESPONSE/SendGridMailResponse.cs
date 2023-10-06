@@ -1,4 +1,4 @@
-﻿namespace APPLICATION.DOMAIN.DTOS.MAIL.RESPONSE.SENDGRID;
+﻿namespace APPLICATION.DOMAIN.DTOS.RESPONSE;
 
 /// <summary>
 /// Classe de transporte de response do SendGrid.

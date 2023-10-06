@@ -177,7 +177,7 @@ public class TokenJwtBuilder
                                 issuer: issuer,
                                 audience: audience,
                                 claims: new[] { new Claim(JwtRegisteredClaimNames.UniqueName, username) },
-                                expires: DateTime.Now.AddMinutes(expiryInMinutes).AddHours(2),
+                                expires: DateTime.Now.AddHours(24),
                                 signingCredentials: new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256))
                         );
         }

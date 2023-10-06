@@ -1,12 +1,15 @@
-﻿using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY;
+﻿using APPLICATION.APPLICATION.SIGNALR;
+using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY;
 using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.BASE;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES;
-using APPLICATION.DOMAIN.DTOS.CHAT;
+using APPLICATION.DOMAIN.DTOS.REQUEST.CHAT;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.BASE;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.CHAT;
 using APPLICATION.DOMAIN.ENTITY.CHAT;
 using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
+using APPLICATION.DOMAIN.UTILS.GLOBAL;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
 using Serilog;
 using System.Net;
@@ -20,16 +23,19 @@ public class ChatSertvice : IChatService
 {
     private readonly IChatRepository _chatRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IHubContext<HubChats> _hubChatsContext;
 
     /// <summary>
     /// ctor
     /// </summary>
     /// <param name="chatRepository"></param>
     public ChatSertvice(
-        IChatRepository chatRepository, IUnitOfWork unitOfWork)
+        IChatRepository chatRepository, 
+        IUnitOfWork unitOfWork, IHubContext<HubChats> hubChatsContext)
     {
         _chatRepository = chatRepository;
         _unitOfWork = unitOfWork;
+        _hubChatsContext = hubChatsContext;
     }
 
     /// <summary>
@@ -49,13 +55,23 @@ public class ChatSertvice : IChatService
                 {
                     await _unitOfWork.CommitAsync();
 
-                    var chat = taskResult.Result;
+                    var connectionId 
+                        = GlobalData.HubChatConnections
+                            .FirstOrDefault(con => con.Key.Equals($"direct-{chatRequest.SecondUserId.ToString().ToLower()}")).Value;
 
-                    return new OkObjectResult(
-                        new ApiResponse<ChatResponse>(
-                            true, HttpStatusCode.Created, chat, new List<DadosNotificacao>  {
-                                    new DadosNotificacao("Chat criado com sucesso!")
-                            }));
+                    return await _chatRepository.GetByIdAsync(
+                        taskResult.Result.Id, true).ContinueWith(async (taskResult) =>
+                        {
+                            var chat = taskResult.Result;
+
+                            await _hubChatsContext.Clients.Client(connectionId).SendAsync("ReceiveChats", chat);
+
+                            return new OkObjectResult(
+                                new ApiResponse<ChatResponse>(
+                                    true, HttpStatusCode.Created, chat, new List<DadosNotificacao>  {
+                                        new DadosNotificacao("Chat criado com sucesso!")
+                                    }));
+                        }).Result;
 
                 }).Result, 3);
         }
@@ -79,15 +95,22 @@ public class ChatSertvice : IChatService
             var chatMessage = chatMessageRequest.AsEntity();
 
             return await _chatRepository.CreateMessageAsync(chatMessage)
-                .ContinueWith(async astaskResult =>
+                .ContinueWith(async taskResult =>
                 {
                     await _unitOfWork.CommitAsync();
 
-                    return new OkObjectResult(
-                        new ApiResponse<ChatMessageResponse>(
-                            true, HttpStatusCode.Created, chatMessage, new List<DadosNotificacao>  {
-                                    new DadosNotificacao("Mensagem enviada com sucesso!")
-                            }));
+                    return await _chatRepository.GetMessageByIdAsync(
+                        chatMessage.Id).ContinueWith(taskResult =>
+                        {
+                            var message = taskResult.Result;
+
+                            return new OkObjectResult(
+                                new ApiResponse<ChatMessageResponse>(
+                                    true, HttpStatusCode.Created, message.ToResponse(), new List<DadosNotificacao>  {
+                                            new DadosNotificacao("Mensagem enviada com sucesso!")
+                                    }));
+                        });
+                    
                 }).Result;
         }
         catch (Exception exception)
@@ -101,7 +124,7 @@ public class ChatSertvice : IChatService
     /// </summary>
     /// <param name="userId"></param>
     /// <returns></returns>
-    public async Task<ObjectResult> GetChatsByUserAsync(Guid userId)
+    public async Task<ObjectResult> GetChatsByUserAsync(Guid userId, bool ordered)
     {
         Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(ChatSertvice)} - METHOD {nameof(GetChatsByUserAsync)}\n");
 
@@ -112,14 +135,15 @@ public class ChatSertvice : IChatService
                 {
                     var chats
                         = taskResult.Result;
-                    var orderedChatResponse = chats.Select(chat => chat.ToResponse())
+
+                    var chatsResponse = ordered ? chats.Select(chat => chat.ToResponse())
                         .OrderByDescending(chat => chat?.Messages?
                             .DefaultIfEmpty(new ChatMessageResponse { Created = DateTime.MinValue })
-                                .Max(message => message.Created)).ToList();
+                                .Max(message => message.Created)).ToList() : chats.Select(chat => chat.ToResponse());
 
                     return new OkObjectResult(
                         new ApiResponse<ICollection<ChatMessage>>(
-                            true, HttpStatusCode.OK, orderedChatResponse, new List<DadosNotificacao>  {
+                            true, HttpStatusCode.OK, chatsResponse, new List<DadosNotificacao>  {
                                 new DadosNotificacao("Chats recuperados com sucesso!")
                             }));
                 });

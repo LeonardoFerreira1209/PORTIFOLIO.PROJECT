@@ -1,5 +1,4 @@
-﻿using APPLICATION.DOMAIN.DTOS.RESPONSE.USER;
-using APPLICATION.DOMAIN.ENUMS;
+﻿using APPLICATION.DOMAIN.ENUMS;
 
 namespace APPLICATION.DOMAIN.DTOS.RESPONSE.CHAT;
 
@@ -52,4 +51,19 @@ public class ChatMessageResponse
     /// Mensagem
     /// </summary>
     public string Message { get; set; }
+
+    /// <summary>
+    /// Se a mensagem tem um commando.
+    /// </summary>
+    public bool HasCommand { get; set; }
+
+    /// <summary>
+    /// Comandos de interação.
+    /// </summary>
+    public string Command { get; set; }
+
+    /// <summary>
+    /// A mensagem foi gerada por um chatBot. 
+    /// </summary>
+    public bool IsChatBot { get; set; }
 }

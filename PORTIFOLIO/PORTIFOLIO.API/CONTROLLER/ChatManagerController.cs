@@ -1,11 +1,9 @@
 ﻿using APPLICATION.DOMAIN.CONTRACTS.FEATUREFLAGS;
 using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.BASE;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES;
-using APPLICATION.DOMAIN.DTOS.CHAT;
-using APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.CUSTOMAUTHORIZE.ATTRIBUTE;
+using APPLICATION.DOMAIN.DTOS.REQUEST.CHAT;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.BASE;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.CHAT;
-using APPLICATION.DOMAIN.ENUMS;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -86,21 +84,22 @@ public class ChatManagerController : BaseControllercs
     /// Endpoint responsável por recuperar os dados de um chat através do Id usuário.
     /// </summary>
     /// <param name="userId"></param>
+    /// <param name="ordered"></param>
     /// <returns></returns>
-    [HttpGet("get/chats/by/user/{userId}")]
+    [HttpGet("get/chats/by/user/{userId}/ordered/{ordered}")]
     //[CustomAuthorize(Claims.Chat, "Get")]
     [SwaggerOperation(Summary = "Recuperar dados do chat", Description = "Método responsável por recuperar dados do chat")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetChatsByUserAsync(Guid userId)
+    public async Task<IActionResult> GetChatsByUserAsync(Guid userId, bool ordered)
     {
         using (LogContext.PushProperty("Controller", "ChatManagerController"))
         using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(userId)))
         using (LogContext.PushProperty("Metodo", "GetChatsByUser"))
         {
             return await ExecuteAsync(nameof(GetChatsByUserAsync),
-               () => _chatService.GetChatsByUserAsync(userId), "Recuperar chats por usuário");
+               () => _chatService.GetChatsByUserAsync(userId, ordered), "Recuperar chats por usuário");
         }
     }
 

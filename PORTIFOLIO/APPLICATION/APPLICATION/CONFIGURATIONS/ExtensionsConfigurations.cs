@@ -8,7 +8,6 @@ using APPLICATION.APPLICATION.SERVICES.USER;
 using APPLICATION.DOMAIN.CONTRACTS.API;
 using APPLICATION.DOMAIN.CONTRACTS.CONFIGURATIONS;
 using APPLICATION.DOMAIN.CONTRACTS.CONFIGURATIONS.APPLICATIONINSIGHTS;
-using APPLICATION.DOMAIN.CONTRACTS.FACADE;
 using APPLICATION.DOMAIN.CONTRACTS.FEATUREFLAGS;
 using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY;
 using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.BASE;
@@ -19,7 +18,6 @@ using APPLICATION.DOMAIN.ENUMS;
 using APPLICATION.DOMAIN.UTILS.GLOBAL;
 using APPLICATION.DOMAIN.UTILS.JOBMETHODS;
 using APPLICATION.INFRAESTRUTURE.CONTEXTO;
-using APPLICATION.INFRAESTRUTURE.FACADES;
 using APPLICATION.INFRAESTRUTURE.FEATUREFLAGS;
 using APPLICATION.INFRAESTRUTURE.JOBS.FACTORY.FLUENTSCHEDULER;
 using APPLICATION.INFRAESTRUTURE.JOBS.INTERFACES.BASE;
@@ -430,8 +428,6 @@ public static class ExtensionsConfigurations
             .AddTransient<ITokenService, TokenService>()
             .AddTransient<IFileService, FileService>()
             .AddTransient<IChatService, ChatSertvice>()
-            // Facades
-            .AddSingleton<IUtilFacade, UtilFacade>()
             // Repository
             .AddScoped<IUnitOfWork, UnitOfWork>()
             .AddScoped(typeof(IGenerictEntityCoreRepository<>), typeof(GenericEntityCoreRepository<>))
@@ -460,7 +456,12 @@ public static class ExtensionsConfigurations
     public static IServiceCollection ConfigureRefit(this IServiceCollection services, IConfiguration configurations)
     {
         services
-            .AddRefitClient<IExternalUtil>().ConfigureHttpClient(c => c.BaseAddress = configurations.GetValue<Uri>("UrlBase:TOOLS_UTIL_API"));
+            .AddRefitClient<IOpenAiExternal>(new RefitSettings(new NewtonsoftJsonContentSerializer())).ConfigureHttpClient(
+                c =>
+                {
+                    c.BaseAddress = configurations.GetValue<Uri>("OpenAI:BaseUrl");
+                    c.DefaultRequestHeaders.Add("Authorization", $"Bearer {configurations.GetValue<string>("OpenAI:ApiKey")}");
+                });
 
         return services;
     }

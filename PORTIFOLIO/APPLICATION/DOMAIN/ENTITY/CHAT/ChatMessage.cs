@@ -32,4 +32,19 @@ public class ChatMessage : Entity
     /// Mensagem
     /// </summary>
     public string Message { get; set; }
+    
+    /// <summary>
+    /// Se a mensagem tem um commando.
+    /// </summary>
+    public bool HasCommand { get; set; }
+
+    /// <summary>
+    /// Comandos de interação.
+    /// </summary>
+    public string Command { get; set; }
+
+    /// <summary>
+    /// A mensagem foi gerada por um chatBot. 
+    /// </summary>
+    public bool IsChatBot { get; set; }
 }

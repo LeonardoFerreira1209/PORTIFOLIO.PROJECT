@@ -1,7 +1,10 @@
-﻿using APPLICATION.DOMAIN.CONTRACTS.SERVICES;
-using APPLICATION.DOMAIN.DTOS.CHAT;
+﻿using APPLICATION.DOMAIN.CONTRACTS.API;
+using APPLICATION.DOMAIN.CONTRACTS.SERVICES;
+using APPLICATION.DOMAIN.DTOS.REQUEST;
+using APPLICATION.DOMAIN.DTOS.REQUEST.CHAT;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.BASE;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.CHAT;
+using APPLICATION.DOMAIN.ENUMS;
 using APPLICATION.DOMAIN.UTILS.GLOBAL;
 using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
@@ -15,15 +18,18 @@ namespace APPLICATION.APPLICATION.SIGNALR;
 public class HubChats : HubBase
 {
     private readonly IChatService _chatService;
-    
+    private readonly IOpenAiExternal _openAiExternal;
+
     /// <summary>
     /// ctor
     /// </summary>
     /// <param name="chatService"></param>
-    public HubChats(IChatService chatService)
+    public HubChats(IChatService chatService,
+        IOpenAiExternal openAiExternal)
         : base(GlobalData.HubChatConnections)
     {
         _chatService = chatService;
+        _openAiExternal = openAiExternal;
     }
 
     /// <summary>
@@ -37,21 +43,21 @@ public class HubChats : HubBase
     {
         try
         {
-            await _chatService.SendMessageAsync(new ChatMessageRequest
-            {
+            var isCommand = message.StartsWith(">gpt");
+            var command = message[..4];
+
+            await SendToChatAsync(new ChatMessageRequest {
                 ChatId = Guid.Parse(chatId),
                 Message = message,
-                UserId = Guid.Parse(userId)
+                UserId = Guid.Parse(userId),
+                HasCommand = isCommand,
+                Command = command,
+                IsChatBot = false }, groupName);
 
-            }).ContinueWith(async (taskResult) =>
-            {
-                var apiResponse
-                    = (ApiResponse<ChatMessageResponse>)taskResult.Result.Value;
-
-                await Clients
-                   .Group(groupName).SendAsync("ReceberMensagem", apiResponse.Dados);
-
-            }).Unwrap();
+            if (isCommand)
+                await SendQuestionToGptAsync(
+                    userId, chatId, groupName, message);
+            
         }
         catch (Exception exception)
         {
@@ -66,4 +72,52 @@ public class HubChats : HubBase
     /// <returns></returns>
     public Task JoinGroup(string chatId)
         => Groups.AddToGroupAsync(Context.ConnectionId, $"chat-{chatId}");
+
+    /// <summary>
+    /// Envia a mensagem para os ecutadores.
+    /// </summary>
+    /// <param name="chatMessageRequest"></param>
+    /// <param name="groupName"></param>
+    /// <returns></returns>
+    private async Task SendToChatAsync(ChatMessageRequest chatMessageRequest, string groupName)
+    {
+        await _chatService.SendMessageAsync(chatMessageRequest)
+            .ContinueWith(async (taskResult) =>
+            {
+                var apiResponse
+                    = (ApiResponse<ChatMessageResponse>)taskResult.Result.Value;
+
+                await Clients
+                   .Group(groupName).SendAsync("ReceberMensagem", apiResponse.Dados);
+
+            }).Unwrap();
+    }
+
+    private async Task SendQuestionToGptAsync(
+        string userId, string chatId, string groupName, string messageSubstring)
+        {
+            var request 
+                = new OpenAiCompletionsRequest {
+                    Model = "gpt-3.5-turbo",
+                    Messages = new List<OpenAiCompletionsMessagesRequest> {
+                        new OpenAiCompletionsMessagesRequest {
+                            Content = messageSubstring,
+                            Role = nameof(CompletionsRoles.User).ToLower() }
+                    }
+                };
+
+            await _openAiExternal.Completions(
+                request).ContinueWith(async (taskResult) =>
+                {
+                    var response = taskResult.Result;
+
+                    await SendToChatAsync(new ChatMessageRequest {
+                        ChatId = Guid.Parse(chatId),
+                        Message = $"GPT > {response.Choices.First().openAiCompletionsMessageResponse.Content}",
+                        UserId = Guid.Parse(userId),
+                        Command = "GPT >",
+                        HasCommand = true,
+                        IsChatBot = true }, groupName);
+                }).Result;
+        }
 }

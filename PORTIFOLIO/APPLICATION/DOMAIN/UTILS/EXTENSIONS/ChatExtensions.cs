@@ -1,4 +1,4 @@
-﻿using APPLICATION.DOMAIN.DTOS.CHAT;
+﻿using APPLICATION.DOMAIN.DTOS.REQUEST.CHAT;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.CHAT;
 using APPLICATION.DOMAIN.ENTITY.CHAT;
 using APPLICATION.DOMAIN.ENUMS;
@@ -38,7 +38,10 @@ public static class ChatExtensions
             ChatId = chatMessageRequest.ChatId,
             Message = chatMessageRequest.Message,
             Created = DateTime.Now,
-            Status = Status.Active
+            Status = Status.Active,
+            Command = chatMessageRequest.Command,
+            HasCommand = chatMessageRequest.HasCommand,
+            IsChatBot = chatMessageRequest.IsChatBot
         };
 
     /// <summary>
@@ -77,6 +80,9 @@ public static class ChatExtensions
             Status = chatMessage.Status,
             Updated = chatMessage.Updated,
             UserId = chatMessage.UserId,
-            UserToSendMessage = chatMessage.UserToSendMessage?.ToResponse()
+            UserToSendMessage = chatMessage.UserToSendMessage?.ToResponse(),
+            Command = chatMessage.Command,
+            HasCommand = chatMessage.HasCommand,
+            IsChatBot = chatMessage.IsChatBot
         };
 }

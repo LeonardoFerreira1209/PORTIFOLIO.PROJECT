@@ -1,4 +1,4 @@
-﻿namespace APPLICATION.DOMAIN.DTOS.MAIL.REQUEST;
+﻿namespace APPLICATION.DOMAIN.DTOS.REQUEST.MAIL.BASE;
 
 /// <summary>
 /// Classe base de transporte de dados do Email

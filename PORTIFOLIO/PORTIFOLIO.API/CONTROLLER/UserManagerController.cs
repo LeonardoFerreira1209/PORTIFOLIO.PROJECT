@@ -4,9 +4,8 @@ using APPLICATION.DOMAIN.CONTRACTS.SERVICES;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.CUSTOMAUTHORIZE.ATTRIBUTE;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.TOKEN;
 using APPLICATION.DOMAIN.DTOS.REQUEST.USER;
+using APPLICATION.DOMAIN.DTOS.RESPONSE;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.BASE;
-using APPLICATION.DOMAIN.DTOS.RESPONSE.USER;
-using APPLICATION.DOMAIN.DTOS.RESPONSE.USER.ROLE;
 using APPLICATION.DOMAIN.ENUMS;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
@@ -38,7 +37,8 @@ public class UserManagerController : BaseControllercs
     /// </summary>
     /// <param name="userService"></param>
     public UserManagerController(
-        IFeatureFlags featureFlags, IUserService userService, IUnitOfWork unitOfWork) : base(featureFlags, unitOfWork)
+        IFeatureFlags featureFlags, IUserService userService, 
+        IUnitOfWork unitOfWork) : base(featureFlags, unitOfWork)
     {
         _userService = userService;
     }
@@ -157,29 +157,6 @@ public class UserManagerController : BaseControllercs
                  () => _userService.UpdateAsync(userUpdateRequest), "Atualizar usuário");
         }
     }
-
-    ///// <summary>
-    ///// Endpoint responsável por atualizar a imagem de um usuário.
-    ///// </summary>
-    ///// <param name="formFile"></param>
-    ///// <returns></returns>
-    //[HttpPatch("update/user/image/{userId}")]
-    //[CustomAuthorize(Claims.User, "Patch")]
-    //[SwaggerOperation(Summary = "Atualizar imagem do uauário.", Description = "Endpoint responsável por atualizar a imagem de um usuário.")]
-    //[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    //[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
-    //[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status423Locked)]
-    //[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-    //public async Task<IActionResult> UpdateImageAsync(IFormFile formFile)
-    //{
-    //    using (LogContext.PushProperty("Controller", "UserController"))
-    //    using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(formFile)))
-    //    using (LogContext.PushProperty("Metodo", "UpdateImageAsync"))
-    //    {
-    //        return await ExecuteAsync(nameof(UpdateImageAsync),
-    //             () => _userService.UpdateAsync(userUpdateRequest), "Atualizar usuário");
-    //    }
-    //}
 
     /// <summary>
     /// Endpoint responsável por inserir imagem do usuário.

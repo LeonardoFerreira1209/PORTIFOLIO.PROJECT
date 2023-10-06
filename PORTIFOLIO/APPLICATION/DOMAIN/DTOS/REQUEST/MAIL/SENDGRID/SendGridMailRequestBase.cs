@@ -1,4 +1,6 @@
-﻿namespace APPLICATION.DOMAIN.DTOS.MAIL.REQUEST.SENDGRID
+﻿using APPLICATION.DOMAIN.DTOS.REQUEST.MAIL.BASE;
+
+namespace APPLICATION.DOMAIN.DTOS.REQUEST.MAIL.SENDGRID
 {
     /// <summary>
     /// Classe de transporte de dados de reuquest base do SendGrid.
