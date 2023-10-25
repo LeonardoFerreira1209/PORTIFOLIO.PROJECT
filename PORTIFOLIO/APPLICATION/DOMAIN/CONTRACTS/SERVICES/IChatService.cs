@@ -30,6 +30,13 @@ public interface IChatService
     Task<ObjectResult> GetChatsByUserAsync(Guid userId, bool ordered);
 
     /// <summary>
+    /// Métodos responsável por recuperar Chat por id
+    /// </summary>
+    /// <param name="chatId"></param>
+    /// <returns></returns>
+    Task<ObjectResult> GetChatsByIdAsync(Guid chatId);
+
+    /// <summary>
     /// Método responsável por retornar dados de um chat.
     /// </summary>
     /// <param name="chatId"></param>

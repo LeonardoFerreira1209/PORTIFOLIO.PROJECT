@@ -87,6 +87,15 @@ public class HubChats : HubBase
         return (isCommand, command);
     }
 
+    /// <summary>
+    /// Envia uma mensagem baseado no commando.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="chatId"></param>
+    /// <param name="groupName"></param>
+    /// <param name="message"></param>
+    /// <param name="command"></param>
+    /// <returns></returns>
     private async Task SendCommandMessage(
         string userId, string chatId, string groupName, string message, string command)
     {
@@ -120,6 +129,14 @@ public class HubChats : HubBase
             }).Unwrap();
     }
 
+    /// <summary>
+    /// Envia uma pergunta para 
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="chatId"></param>
+    /// <param name="groupName"></param>
+    /// <param name="messageSubstring"></param>
+    /// <returns></returns>
     private async Task SendQuestionToGptAsync(
         string userId, string chatId, string groupName, string messageSubstring)
     {
@@ -149,6 +166,7 @@ public class HubChats : HubBase
                     HasCommand = true,
                     IsChatBot = true
                 }, groupName);
+
             }).Result;
     }
 }
