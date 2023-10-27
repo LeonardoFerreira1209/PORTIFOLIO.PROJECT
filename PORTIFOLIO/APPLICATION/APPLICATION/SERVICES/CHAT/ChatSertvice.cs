@@ -64,7 +64,8 @@ public class ChatSertvice : IChatService
                         {
                             var chat = taskResult.Result;
 
-                            await _hubChatsContext.Clients.Client(connectionId).SendAsync("ReceiveChats", chat);
+                            if(connectionId is not null) 
+                                await _hubChatsContext.Clients.Client(connectionId).SendAsync("ReceiveChats", chat);
 
                             return new OkObjectResult(
                                 new ApiResponse<ChatResponse>(
@@ -142,9 +143,41 @@ public class ChatSertvice : IChatService
                                 .Max(message => message.Created)).ToList() : chats.Select(chat => chat.ToResponse());
 
                     return new OkObjectResult(
-                        new ApiResponse<ICollection<ChatMessage>>(
+                        new ApiResponse<ICollection<ChatMessageResponse>>(
                             true, HttpStatusCode.OK, chatsResponse, new List<DadosNotificacao>  {
                                 new DadosNotificacao("Chats recuperados com sucesso!")
+                            }));
+                });
+        }
+        catch (Exception exception)
+        {
+            Log.Error($"[LOG ERROR] - Exception:{exception.Message} - {JsonConvert.SerializeObject(exception)}\n"); throw;
+        }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="chatId"></param>
+    /// <returns></returns>
+    public async Task<ObjectResult> GetChatsByIdAsync(Guid chatId)
+    {
+        Log.Information($"[LOG INFORMATION] - SET TITLE {nameof(ChatSertvice)} - METHOD {nameof(GetChatsByIdAsync)}\n");
+
+        try
+        {
+            return await _chatRepository.GetByIdAsync(chatId, true)
+                .ContinueWith(taskResult =>
+                {
+                    var chat 
+                        = taskResult.Result;
+
+                    var chatResponse = chat.ToResponse();
+
+                    return new OkObjectResult(
+                        new ApiResponse<ChatResponse>(
+                            true, HttpStatusCode.OK, chatResponse, new List<DadosNotificacao>  {
+                                new DadosNotificacao("Chat recuperado com sucesso!")
                             }));
                 });
         }

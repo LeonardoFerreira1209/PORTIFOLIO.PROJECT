@@ -104,6 +104,28 @@ public class ChatManagerController : BaseControllercs
     }
 
     /// <summary>
+    /// Endpoint responsável por recuperar os dados de um chat através do Id.
+    /// </summary>
+    /// <param name="chatId"></param>
+    /// <returns></returns>
+    [HttpGet("get/chat/{chatId}")]
+    //[CustomAuthorize(Claims.Chat, "Get")]
+    [SwaggerOperation(Summary = "Recuperar dados do chat", Description = "Método responsável por recuperar dados do chat")]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetChatByIdAsync(Guid chatId)
+    {
+        using (LogContext.PushProperty("Controller", "ChatManagerController"))
+        using (LogContext.PushProperty("Payload", JsonConvert.SerializeObject(chatId)))
+        using (LogContext.PushProperty("Metodo", "GetChatByIdAsync"))
+        {
+            return await ExecuteAsync(nameof(GetChatByIdAsync),
+               () => _chatService.GetChatsByIdAsync(chatId), "Recuperar chats por usuário");
+        }
+    }
+
+    /// <summary>
     /// Endpoint responsável por recuperar todas as mensagens de um chat, pelo Id do chat.
     /// </summary>
     /// <param name="userId"></param>
