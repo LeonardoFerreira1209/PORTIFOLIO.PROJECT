@@ -71,7 +71,7 @@ public class TokenService : ITokenService
                     ValidIssuer = _appsettings.Value.Auth.ValidIssuer,
                     ValidateAudience = true,
                     ValidAudience = _appsettings.Value.Auth.ValidAudience,
-                    ClockSkew = TimeSpan.Zero,
+                    ClockSkew = TimeSpan.FromHours(3),
                 });
 
         var username = tokenValidationResult.IsValid
