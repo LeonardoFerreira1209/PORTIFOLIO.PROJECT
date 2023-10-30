@@ -24,6 +24,6 @@ public static class EventExtensions
             Data = JsonConvert.SerializeObject(data),
             Status = EventStatus.Unprocessed,
             Type = EventType.Mail,
-            Created = DateTime.Now,
+            Created = DateTime.UtcNow,
         };
 }

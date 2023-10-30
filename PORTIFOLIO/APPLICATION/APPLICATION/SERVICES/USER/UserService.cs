@@ -497,7 +497,7 @@ public class UserService : IUserService
 
                                     if (identityResult.Succeeded)
                                     {
-                                        userCode.Updated = DateTime.Now;
+                                        userCode.Updated = DateTime.UtcNow;
                                         userCode.Status = Status.Inactive;
 
                                         _userRepository.UpdateUserConfirmationCode(userCode);
@@ -1017,7 +1017,7 @@ public class UserService : IUserService
         var userCodeEntity = await _userRepository.AddUserConfirmationCode(
             new UserCode
             {
-                Created = DateTime.Now,
+                Created = DateTime.UtcNow,
                 NumberCode = confirmationCodeIdentity.HashCode(),
                 HashCode = confirmationCodeIdentity,
                 Status = Status.Active,

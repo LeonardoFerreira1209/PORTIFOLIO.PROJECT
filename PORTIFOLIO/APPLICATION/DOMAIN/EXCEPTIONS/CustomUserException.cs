@@ -34,6 +34,29 @@ public class CustomUserException
     }
 
     /// <summary>
+    /// Exception para Token expirado não encontrado.
+    /// </summary>
+    public class UnauthorizedTokenLifetimeException : BaseException
+    {
+        public UnauthorizedTokenLifetimeException(
+            object dados)
+        {
+            Response = new ErrorResponse
+               (HttpStatusCode.Unauthorized, dados, new List<DadosNotificacao>() {
+                   new DadosNotificacao("Token expirado!"),
+               });
+        }
+
+        public UnauthorizedTokenLifetimeException(
+            object dados, List<DadosNotificacao> notificacoes)
+        {
+            Response = new ErrorResponse
+               (HttpStatusCode.Unauthorized, dados, notificacoes);
+        }
+
+    }
+
+    /// <summary>
     /// Exception para usuário não encontrado.
     /// </summary>
     public class NotFoundUserException : BaseException
@@ -56,7 +79,7 @@ public class CustomUserException
     }
 
     /// <summary>
-    /// Exception para usuário não encontrado.
+    /// Exception para role não encontrada.
     /// </summary>
     public class NotFoundRoleException : BaseException
     {

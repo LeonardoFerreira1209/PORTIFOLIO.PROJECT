@@ -137,7 +137,7 @@ public sealed class LogWithMetric : ILogWithMetric
 
         _stopwatch.Start();
 
-        LogWithEvent($"DataHora: {DateTime.Now}", Metric.Inicio);
+        LogWithEvent($"DataHora: {DateTime.UtcNow.ToLocalTime()}", Metric.Inicio);
     }
 
     public void Finish()

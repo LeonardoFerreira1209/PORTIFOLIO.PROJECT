@@ -18,9 +18,9 @@ public static class FileExtensions
             Id = file.Id,
             Url = file.Url,
             ContentType = file.ContentType,
-            Created = file.Created,
+            Created = file.Created.ToLocalTime(),
             Name = file.Name,
             Status = file.Status,
-            Updated = file.Updated
-        };
+            Updated = file.Updated?.ToLocalTime()
+    };
 }

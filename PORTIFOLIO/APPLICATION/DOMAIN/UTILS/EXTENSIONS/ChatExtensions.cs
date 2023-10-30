@@ -21,7 +21,7 @@ public static class ChatExtensions
         {
             FirstUserId = chatRequest.FirstUserId,
             SecondUserId = chatRequest.SecondUserId,
-            Created = DateTime.Now,
+            Created = DateTime.UtcNow,
             Status = Status.Active
         };
 
@@ -37,7 +37,7 @@ public static class ChatExtensions
             UserId = chatMessageRequest.UserId,
             ChatId = chatMessageRequest.ChatId,
             Message = chatMessageRequest.Message,
-            Created = DateTime.Now,
+            Created = DateTime.UtcNow,
             Status = Status.Active,
             Command = chatMessageRequest.Command,
             HasCommand = chatMessageRequest.HasCommand,
@@ -54,8 +54,8 @@ public static class ChatExtensions
         => new()
         {
             Id = chat.Id,
-            Updated = chat.Updated,
-            Created = chat.Created,
+            Updated = chat.Updated?.ToLocalTime(),
+            Created = chat.Created.ToLocalTime(),
             Status = chat.Status,
             FirstUserId = chat.FirstUserId,
             SecondUserId = chat.SecondUserId,
@@ -75,10 +75,10 @@ public static class ChatExtensions
         {
             Id = chatMessage.Id,
             Message = chatMessage.Message,
-            Created = chatMessage.Created,
+            Created = chatMessage.Created.ToLocalTime(),
             ChatId = chatMessage.ChatId,
             Status = chatMessage.Status,
-            Updated = chatMessage.Updated,
+            Updated = chatMessage.Updated?.ToLocalTime(),
             UserId = chatMessage.UserId,
             UserToSendMessage = chatMessage.UserToSendMessage?.ToResponse(),
             Command = chatMessage.Command,

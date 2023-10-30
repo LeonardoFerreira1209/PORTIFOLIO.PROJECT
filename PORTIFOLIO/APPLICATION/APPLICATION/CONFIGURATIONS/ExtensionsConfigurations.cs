@@ -224,6 +224,7 @@ public static class ExtensionsConfigurations
                 ValidateAudience = true,
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
+                ClockSkew = TimeSpan.FromHours(3),
 
                 ValidIssuer = configurations.GetValue<string>("Auth:ValidIssuer"),
                 ValidAudience = configurations.GetValue<string>("Auth:ValidAudience"),
@@ -236,7 +237,7 @@ public static class ExtensionsConfigurations
                 {
                     Log.Error($"[LOG ERROR] {nameof(JwtBearerEvents)} - METHOD OnAuthenticationFailed - {context.Exception.Message}\n");
 
-                    throw new UnauthorizedUserException(null);
+                   throw new UnauthorizedTokenLifetimeException(null); 
                 },
 
                 OnTokenValidated = context =>
@@ -343,9 +344,9 @@ public static class ExtensionsConfigurations
     /// <returns></returns>
     public static IServiceCollection ConfigureSwagger(this IServiceCollection services, IConfiguration configurations)
     {
-        var apiVersion = configurations.GetValue<string>("SwaggerInfo:ApiVersion"); 
-        var apiDescription = configurations.GetValue<string>("SwaggerInfo:ApiDescription"); 
-        var description = configurations.GetValue<string>("SwaggerInfo:Description"); 
+        var apiVersion = configurations.GetValue<string>("SwaggerInfo:ApiVersion");
+        var apiDescription = configurations.GetValue<string>("SwaggerInfo:ApiDescription");
+        var description = configurations.GetValue<string>("SwaggerInfo:Description");
         var uriMyGit = configurations.GetValue<string>("SwaggerInfo:UriMyGit");
 
         services.AddSwaggerGen(swagger =>
@@ -440,7 +441,7 @@ public static class ExtensionsConfigurations
             .AddSingleton<IUserEmailServiceBusReceiverProvider, UserEmailServiceBusReceiverProvider>()
             .AddScoped<IFeatureFlags, FeatureFlagsProvider>()
             .AddScoped<LazyLoadingContext>();
-            
+
 
         // AutoMapper
         services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
@@ -641,7 +642,7 @@ public static class ExtensionsConfigurations
                     Email = "Hyper.ip@outlook.com",
                     EmailConfirmed = true,
                     UserName = "User.Teste",
-                    Created = DateTime.Now,
+                    Created = DateTime.UtcNow,
                     Status = Status.Active,
                 };
 
@@ -662,7 +663,7 @@ public static class ExtensionsConfigurations
                 {
                     Name = "administrator",
                     Status = Status.Active,
-                    Created = DateTime.Now
+                    Created = DateTime.UtcNow
                 };
 
                 // Create role.

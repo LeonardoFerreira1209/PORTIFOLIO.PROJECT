@@ -80,8 +80,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="APPLICATION\HANDLER\" />
     <Folder Include="APPLICATION\GRAPHQL\QUERYTYPE\" />
+    <Folder Include="APPLICATION\HANDLER\" />
     <Folder Include="INFRAESTRUTURE\JOBS\QUEUED\" />
     <Folder Include="MIGRATIONS\" />
   </ItemGroup>
