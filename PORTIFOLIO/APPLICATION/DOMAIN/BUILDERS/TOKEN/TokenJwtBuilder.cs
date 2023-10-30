@@ -156,7 +156,7 @@ public class TokenJwtBuilder
                 new Claim("id", userEntity.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.UniqueName, username),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.AddHours(-3).ToString()),
+                new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.AddHours(-4).ToString()),
                 new Claim(JwtRegisteredClaimNames.Typ, "Bearer"),
                 new Claim(JwtRegisteredClaimNames.Email, userEntity.Email),
                 new Claim("phoneNumber", userEntity.PhoneNumber ?? string.Empty),
