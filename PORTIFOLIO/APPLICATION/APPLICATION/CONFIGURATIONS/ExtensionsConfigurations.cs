@@ -224,7 +224,7 @@ public static class ExtensionsConfigurations
                 ValidateAudience = true,
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
-                ClockSkew = TimeSpan.FromHours(3),
+                //ClockSkew = TimeSpan.FromHours(3),
 
                 ValidIssuer = configurations.GetValue<string>("Auth:ValidIssuer"),
                 ValidAudience = configurations.GetValue<string>("Auth:ValidAudience"),
