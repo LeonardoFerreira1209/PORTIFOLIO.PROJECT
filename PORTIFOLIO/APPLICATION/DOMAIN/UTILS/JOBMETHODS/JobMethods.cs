@@ -66,7 +66,7 @@ public class JobMethods : IJobMethods
                                  new { name = data.DynamicTemplateData.Name, code = data.DynamicTemplateData.Code });
 
                             even.Status = EventStatus.Failed;
-                            even.Updated = DateTime.Now;
+                            even.Updated = DateTime.UtcNow;
                             even.Retries++;
                         });
 

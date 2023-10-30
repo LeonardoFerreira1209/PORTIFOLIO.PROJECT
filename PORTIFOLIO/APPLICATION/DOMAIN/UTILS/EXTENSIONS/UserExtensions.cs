@@ -25,7 +25,7 @@ public static class UserExtensions
                              .AddCompleteName(userRequest.FirstName, userRequest.LastName)
                                 .AddEmail(userRequest.Email)
                                    .AddGender(userRequest.Gender)
-                                      .AddCreatedDate(DateTime.Now)
+                                      .AddCreatedDate(DateTime.UtcNow)
                                           .AddStatus(Status.Active)
                                               .Builder();
 
@@ -44,7 +44,7 @@ public static class UserExtensions
                                   .AddEmail(userEntity.Email, emailConfirmed)
                                      .AddGender(userUpdateRequest.Gender)
                                         .AddCreatedDate(userEntity.Created)
-                                           .AddUpdatedDate(DateTime.Now)
+                                           .AddUpdatedDate(DateTime.UtcNow)
                                               .AddStatus(Status.Active)
                                                  .Builder(userEntity);
 
@@ -67,8 +67,8 @@ public static class UserExtensions
             PhoneNumber = user.PhoneNumber,
             CPF = user.CPF,
             RG = user.RG,
-            Created = user.Created,
-            Updated = user.Updated,
+            Created = user.Created.ToLocalTime(),
+            Updated = user.Updated?.ToLocalTime(),
             Gender = user.Gender,
             Status = user.Status
         };

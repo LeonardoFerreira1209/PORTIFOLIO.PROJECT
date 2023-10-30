@@ -49,7 +49,7 @@ public class BaseControllercs : ControllerBase
             ?? await _featureFlags.CreateAsync(new FeatureFlags
             {
                 Name = methodName,
-                Created = DateTime.Now,
+                Created = DateTime.UtcNow,
                 IsEnabled = true,
                 Status = Status.Active,
             }).ContinueWith(async (taskResult) =>

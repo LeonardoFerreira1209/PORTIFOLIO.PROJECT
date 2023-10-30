@@ -19,6 +19,7 @@ public class TokenJwtBuilder
     private readonly List<Claim> claims = new(); private readonly List<Claim> roles = new();
 
     private int expiryInMinutes = 10;
+    private readonly int expiryRefreshTokenInHours = 24;
 
     /// <summary>
     /// Método que adiciona o username.
@@ -155,7 +156,7 @@ public class TokenJwtBuilder
                 new Claim("id", userEntity.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.UniqueName, username),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString()),
+                new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.AddHours(-3).ToString()),
                 new Claim(JwtRegisteredClaimNames.Typ, "Bearer"),
                 new Claim(JwtRegisteredClaimNames.Email, userEntity.Email),
                 new Claim("phoneNumber", userEntity.PhoneNumber ?? string.Empty),
@@ -170,14 +171,14 @@ public class TokenJwtBuilder
                                 issuer: issuer,
                                 audience: audience,
                                 claims: baseClaims,
-                                expires: DateTime.Now.AddMinutes(expiryInMinutes),
+                                expires: DateTime.UtcNow.AddHours(-3).AddMinutes(expiryInMinutes),
                                 signingCredentials: new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256)),
 
                             new JwtSecurityToken(
                                 issuer: issuer,
                                 audience: audience,
                                 claims: new[] { new Claim(JwtRegisteredClaimNames.UniqueName, username) },
-                                expires: DateTime.Now.AddHours(24),
+                                expires: DateTime.UtcNow.AddHours(expiryRefreshTokenInHours).AddHours(-3),
                                 signingCredentials: new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256))
                         );
         }

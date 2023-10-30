@@ -12,7 +12,7 @@ public static class RoleExtensions
         return new Role
         {
             Name = roleRequest.Name,
-            Created = DateTime.Now,
+            Created = DateTime.UtcNow,
             Status = Status.Active
         };
     }
@@ -22,8 +22,8 @@ public static class RoleExtensions
         return new RolesResponse
         {
             Name = role.Name,
-            Created = role.Created,
-            Updated = role.Updated,
+            Created = role.Created.ToLocalTime(),
+            Updated = role.Updated?.ToLocalTime(),
             Status = role.Status,
         };
     }

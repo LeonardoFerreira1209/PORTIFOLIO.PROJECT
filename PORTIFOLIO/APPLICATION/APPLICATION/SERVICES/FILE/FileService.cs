@@ -68,7 +68,7 @@ public class FileService : IFileService
                     return await _fileRepository.CreateAsync(new File
                     {
                         ContentType = formFile.ContentType,
-                        Created = DateTime.Now,
+                        Created = DateTime.UtcNow,
                         Name = formFile.Name,
                         Status = Status.Active,
                         Url = blobStorage.Uri.ToString()
