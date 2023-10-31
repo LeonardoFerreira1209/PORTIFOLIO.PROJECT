@@ -16,6 +16,11 @@ public class ChatMessageRequest
     public string Message { get; set; }
 
     /// <summary>
+    /// Imagens.
+    /// </summary>
+    public List<string> Images { get; set; }
+
+    /// <summary>
     /// Id do chat em que a mensagem está vinculada.
     /// </summary>
     public Guid ChatId { get; set; }
