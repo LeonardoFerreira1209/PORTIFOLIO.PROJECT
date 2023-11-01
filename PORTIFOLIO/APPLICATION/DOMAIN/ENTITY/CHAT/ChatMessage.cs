@@ -47,4 +47,19 @@ public class ChatMessage : Entity
     /// A mensagem foi gerada por um chatBot. 
     /// </summary>
     public bool IsChatBot { get; set; }
+
+    /// <summary>
+    /// É uma mensagem. 
+    /// </summary>
+    public bool IsImage { get; set; }
+
+    /// <summary>
+    /// Id do arquivo.
+    /// </summary>
+    public Guid? FileId { get; set; }
+
+    /// <summary>
+    /// Arquivo
+    /// </summary>
+    public virtual File File { get; set; }
 }

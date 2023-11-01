@@ -14,7 +14,7 @@ public interface IOpenAiExternal
     /// </summary>
     /// <param name="openAiCompletionsRequest"></param>
     /// <returns></returns>
-    [Post("chat/completions")]
+    [Post("/chat/completions")]
     Task<OpenAiCompletionsResponse> Completions([Body] OpenAiCompletionsRequest openAiCompletionsRequest);
 
     /// <summary>
@@ -22,6 +22,6 @@ public interface IOpenAiExternal
     /// </summary>
     /// <param name="openAiImagesGenerationRequest"></param>
     /// <returns></returns>
-    [Post("images/generations")]
+    [Post("/images/generations")]
     Task<OpenAiImagesGenerationResponse> ImageGeneration([Body] OpenAiImagesGenerationRequest openAiImagesGenerationRequest);
 }

@@ -41,7 +41,8 @@ public static class ChatExtensions
             Status = Status.Active,
             Command = chatMessageRequest.Command,
             HasCommand = chatMessageRequest.HasCommand,
-            IsChatBot = chatMessageRequest.IsChatBot
+            IsChatBot = chatMessageRequest.IsChatBot,
+            IsImage = chatMessageRequest.IsImage,
         };
 
     /// <summary>
@@ -83,6 +84,9 @@ public static class ChatExtensions
             UserToSendMessage = chatMessage.UserToSendMessage?.ToResponse(),
             Command = chatMessage.Command,
             HasCommand = chatMessage.HasCommand,
-            IsChatBot = chatMessage.IsChatBot
+            IsChatBot = chatMessage.IsChatBot,
+            IsImage = chatMessage.IsImage,
+            FileId = chatMessage?.FileId,
+            File = chatMessage.File?.ToResponse()
         };
 }

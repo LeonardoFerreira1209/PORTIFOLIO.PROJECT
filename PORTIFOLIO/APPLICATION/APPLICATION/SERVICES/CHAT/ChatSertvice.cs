@@ -24,6 +24,7 @@ public class ChatSertvice : IChatService
     private readonly IChatRepository _chatRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IHubContext<HubChats> _hubChatsContext;
+    private readonly IFileService _fileService;
 
     /// <summary>
     /// ctor
@@ -31,11 +32,12 @@ public class ChatSertvice : IChatService
     /// <param name="chatRepository"></param>
     public ChatSertvice(
         IChatRepository chatRepository, 
-        IUnitOfWork unitOfWork, IHubContext<HubChats> hubChatsContext)
+        IUnitOfWork unitOfWork, IHubContext<HubChats> hubChatsContext, IFileService fileService)
     {
         _chatRepository = chatRepository;
         _unitOfWork = unitOfWork;
         _hubChatsContext = hubChatsContext;
+        _fileService = fileService;
     }
 
     /// <summary>
@@ -95,6 +97,13 @@ public class ChatSertvice : IChatService
         {
             var chatMessage = chatMessageRequest.AsEntity();
 
+            if (chatMessageRequest.IsImage)
+            {
+                var file = await _fileService.CreateAsync(chatMessageRequest.Url, "image/jpeg", $"DALLE_{Guid.NewGuid()}");
+
+                chatMessage.FileId = file.Id;
+            }
+
             return await _chatRepository.CreateMessageAsync(chatMessage)
                 .ContinueWith(async taskResult =>
                 {
@@ -111,8 +120,8 @@ public class ChatSertvice : IChatService
                                             new DadosNotificacao("Mensagem enviada com sucesso!")
                                     }));
                         });
-                    
-                }).Result;
+
+                }).Unwrap();
         }
         catch (Exception exception)
         {

@@ -638,16 +638,16 @@ public static class ExtensionsConfigurations
                 var user = new User
                 {
                     FirstName = "Hyper",
-                    LastName = "Teste",
-                    Email = "Hyper.ip@outlook.com",
+                    LastName = "io",
+                    Email = "Hyper.io@outlook.com",
                     EmailConfirmed = true,
-                    UserName = "User.Teste",
+                    UserName = "Hyper.io",
                     Created = DateTime.UtcNow,
                     Status = Status.Active,
                 };
 
                 // Generate a password hash.
-                user.PasswordHash = new PasswordHasher<User>().HashPassword(user, "Teste@123456");
+                user.PasswordHash = new PasswordHasher<User>().HashPassword(user, "Hyperio@77990912");
 
                 // Create user.
                 await userManager.CreateAsync(user);
@@ -656,7 +656,7 @@ public static class ExtensionsConfigurations
                 await userManager.UpdateAsync(user);
 
                 // Add Login in user.
-                await userManager.AddLoginAsync(user, new UserLoginInfo("TOOLS.USER.API", "TOOLS.USER", "TOOLS.USER.PROVIDER.KEY"));
+                await userManager.AddLoginAsync(user, new UserLoginInfo("API", "USER", "PROVIDER.KEY"));
 
                 // Set data in role.
                 var role = new Role
@@ -687,6 +687,12 @@ public static class ExtensionsConfigurations
                 await roleManager.AddClaimAsync(role, new Claim("Role", "Put"));
                 await roleManager.AddClaimAsync(role, new Claim("Role", "Patch"));
                 await roleManager.AddClaimAsync(role, new Claim("Role", "Delete"));
+
+                await roleManager.AddClaimAsync(role, new Claim("Chat", "Get"));
+                await roleManager.AddClaimAsync(role, new Claim("Chat", "Post"));
+                await roleManager.AddClaimAsync(role, new Claim("Chat", "Put"));
+                await roleManager.AddClaimAsync(role, new Claim("Chat", "Patch"));
+                await roleManager.AddClaimAsync(role, new Claim("Chat", "Delete"));
 
                 // Add role to user.
                 await userManager.AddToRoleAsync(user, role.Name);

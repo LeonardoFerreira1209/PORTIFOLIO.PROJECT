@@ -129,7 +129,7 @@ public class HubChats : HubBase
                 await Clients
                    .Group(groupName).SendAsync("ReceberMensagem", apiResponse.Dados);
 
-            }).Unwrap();
+            }).Result;
     }
 
     /// <summary>
@@ -193,20 +193,23 @@ public class HubChats : HubBase
             };
 
         await _openAiExternal.ImageGeneration(
-            request).ContinueWith(async (taskResult) =>
+            request).ContinueWith((taskResult) =>
             {
                 var response = taskResult.Result;
 
-                await SendToChatAsync(new ChatMessageRequest
+                response.Data.ForEach(async (data) =>
                 {
-                    ChatId = Guid.Parse(chatId),
-                    Images = response.Data?.Select(data => data.url).ToList(),
-                    UserId = Guid.Parse(userId),
-                    Command = "DALLE >",
-                    HasCommand = true,
-                    IsChatBot = true
-                }, groupName);
-
-            }).Result;
+                    await SendToChatAsync(new ChatMessageRequest
+                    {
+                        ChatId = Guid.Parse(chatId),
+                        UserId = Guid.Parse(userId),
+                        Command = "DALLE >",
+                        HasCommand = true,
+                        IsChatBot = true,
+                        IsImage = true,
+                        Url = data.url
+                    }, groupName);
+                });
+            });
     }
 }
