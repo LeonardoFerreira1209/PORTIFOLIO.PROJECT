@@ -48,7 +48,7 @@ public class FileService : IFileService
 
         try
         {
-            var fileName 
+            var fileName
                 = $"{userId}_{formFile.FileName}";
 
             var blobStorage
@@ -60,35 +60,54 @@ public class FileService : IFileService
                     var azureResponse =
                             taskResult.Result;
 
-                    if(await blobStorage.ExistsAsync()) await blobStorage.DeleteAsync();
+                    if (await blobStorage.ExistsAsync()) await blobStorage.DeleteAsync();
 
                     await blobStorage.UploadAsync(
                         formFile.OpenReadStream());
 
-                    return await _fileRepository.CreateAsync(new File
-                    {
-                        ContentType = formFile.ContentType,
-                        Created = DateTime.UtcNow,
-                        Name = formFile.Name,
-                        Status = Status.Active,
-                        Url = blobStorage.Uri.ToString()
-
-                    }).ContinueWith(async (taskResult) =>
-                    {
-                        var file = taskResult.Result;
-
-                        await _unitOfWork.CommitAsync();
-
-                        Log.Information(
-                         $"[LOG INFORMATION] - Arquivo enviado para o blob com sucesso {fileName}\n");
-
-                        return file;
-
-                    }).Unwrap();
+                    return await CreateAsync(blobStorage.Uri.ToString(), formFile.ContentType, fileName);
 
                 }).Result;
         }
         catch (Exception exception)
+        {
+            Log.Error($"[LOG ERROR] - Exception:{exception.Message} - {JsonConvert.SerializeObject(exception)}\n"); throw;
+        }
+    }
+
+    /// <summary>
+    /// Método que cria um registro de arquivo através de uma url.
+    /// </summary>
+    /// <param name="url"></param>
+    /// <param name="contentType"></param>
+    /// <param name="name"></param>
+    /// <returns></returns>
+    public async Task<File> CreateAsync(string url, string contentType, string name)
+    {
+        try
+        {
+            return await _fileRepository.CreateAsync(new File
+            {
+                ContentType = contentType,
+                Created = DateTime.UtcNow,
+                Name = name,
+                Status = Status.Active,
+                Url = url
+
+            }).ContinueWith(async (taskResult) =>
+            {
+                var file = taskResult.Result;
+
+                await _unitOfWork.CommitAsync();
+
+                Log.Information(
+                 $"[LOG INFORMATION] - Arquivo enviado para o blob com sucesso {name}\n");
+
+                return file;
+
+            }).Result;
+        }
+        catch(Exception exception) 
         {
             Log.Error($"[LOG ERROR] - Exception:{exception.Message} - {JsonConvert.SerializeObject(exception)}\n"); throw;
         }

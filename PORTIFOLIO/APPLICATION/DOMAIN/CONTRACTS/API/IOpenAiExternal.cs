@@ -14,6 +14,14 @@ public interface IOpenAiExternal
     /// </summary>
     /// <param name="openAiCompletionsRequest"></param>
     /// <returns></returns>
-    [Post("/completions")]
+    [Post("/chat/completions")]
     Task<OpenAiCompletionsResponse> Completions([Body] OpenAiCompletionsRequest openAiCompletionsRequest);
+
+    /// <summary>
+    /// Método de envio de para API de imagens da OPENAI.
+    /// </summary>
+    /// <param name="openAiImagesGenerationRequest"></param>
+    /// <returns></returns>
+    [Post("/images/generations")]
+    Task<OpenAiImagesGenerationResponse> ImageGeneration([Body] OpenAiImagesGenerationRequest openAiImagesGenerationRequest);
 }

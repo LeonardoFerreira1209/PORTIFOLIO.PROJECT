@@ -16,6 +16,11 @@ public class ChatMessageRequest
     public string Message { get; set; }
 
     /// <summary>
+    /// Imagens.
+    /// </summary>
+    public List<string> Images { get; set; }
+
+    /// <summary>
     /// Id do chat em que a mensagem está vinculada.
     /// </summary>
     public Guid ChatId { get; set; }
@@ -34,4 +39,14 @@ public class ChatMessageRequest
     /// A mensagem foi gerada por um chatBot. 
     /// </summary>
     public bool IsChatBot { get; set; }
+
+    /// <summary>
+    /// É uma mensagem. 
+    /// </summary>
+    public bool IsImage { get; set; }
+
+    /// <summary>
+    /// Url do arquivo.
+    /// </summary>
+    public string Url { get; set; }
 }

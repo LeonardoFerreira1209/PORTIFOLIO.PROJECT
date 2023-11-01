@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace APPLICATION.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20230920034158_FEATUREFLAGS_ENTITY")]
-    partial class FEATUREFLAGS_ENTITY
+    [Migration("20231101050659_INITIAL")]
+    partial class INITIAL
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -64,8 +64,23 @@ namespace APPLICATION.Migrations
                     b.Property<Guid>("ChatId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("Command")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("FileId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("HasCommand")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsChatBot")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsImage")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Message")
                         .HasColumnType("nvarchar(max)");
@@ -82,6 +97,8 @@ namespace APPLICATION.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ChatId");
+
+                    b.HasIndex("FileId");
 
                     b.HasIndex("UserId");
 
@@ -178,7 +195,7 @@ namespace APPLICATION.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("File");
+                    b.ToTable("Files");
                 });
 
             modelBuilder.Entity("APPLICATION.DOMAIN.ENTITY.Role", b =>
@@ -476,6 +493,10 @@ namespace APPLICATION.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("APPLICATION.DOMAIN.ENTITY.File", "File")
+                        .WithMany()
+                        .HasForeignKey("FileId");
+
                     b.HasOne("APPLICATION.DOMAIN.ENTITY.USER.User", "UserToSendMessage")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -483,6 +504,8 @@ namespace APPLICATION.Migrations
                         .IsRequired();
 
                     b.Navigation("Chat");
+
+                    b.Navigation("File");
 
                     b.Navigation("UserToSendMessage");
                 });

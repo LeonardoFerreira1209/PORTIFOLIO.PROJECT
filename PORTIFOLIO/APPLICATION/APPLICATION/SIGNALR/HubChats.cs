@@ -71,7 +71,7 @@ public class HubChats : HubBase
     /// <returns></returns>
     public Task JoinGroup(string chatId)
         => Groups.AddToGroupAsync(Context.ConnectionId, $"chat-{chatId}");
-    
+
     /// <summary>
     /// Checa se é um commando.
     /// </summary>
@@ -104,6 +104,9 @@ public class HubChats : HubBase
             case ">GPT":
                 await SendQuestionToGptAsync(userId, chatId, groupName, message);
                 break;
+            case ">DALLE":
+                await SendPromptToDalleGenerationImageAsync(userId, chatId, groupName, message);
+                break;
             default:
                 break;
         }
@@ -126,11 +129,11 @@ public class HubChats : HubBase
                 await Clients
                    .Group(groupName).SendAsync("ReceberMensagem", apiResponse.Dados);
 
-            }).Unwrap();
+            }).Result;
     }
 
     /// <summary>
-    /// Envia uma pergunta para 
+    /// Envia uma pergunta para o GPT.
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="chatId"></param>
@@ -168,5 +171,45 @@ public class HubChats : HubBase
                 }, groupName);
 
             }).Result;
+    }
+
+    /// <summary>
+    /// Envia um prompt para o DALLE gerar uma imagem.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="chatId"></param>
+    /// <param name="groupName"></param>
+    /// <param name="messageSubstring"></param>
+    /// <returns></returns>
+    private async Task SendPromptToDalleGenerationImageAsync(
+        string userId, string chatId, string groupName, string messageSubstring)
+    {
+        var request
+            = new OpenAiImagesGenerationRequest
+            {
+                Prompt = messageSubstring,
+                N = 1,
+                Size = "1024x1024"
+            };
+
+        await _openAiExternal.ImageGeneration(
+            request).ContinueWith((taskResult) =>
+            {
+                var response = taskResult.Result;
+
+                response.Data.ForEach(async (data) =>
+                {
+                    await SendToChatAsync(new ChatMessageRequest
+                    {
+                        ChatId = Guid.Parse(chatId),
+                        UserId = Guid.Parse(userId),
+                        Command = "DALLE >",
+                        HasCommand = true,
+                        IsChatBot = true,
+                        IsImage = true,
+                        Url = data.url
+                    }, groupName);
+                });
+            });
     }
 }
