@@ -97,7 +97,7 @@ public class ChatSertvice : IChatService
         {
             var chatMessage = chatMessageRequest.AsEntity();
 
-            if (chatMessageRequest.IsImage)
+            if (chatMessageRequest.IsImage && !chatMessageRequest.IsChatBot)
             {
                 var file = await _fileService.CreateAsync(chatMessageRequest.Url, "image/jpeg", $"DALLE_{Guid.NewGuid()}");
 

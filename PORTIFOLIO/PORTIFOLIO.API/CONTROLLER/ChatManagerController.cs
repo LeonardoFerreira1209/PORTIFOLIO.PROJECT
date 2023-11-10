@@ -1,9 +1,11 @@
 ﻿using APPLICATION.DOMAIN.CONTRACTS.FEATUREFLAGS;
 using APPLICATION.DOMAIN.CONTRACTS.REPOSITORY.BASE;
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES;
+using APPLICATION.DOMAIN.DTOS.CONFIGURATION.AUTH.CUSTOMAUTHORIZE.ATTRIBUTE;
 using APPLICATION.DOMAIN.DTOS.REQUEST.CHAT;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.BASE;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.CHAT;
+using APPLICATION.DOMAIN.ENUMS;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -42,7 +44,7 @@ public class ChatManagerController : BaseControllercs
     /// <param name="chatRequest"></param>
     /// <returns></returns>
     [HttpPost("create/chat")]
-    //[CustomAuthorize(Claims.Chat, "Post")]
+    [CustomAuthorize(Claims.Chat, "Post")]
     [SwaggerOperation(Summary = "Recuperar dados do chat", Description = "Método responsável por recuperar dados do chat")]
     [ProducesResponseType(typeof(ApiResponse<ChatResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<ChatResponse>), StatusCodes.Status400BadRequest)]
@@ -64,7 +66,7 @@ public class ChatManagerController : BaseControllercs
     /// <param name="chatMessageRequest"></param>
     /// <returns></returns>
     [HttpPost("send/message")]
-    //[CustomAuthorize(Claims.Chat, "Post")]
+    [CustomAuthorize(Claims.Chat, "Post")]
     [SwaggerOperation(Summary = "Recuperar dados do chat", Description = "Método responsável por recuperar dados do chat")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
@@ -87,7 +89,7 @@ public class ChatManagerController : BaseControllercs
     /// <param name="ordered"></param>
     /// <returns></returns>
     [HttpGet("get/chats/by/user/{userId}/ordered/{ordered}")]
-    //[CustomAuthorize(Claims.Chat, "Get")]
+    [CustomAuthorize(Claims.Chat, "Get")]
     [SwaggerOperation(Summary = "Recuperar dados do chat", Description = "Método responsável por recuperar dados do chat")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
@@ -109,7 +111,7 @@ public class ChatManagerController : BaseControllercs
     /// <param name="chatId"></param>
     /// <returns></returns>
     [HttpGet("get/chat/{chatId}")]
-    //[CustomAuthorize(Claims.Chat, "Get")]
+    [CustomAuthorize(Claims.Chat, "Get")]
     [SwaggerOperation(Summary = "Recuperar dados do chat", Description = "Método responsável por recuperar dados do chat")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
@@ -131,7 +133,7 @@ public class ChatManagerController : BaseControllercs
     /// <param name="userId"></param>
     /// <returns></returns>
     [HttpGet("get/messages/by/chat/{chatId}")]
-    //[CustomAuthorize(Claims.Chat, "Get")]
+    [CustomAuthorize(Claims.Chat, "Get")]
     [SwaggerOperation(Summary = "Recuperar mensagens do chat", Description = "Método responsável por recuperar mensagens do chat")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
