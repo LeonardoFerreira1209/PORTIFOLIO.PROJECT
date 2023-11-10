@@ -8,7 +8,9 @@ using APPLICATION.DOMAIN.ENUMS;
 using APPLICATION.DOMAIN.UTILS.GLOBAL;
 using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
+using Refit;
 using Serilog;
+using System.Net;
 using System.Text.RegularExpressions;
 
 namespace APPLICATION.APPLICATION.SIGNALR;
@@ -124,7 +126,7 @@ public class HubChats : HubBase
             .ContinueWith(async (taskResult) =>
             {
                 var apiResponse
-                    = (ApiResponse<ChatMessageResponse>)taskResult.Result.Value;
+                    = (DOMAIN.DTOS.RESPONSE.BASE.ApiResponse<ChatMessageResponse>)taskResult.Result.Value;
 
                 await Clients
                    .Group(groupName).SendAsync("ReceberMensagem", apiResponse.Dados);
@@ -143,34 +145,51 @@ public class HubChats : HubBase
     private async Task SendQuestionToGptAsync(
         string userId, string chatId, string groupName, string messageSubstring)
     {
-        var request
-            = new OpenAiCompletionsRequest
-            {
-                Model = "gpt-3.5-turbo",
-                Messages = new List<OpenAiCompletionsMessagesRequest> {
-                    new OpenAiCompletionsMessagesRequest {
-                        Content = messageSubstring,
-                        Role = nameof(CompletionsRoles.User).ToLower()
-                    }
-                }
-            };
-
-        await _openAiExternal.Completions(
-            request).ContinueWith(async (taskResult) =>
-            {
-                var response = taskResult.Result;
-
-                await SendToChatAsync(new ChatMessageRequest
+        try
+        {
+            var request
+                = new OpenAiCompletionsRequest
                 {
-                    ChatId = Guid.Parse(chatId),
-                    Message = $"GPT > {response.Choices.First().openAiCompletionsMessageResponse.Content}",
-                    UserId = Guid.Parse(userId),
-                    Command = "GPT >",
-                    HasCommand = true,
-                    IsChatBot = true
-                }, groupName);
+                    Model = "gpt-4",
+                    Messages = new List<OpenAiCompletionsMessagesRequest> {
+                        new OpenAiCompletionsMessagesRequest {
+                            Content = messageSubstring,
+                            Role = nameof(CompletionsRoles.User).ToLower()
+                        }
+                    }
+                };
 
-            }).Result;
+            await _openAiExternal.Completions(
+                request).ContinueWith(async (taskResult) =>
+                {
+                    var response = taskResult.Result;
+
+                    await SendToChatAsync(new ChatMessageRequest
+                    {
+                        ChatId = Guid.Parse(chatId),
+                        Message = $"GPT > {response.Choices.First().openAiCompletionsMessageResponse.Content}",
+                        UserId = Guid.Parse(userId),
+                        Command = "GPT >",
+                        HasCommand = true,
+                        IsChatBot = true
+                    }, groupName);
+
+                }).Result;
+        }
+        catch
+        {
+            await SendToChatAsync(new ChatMessageRequest
+            {
+                ChatId = Guid.Parse(chatId),
+                UserId = Guid.Parse(userId),
+                Command = "GPT >",
+                HasCommand = true,
+                IsChatBot = true,
+                IsImage = false,
+                Message = "GPT > Falha ao gerar resposta, tente novamente!",
+
+            }, groupName);
+        }
     }
 
     /// <summary>
@@ -184,32 +203,49 @@ public class HubChats : HubBase
     private async Task SendPromptToDalleGenerationImageAsync(
         string userId, string chatId, string groupName, string messageSubstring)
     {
-        var request
-            = new OpenAiImagesGenerationRequest
-            {
-                Prompt = messageSubstring,
-                N = 1,
-                Size = "1024x1024"
-            };
-
-        await _openAiExternal.ImageGeneration(
-            request).ContinueWith((taskResult) =>
-            {
-                var response = taskResult.Result;
-
-                response.Data.ForEach(async (data) =>
+        try
+        {
+            var request
+                = new OpenAiImagesGenerationRequest
                 {
-                    await SendToChatAsync(new ChatMessageRequest
+                    Prompt = messageSubstring,
+                    N = 1,
+                    Size = "1024x1024"
+                };
+
+            await _openAiExternal.ImageGeneration(
+                request).ContinueWith((taskResult) =>
+                {
+                    var response = taskResult.Result;
+
+                    response.Data.ForEach(async (data) =>
                     {
-                        ChatId = Guid.Parse(chatId),
-                        UserId = Guid.Parse(userId),
-                        Command = "DALLE >",
-                        HasCommand = true,
-                        IsChatBot = true,
-                        IsImage = true,
-                        Url = data.url
-                    }, groupName);
+                        await SendToChatAsync(new ChatMessageRequest
+                        {
+                            ChatId = Guid.Parse(chatId),
+                            UserId = Guid.Parse(userId),
+                            Command = "DALLE >",
+                            HasCommand = true,
+                            IsChatBot = true,
+                            IsImage = true,
+                            Message = data.url
+                        }, groupName);
+                    });
                 });
-            });
+        }
+        catch
+        {
+            await SendToChatAsync(new ChatMessageRequest
+            {
+                ChatId = Guid.Parse(chatId),
+                UserId = Guid.Parse(userId),
+                Command = "DALLE >",
+                HasCommand = true,
+                IsChatBot = true,
+                IsImage = false,
+                Message = "DALLE > Falha ao gerar resposta, tente novamente!",
+                
+            }, groupName);
+        }
     }
 }
