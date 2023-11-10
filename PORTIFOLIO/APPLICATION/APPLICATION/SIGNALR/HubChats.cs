@@ -248,44 +248,4 @@ public class HubChats : HubBase
             }, groupName);
         }
     }
-
-    /// <summary>
-    /// Envia um prompt para o DALLE gerar uma imagem.
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="chatId"></param>
-    /// <param name="groupName"></param>
-    /// <param name="messageSubstring"></param>
-    /// <returns></returns>
-    private async Task SendPromptToDalleGenerationImageAsync(
-        string userId, string chatId, string groupName, string messageSubstring)
-    {
-        var request
-            = new OpenAiImagesGenerationRequest
-            {
-                Prompt = messageSubstring,
-                N = 1,
-                Size = "1024x1024"
-            };
-
-        await _openAiExternal.ImageGeneration(
-            request).ContinueWith((taskResult) =>
-            {
-                var response = taskResult.Result;
-
-                response.Data.ForEach(async (data) =>
-                {
-                    await SendToChatAsync(new ChatMessageRequest
-                    {
-                        ChatId = Guid.Parse(chatId),
-                        UserId = Guid.Parse(userId),
-                        Command = "DALLE >",
-                        HasCommand = true,
-                        IsChatBot = true,
-                        IsImage = true,
-                        Url = data.url
-                    }, groupName);
-                });
-            });
-    }
 }
