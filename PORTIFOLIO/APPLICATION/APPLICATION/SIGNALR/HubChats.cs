@@ -2,15 +2,12 @@
 using APPLICATION.DOMAIN.CONTRACTS.SERVICES;
 using APPLICATION.DOMAIN.DTOS.REQUEST;
 using APPLICATION.DOMAIN.DTOS.REQUEST.CHAT;
-using APPLICATION.DOMAIN.DTOS.RESPONSE.BASE;
 using APPLICATION.DOMAIN.DTOS.RESPONSE.CHAT;
 using APPLICATION.DOMAIN.ENUMS;
 using APPLICATION.DOMAIN.UTILS.GLOBAL;
 using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
-using Refit;
 using Serilog;
-using System.Net;
 using System.Text.RegularExpressions;
 
 namespace APPLICATION.APPLICATION.SIGNALR;
@@ -42,23 +39,37 @@ public class HubChats : HubBase
     /// <param name="groupName"></param>
     /// <param name="message"></param>
     /// <returns></returns>
-    public async Task SendMessageToChatAsync(string userId, string chatId, string groupName, string message)
+    public async Task SendMessageToChatAsync(string userId, string chatId, string groupName, ChatHubMessageRequest message)
     {
         try
         {
-            var (isCommand, command) = CheckCommand(message);
-
-            await SendToChatAsync(new ChatMessageRequest
+            if (!string.IsNullOrEmpty(message.Message))
             {
-                ChatId = Guid.Parse(chatId),
-                Message = message,
-                UserId = Guid.Parse(userId),
-                HasCommand = isCommand,
-                Command = command,
-                IsChatBot = false
-            }, groupName);
+                var (isCommand, command) = CheckCommand(message.Message);
 
-            if (isCommand) await SendCommandMessage(userId, chatId, groupName, message, command);
+                await SendToChatAsync(new ChatMessageRequest
+                {
+                    ChatId = Guid.Parse(chatId),
+                    Message = message.Message,
+                    UserId = Guid.Parse(userId),
+                    HasCommand = isCommand,
+                    Command = command,
+                    IsChatBot = false
+                }, groupName);
+
+                if (isCommand) await SendCommandMessage(userId, chatId, groupName, message.Message, command);
+            }
+
+            if(message.File is not null)
+            {
+                await SendToChatAsync(new ChatMessageRequest
+                {
+                    ChatId= Guid.Parse(chatId),
+                    UserId= Guid.Parse(userId),
+                    Images = new[] { message.File }.ToList(),
+                    IsImage = true
+                }, groupName);
+            }
         }
         catch (Exception exception)
         {
@@ -208,6 +219,7 @@ public class HubChats : HubBase
             var request
                 = new OpenAiImagesGenerationRequest
                 {
+                    Model = "dall-e-3",
                     Prompt = messageSubstring,
                     N = 1,
                     Size = "1024x1024"
@@ -244,7 +256,7 @@ public class HubChats : HubBase
                 IsChatBot = true,
                 IsImage = false,
                 Message = "DALLE > Falha ao gerar resposta, tente novamente!",
-                
+
             }, groupName);
         }
     }

@@ -18,7 +18,7 @@ public class ChatMessageRequest
     /// <summary>
     /// Imagens.
     /// </summary>
-    public List<string> Images { get; set; }
+    public List<File> Images { get; set; }
 
     /// <summary>
     /// Id do chat em que a mensagem está vinculada.

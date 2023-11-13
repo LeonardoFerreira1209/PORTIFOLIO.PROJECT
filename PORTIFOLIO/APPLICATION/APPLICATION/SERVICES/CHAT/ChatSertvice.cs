@@ -8,6 +8,7 @@ using APPLICATION.DOMAIN.DTOS.RESPONSE.CHAT;
 using APPLICATION.DOMAIN.ENTITY.CHAT;
 using APPLICATION.DOMAIN.UTILS.EXTENSIONS;
 using APPLICATION.DOMAIN.UTILS.GLOBAL;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
@@ -99,7 +100,19 @@ public class ChatSertvice : IChatService
 
             if (chatMessageRequest.IsImage && !chatMessageRequest.IsChatBot)
             {
-                var file = await _fileService.CreateAsync(chatMessageRequest.Url, "image/jpeg", $"DALLE_{Guid.NewGuid()}");
+                var image = chatMessageRequest.Images.First();
+
+                byte[] fileBytes = Convert.FromBase64String(image.Content);
+
+                var stream = new MemoryStream(fileBytes);
+
+                IFormFile formFile = new FormFile(stream, 0, stream.Length, $"{chatMessageRequest.ChatId}_{image.Name}", image.Name)
+                {
+                    Headers = new HeaderDictionary(),
+                    ContentType = image.Type
+                };
+
+                var file = await _fileService.UploadAsync(chatMessageRequest.UserId, formFile);
 
                 chatMessage.FileId = file.Id;
             }

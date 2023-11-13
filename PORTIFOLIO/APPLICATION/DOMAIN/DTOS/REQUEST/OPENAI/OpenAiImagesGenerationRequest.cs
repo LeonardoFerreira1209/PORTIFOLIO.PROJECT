@@ -8,6 +8,12 @@ namespace APPLICATION.DOMAIN.DTOS.REQUEST;
 public class OpenAiImagesGenerationRequest
 {
     /// <summary>
+    /// Modelo a ser usado. (dall-e-2 ou dall-e-3)
+    /// </summary>
+    [JsonProperty("model")]
+    public string Model { get; set; }
+
+    /// <summary>
     /// Prompt da imagem.
     /// </summary>
     [JsonProperty("prompt")]

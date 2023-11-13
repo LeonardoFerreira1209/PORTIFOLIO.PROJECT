@@ -17,15 +17,6 @@ public interface IFileService
     Task<File> UploadAsync(Guid userId, IFormFile formFile);
 
     /// <summary>
-    /// Método que cria um registro de arquivo através de uma url.
-    /// </summary>
-    /// <param name="url"></param>
-    /// <param name="contentType"></param>
-    /// <param name="name"></param>
-    /// <returns></returns>
-    Task<File> CreateAsync(string url, string contentType, string name);
-
-    /// <summary>
     /// étodo de upload de arquivo.
     /// </summary>
     /// <param name="blobName"></param>

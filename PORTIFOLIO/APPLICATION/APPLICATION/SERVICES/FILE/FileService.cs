@@ -82,7 +82,7 @@ public class FileService : IFileService
     /// <param name="contentType"></param>
     /// <param name="name"></param>
     /// <returns></returns>
-    public async Task<File> CreateAsync(string url, string contentType, string name)
+    private async Task<File> CreateAsync(string base64File, string contentType, string name)
     {
         try
         {
@@ -92,7 +92,7 @@ public class FileService : IFileService
                 Created = DateTime.UtcNow,
                 Name = name,
                 Status = Status.Active,
-                Url = url
+                Url = base64File
 
             }).ContinueWith(async (taskResult) =>
             {

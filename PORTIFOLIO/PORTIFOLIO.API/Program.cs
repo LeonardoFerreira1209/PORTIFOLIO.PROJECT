@@ -87,7 +87,10 @@ try
         options
         => options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
 
-    builder.Services.AddSignalR();
+    builder.Services.AddSignalR((e) =>
+    {
+        e.MaximumReceiveMessageSize = 102400000;
+    });
 
     var applicationbuilder = builder.Build();
 
