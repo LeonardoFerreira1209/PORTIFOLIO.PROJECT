@@ -4,6 +4,7 @@ using APPLICATION.DOMAIN.CONTRACTS.SERVICES;
 using APPLICATION.DOMAIN.DTOS.CONFIGURATION;
 using APPLICATION.DOMAIN.ENUMS;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -62,8 +63,13 @@ public class FileService : IFileService
 
                     if (await blobStorage.ExistsAsync()) await blobStorage.DeleteAsync();
 
+                    var httpHeaders = new BlobHttpHeaders
+                    {
+                        ContentType = formFile.ContentType
+                    };
+
                     await blobStorage.UploadAsync(
-                        formFile.OpenReadStream());
+                        formFile.OpenReadStream(), new BlobUploadOptions { HttpHeaders = httpHeaders });
 
                     return await CreateAsync(blobStorage.Uri.ToString(), formFile.ContentType, fileName);
 

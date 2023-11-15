@@ -106,7 +106,7 @@ public class ChatSertvice : IChatService
 
                 var stream = new MemoryStream(fileBytes);
 
-                IFormFile formFile = new FormFile(stream, 0, stream.Length, $"{chatMessageRequest.ChatId}_{image.Name}", image.Name)
+                IFormFile formFile = new FormFile(stream, 0, stream.Length, image.Name, image.Name)
                 {
                     Headers = new HeaderDictionary(),
                     ContentType = image.Type
