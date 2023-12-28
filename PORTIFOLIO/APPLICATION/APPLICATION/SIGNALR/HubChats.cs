@@ -47,28 +47,21 @@ public class HubChats : HubBase
             {
                 var (isCommand, command) = CheckCommand(message.Message);
 
+                bool hasImage = message.File is not null;
+
                 await SendToChatAsync(new ChatMessageRequest
                 {
                     ChatId = Guid.Parse(chatId),
                     Message = message.Message,
                     UserId = Guid.Parse(userId),
                     HasCommand = isCommand,
+                    IsImage = hasImage,
+                    Images = hasImage ? new[] { message.File }.ToList() : Enumerable.Empty<DOMAIN.DTOS.REQUEST.CHAT.File>().ToList(),
                     Command = command,
                     IsChatBot = false
                 }, groupName);
 
                 if (isCommand) await SendCommandMessage(userId, chatId, groupName, message.Message, command);
-            }
-
-            if(message.File is not null)
-            {
-                await SendToChatAsync(new ChatMessageRequest
-                {
-                    ChatId= Guid.Parse(chatId),
-                    UserId= Guid.Parse(userId),
-                    Images = new[] { message.File }.ToList(),
-                    IsImage = true
-                }, groupName);
             }
         }
         catch (Exception exception)
